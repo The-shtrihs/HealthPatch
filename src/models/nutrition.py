@@ -1,12 +1,9 @@
 from datetime import date
-from typing import TYPE_CHECKING, Optional
 
 from sqlalchemy import Boolean, Date, Float, ForeignKey, Integer, String, Text, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from src.core.base import Base
-
-
 from src.models.user import User
 
 
@@ -32,18 +29,24 @@ class DailyDiary(Base):
     user_id: Mapped[int] = mapped_column(ForeignKey("user.id", ondelete="CASCADE"), nullable=False)
     target_date: Mapped[date] = mapped_column(Date, nullable=False)
     water_ml: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
-    notes: Mapped[Optional[str]] = mapped_column(Text)
+    notes: Mapped[str | None] = mapped_column(Text)
 
     user: Mapped["User"] = relationship(back_populates="daily_diaries")
-    meal_entries: Mapped[list["MealEntry"]] = relationship(back_populates="daily_diary", cascade="all, delete-orphan")
+    meal_entries: Mapped[list["MealEntry"]] = relationship(
+        back_populates="daily_diary", cascade="all, delete-orphan"
+    )
 
 
 class MealEntry(Base):
     __tablename__ = "meal_entry"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    daily_diary_id: Mapped[int] = mapped_column(ForeignKey("daily_diary.id", ondelete="CASCADE"), nullable=False)
-    food_id: Mapped[int] = mapped_column(ForeignKey("food.id", ondelete="RESTRICT"), nullable=False)
+    daily_diary_id: Mapped[int] = mapped_column(
+        ForeignKey("daily_diary.id", ondelete="CASCADE"), nullable=False
+    )
+    food_id: Mapped[int] = mapped_column(
+        ForeignKey("food.id", ondelete="RESTRICT"), nullable=False
+    )
     meal_type: Mapped[str] = mapped_column(String(20), nullable=False)
     weight_grams: Mapped[int] = mapped_column(Integer, nullable=False)
 
