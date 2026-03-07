@@ -1,5 +1,0 @@
-DATABASE_URL=postgresql+asyncpg://health:health_secret@db:5432/health_patch
-
-SECRET_KEY=CHANGE-ME-TO-RANDOM-64-CHARS
-ALGORITHM=HS256
-ACCESS_TOKEN_EXPIRE_MINUTES=60
