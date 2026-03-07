@@ -487,7 +487,7 @@ health-patch/
 ├── src/
 │   ├── __init__.py
 │   ├── core/ 
-│   │   ├── __init__.py
+│       ├── __init__.py
 │       ├── main.py                  # FastAPI application entry point
 │       ├── config.py                # Settings & environment config
 │       ├── database.py              # SQLAlchemy engine & session
