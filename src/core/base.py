@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from sqlalchemy import DateTime, func, Boolean
+from sqlalchemy import Boolean, DateTime, func
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 
 
@@ -20,6 +20,7 @@ class TimestampMixin:
         onupdate=func.now(),
         nullable=False,
     )
+
 
 class IsActiveMixin:
     is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
