@@ -12,7 +12,7 @@ class Settings(BaseSettings):
 
     model_config = {"env_file": ".env", "env_file_encoding": "utf-8"}
 
+
 @lru_cache(maxsize=None)
 def get_settings() -> Settings:
     return Settings()
-

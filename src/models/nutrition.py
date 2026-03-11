@@ -3,10 +3,11 @@ from typing import TYPE_CHECKING
 
 from sqlalchemy import Boolean, Date, Float, ForeignKey, Integer, String, Text, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
+
 from src.core.base import Base
+
 if TYPE_CHECKING:
     from src.models.user import User
-
 
 
 class Food(Base):
