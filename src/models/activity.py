@@ -1,12 +1,12 @@
 from datetime import datetime
-from typing import Optional
+from typing import Optional, TYPE_CHECKING
 
 from sqlalchemy import Boolean, DateTime, Float, ForeignKey, Integer, String, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-
 from src.core.base import Base, TimestampMixin
-from src.models.social import Bookmark, Comment, Like
-from src.models.user import User
+if TYPE_CHECKING:
+    from src.models.social import Bookmark, Comment, Like
+    from src.models.user import User
 
 
 class WorkoutPlan(Base, TimestampMixin):

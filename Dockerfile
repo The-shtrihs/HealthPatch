@@ -2,6 +2,8 @@ FROM python:3.12-slim
 
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
 
+ENV UV_PROJECT_ENVIRONMENT="/opt/venv"
+
 WORKDIR /app
 
 COPY pyproject.toml uv.lock* ./
