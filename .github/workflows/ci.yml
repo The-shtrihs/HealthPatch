@@ -39,5 +39,5 @@ jobs:
           git diff --quiet && git diff --staged --quiet || (
             git add -A &&
             git commit -m "style: auto-fix ruff lint and format" &&
-            git push
+            git push origin HEAD:${{ github.head_ref || github.ref_name }}
           )
