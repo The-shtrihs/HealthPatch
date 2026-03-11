@@ -2,9 +2,11 @@ from typing import TYPE_CHECKING
 
 from sqlalchemy import Float, ForeignKey, Integer, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
+
 from src.core.base import Base, TimestampMixin
+
 if TYPE_CHECKING:
-    from src.models.activity import  WorkoutPlan, WorkoutSession
+    from src.models.activity import WorkoutPlan, WorkoutSession
     from src.models.nutrition import DailyDiary
     from src.models.social import Bookmark, Comment, Like
 
