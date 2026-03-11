@@ -1,10 +1,14 @@
+from typing import TYPE_CHECKING
+
 from sqlalchemy import Float, ForeignKey, Integer, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from src.core.base import Base, TimestampMixin
-from src.models.activity import DeviceSyncMetric, WorkoutPlan, WorkoutSession
-from src.models.nutrition import DailyDiary
-from src.models.social import Bookmark, Comment, Like
+
+if TYPE_CHECKING:
+    from src.models.activity import WorkoutPlan, WorkoutSession
+    from src.models.nutrition import DailyDiary
+    from src.models.social import Bookmark, Comment, Like
 
 
 class User(Base, TimestampMixin):
@@ -32,10 +36,6 @@ class User(Base, TimestampMixin):
     workout_sessions: Mapped[list["WorkoutSession"]] = relationship(
         back_populates="user", cascade="all, delete-orphan"
     )
-    device_metrics: Mapped[list["DeviceSyncMetric"]] = relationship(
-        back_populates="user", cascade="all, delete-orphan"
-    )
-
     daily_diaries: Mapped[list["DailyDiary"]] = relationship(
         back_populates="user", cascade="all, delete-orphan"
     )

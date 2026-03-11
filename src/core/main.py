@@ -1,17 +1,21 @@
-from fastapi import FastAPI
 from contextlib import asynccontextmanager
+
+from fastapi import FastAPI
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # --- Startup Logic ---
     print("Connecting to database...")
-    
+
     yield
-    
+
     # --- Shutdown Logic ---
     print("Closing database connection...")
 
+
 app = FastAPI(lifespan=lifespan)
+
 
 @app.get("/")
 async def hello_world():
