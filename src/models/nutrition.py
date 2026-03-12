@@ -35,21 +35,15 @@ class DailyDiary(Base):
     notes: Mapped[str | None] = mapped_column(Text)
 
     user: Mapped["User"] = relationship(back_populates="daily_diaries")
-    meal_entries: Mapped[list["MealEntry"]] = relationship(
-        back_populates="daily_diary", cascade="all, delete-orphan"
-    )
+    meal_entries: Mapped[list["MealEntry"]] = relationship(back_populates="daily_diary", cascade="all, delete-orphan")
 
 
 class MealEntry(Base):
     __tablename__ = "meal_entry"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    daily_diary_id: Mapped[int] = mapped_column(
-        ForeignKey("daily_diary.id", ondelete="CASCADE"), nullable=False
-    )
-    food_id: Mapped[int] = mapped_column(
-        ForeignKey("food.id", ondelete="RESTRICT"), nullable=False
-    )
+    daily_diary_id: Mapped[int] = mapped_column(ForeignKey("daily_diary.id", ondelete="CASCADE"), nullable=False)
+    food_id: Mapped[int] = mapped_column(ForeignKey("food.id", ondelete="RESTRICT"), nullable=False)
     meal_type: Mapped[str] = mapped_column(String(20), nullable=False)
     weight_grams: Mapped[int] = mapped_column(Integer, nullable=False)
 
