@@ -121,9 +121,7 @@ def upgrade() -> None:
         "plan_bookmark",
         sa.Column("plan_id", sa.Integer(), nullable=False),
         sa.Column("user_id", sa.Integer(), nullable=False),
-        sa.Column(
-            "saved_at", sa.DateTime(timezone=True), server_default=sa.text("now()"), nullable=False
-        ),
+        sa.Column("saved_at", sa.DateTime(timezone=True), server_default=sa.text("now()"), nullable=False),
         sa.ForeignKeyConstraint(["plan_id"], ["workout_plan.id"], ondelete="CASCADE"),
         sa.ForeignKeyConstraint(["user_id"], ["user.id"], ondelete="CASCADE"),
         sa.PrimaryKeyConstraint("plan_id", "user_id"),
@@ -162,9 +160,7 @@ def upgrade() -> None:
         sa.Column("exercise_id", sa.Integer(), nullable=False),
         sa.Column("order_num", sa.Integer(), nullable=False),
         sa.ForeignKeyConstraint(["exercise_id"], ["exercise.id"], ondelete="RESTRICT"),
-        sa.ForeignKeyConstraint(
-            ["workout_session_id"], ["workout_session.id"], ondelete="CASCADE"
-        ),
+        sa.ForeignKeyConstraint(["workout_session_id"], ["workout_session.id"], ondelete="CASCADE"),
         sa.PrimaryKeyConstraint("id"),
     )
     op.create_table(
@@ -174,9 +170,7 @@ def upgrade() -> None:
         sa.Column("set_number", sa.Integer(), nullable=False),
         sa.Column("reps", sa.Integer(), nullable=False),
         sa.Column("weight", sa.Float(), nullable=False),
-        sa.ForeignKeyConstraint(
-            ["exercise_session_id"], ["exercise_session.id"], ondelete="CASCADE"
-        ),
+        sa.ForeignKeyConstraint(["exercise_session_id"], ["exercise_session.id"], ondelete="CASCADE"),
         sa.PrimaryKeyConstraint("id"),
     )
     # ### end Alembic commands ###
