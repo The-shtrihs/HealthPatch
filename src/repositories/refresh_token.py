@@ -31,6 +31,3 @@ class RefreshTokenRepository:
             update(RefreshToken).where(RefreshToken.user_id == user_id, RefreshToken.is_revoked.is_(False)).values(is_revoked=True)
         )
         await db.commit()
-        await db.execute(delete(RefreshToken).where(RefreshToken.user_id == user_id, RefreshToken.is_revoked.is_(False)))
-        await db.commit()
-
