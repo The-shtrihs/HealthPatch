@@ -22,8 +22,6 @@ async def login(data: LoginRequest, auth_service: AuthService = Depends(get_auth
         auth_data = await auth_service.authenticate_user(data.email, data.password)
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
-<<<<<<< HEAD
     return auth_data
-=======
-    return LoginResponse(**auth_data)
->>>>>>> 6c55c7eb15e959b292ee782b7bb1fef4632d72e2
+
+
