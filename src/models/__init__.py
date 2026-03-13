@@ -1,4 +1,3 @@
-
 from src.core.base import Base
 from src.models.activity import Exercise, ExerciseSession, WorkoutPlan, WorkoutSession, WorkoutSet
 from src.models.nutrition import DailyDiary, Food, MealEntry
@@ -15,10 +14,10 @@ __all__ = [
     "Exercise",
     "ExerciseSession",
     "WorkoutSet",
-    "DailyDiary",  
+    "DailyDiary",
     "Food",
     "MealEntry",
     "Bookmark",
-    "Comment",  
-    "Like"
+    "Comment",
+    "Like",
 ]

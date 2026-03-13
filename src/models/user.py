@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import datetime
 from typing import TYPE_CHECKING
 
 from sqlalchemy import Boolean, DateTime, Float, ForeignKey, Integer, String
@@ -21,44 +21,29 @@ class User(Base, TimestampMixin, IsActiveMixin):
     password_hash: Mapped[str] = mapped_column(String(255), nullable=False)
     is_verified: Mapped[bool] = mapped_column(default=False, nullable=False)
 
-    profile: Mapped["UserProfile"] = relationship(
-        back_populates="user", uselist=False, cascade="all, delete-orphan"
-    )
+    profile: Mapped["UserProfile"] = relationship(back_populates="user", uselist=False, cascade="all, delete-orphan")
 
-    workout_plans: Mapped[list["WorkoutPlan"]] = relationship(
-        back_populates="author", cascade="all, delete-orphan"
-    )
-    comments: Mapped[list["Comment"]] = relationship(
-        back_populates="user", cascade="all, delete-orphan"
-    )
+    workout_plans: Mapped[list["WorkoutPlan"]] = relationship(back_populates="author", cascade="all, delete-orphan")
+    comments: Mapped[list["Comment"]] = relationship(back_populates="user", cascade="all, delete-orphan")
     likes: Mapped[list["Like"]] = relationship(back_populates="user", cascade="all, delete-orphan")
-    bookmarks: Mapped[list["Bookmark"]] = relationship(
-        back_populates="user", cascade="all, delete-orphan"
-    )
+    bookmarks: Mapped[list["Bookmark"]] = relationship(back_populates="user", cascade="all, delete-orphan")
 
-    workout_sessions: Mapped[list["WorkoutSession"]] = relationship(
-        back_populates="user", cascade="all, delete-orphan"
-    )
-    daily_diaries: Mapped[list["DailyDiary"]] = relationship(
-        back_populates="user", cascade="all, delete-orphan"
-    )
-    refresh_tokens: Mapped[list["RefreshToken"]] = relationship(
-        back_populates="user", cascade="all, delete-orphan"
-    )
+    workout_sessions: Mapped[list["WorkoutSession"]] = relationship(back_populates="user", cascade="all, delete-orphan")
+    daily_diaries: Mapped[list["DailyDiary"]] = relationship(back_populates="user", cascade="all, delete-orphan")
+    refresh_tokens: Mapped[list["RefreshToken"]] = relationship(back_populates="user", cascade="all, delete-orphan")
 
 
 class UserProfile(Base):
     __tablename__ = "user_profile"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    user_id: Mapped[int] = mapped_column(
-        ForeignKey("user.id", ondelete="CASCADE"), unique=True, nullable=False
-    )
+    user_id: Mapped[int] = mapped_column(ForeignKey("user.id", ondelete="CASCADE"), unique=True, nullable=False)
     weight: Mapped[float | None] = mapped_column(Float)
     height: Mapped[float | None] = mapped_column(Float)
     fitness_goal: Mapped[str | None] = mapped_column(String(255))
 
     user: Mapped["User"] = relationship(back_populates="profile")
+
 
 class RefreshToken(Base, TimestampMixin):
     __tablename__ = "refresh_token"

@@ -17,7 +17,7 @@ class UserRepository:
     @staticmethod
     async def create(db: AsyncSession, name: str, email: str, password_hash: str) -> User:
         new_user = User(name=name, email=email, password_hash=password_hash)
-        db.add(new_user)  
-        await db.commit() 
-        await db.refresh(new_user) 
+        db.add(new_user)
+        await db.commit()
+        await db.refresh(new_user)
         return new_user
