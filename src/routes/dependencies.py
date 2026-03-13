@@ -20,7 +20,6 @@ async def get_current_user(token: str = Depends(ouath2_scheme), db: AsyncSession
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="User not found")
     return current_user
 
+
 async def get_auth_service(db: AsyncSession = Depends(get_session)):
     return AuthService(db)
-
-

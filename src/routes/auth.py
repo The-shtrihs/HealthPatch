@@ -23,5 +23,3 @@ async def login(data: LoginRequest, auth_service: AuthService = Depends(get_auth
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
     return auth_data
-
-
