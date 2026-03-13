@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from sqlalchemy import delete, select
+from sqlalchemy import select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.models.user import RefreshToken
@@ -38,9 +38,6 @@ class RefreshTokenRepository:
     @staticmethod
     async def revoke_all_for_user(db: AsyncSession, user_id: int) -> None:
         await db.execute(
-            delete(RefreshToken).where(
-                RefreshToken.user_id == user_id, 
-                RefreshToken.is_revoked.is_(False)
-            )
+            update(RefreshToken).where(RefreshToken.user_id == user_id, RefreshToken.is_revoked.is_(False)).values(is_revoked=True)
         )
         await db.commit()

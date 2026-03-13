@@ -1,29 +1,25 @@
 
 
 from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.core.config import get_settings
-from src.core.database import get_session
+from src.routes.dependencies import get_auth_service
 from src.schemas.auth import LoginRequest, LoginResponse, RegisterRequest, RegisterResponse
-from src.services.auth import authenticate_user, register_user
-
-settings = get_settings()
+from src.services.auth import AuthService
 
 router = APIRouter(prefix="/auth", tags=["Authentication"])
 
 @router.post("/register", status_code=201, response_model=RegisterResponse)
-async def register(data: RegisterRequest, db: AsyncSession = Depends(get_session)):
+async def register(data: RegisterRequest, auth_service: AuthService = Depends(get_auth_service)):
     try:
-        await register_user(db, data.name, data.email, data.password)
+        await auth_service.register_user(data.name, data.email, data.password)
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
     return RegisterResponse(message="User registered successfully")
 
 @router.post("/login", response_model=LoginResponse)
-async def login(data: LoginRequest, db: AsyncSession = Depends(get_session)):
+async def login(data: LoginRequest, auth_service: AuthService = Depends(get_auth_service)):
     try:
-        auth_data = await authenticate_user(db, data.email, data.password)
+        auth_data = await auth_service.authenticate_user(data.email, data.password)
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
-    return LoginResponse(**auth_data)
+    return auth_data
