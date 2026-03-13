@@ -27,12 +27,10 @@ class RefreshTokenRepository:
 
     @staticmethod
     async def revoke_all_for_user(db: AsyncSession, user_id: int) -> None:
-<<<<<<< HEAD
         await db.execute(
             update(RefreshToken).where(RefreshToken.user_id == user_id, RefreshToken.is_revoked.is_(False)).values(is_revoked=True)
         )
         await db.commit()
-=======
         await db.execute(delete(RefreshToken).where(RefreshToken.user_id == user_id, RefreshToken.is_revoked.is_(False)))
         await db.commit()
->>>>>>> 6c55c7eb15e959b292ee782b7bb1fef4632d72e2
+
