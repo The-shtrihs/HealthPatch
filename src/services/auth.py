@@ -170,22 +170,22 @@ class AuthService:
         payload = self.mail_service.decode_email_token(token, expected_purpose="email_verify")
         user_id = int(payload.get("sub"))
         user = await UserRepository.get_by_id(self.db, user_id)
-        
+
         if not user:
             raise NotFoundError(resource="User", resource_id=user_id)
         if user.is_verified:
             raise EmailAlreadyVerifiedError()
-            
+
         await UserRepository.mark_as_verified(self.db, user_id)
 
     async def reset_password(self, token: str, change_password_request: ChangePasswordRequest):
         payload = self.mail_service.decode_email_token(token, expected_purpose="password_reset")
         user_id = int(payload.get("sub"))
         user = await UserRepository.get_by_id(self.db, user_id)
-        
+
         if not user:
             raise NotFoundError(resource="User", resource_id=user_id)
-            
+
         new_password_hash = self.hash_password(change_password_request.new_password)
         await UserRepository.update_password(self.db, user_id, new_password_hash)
         await self.revoke_all_refresh_tokens_for_user(user_id)

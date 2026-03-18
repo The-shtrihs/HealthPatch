@@ -1,4 +1,3 @@
-
 from sqlalchemy import select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -14,7 +13,7 @@ class UserRepository:
     async def get_by_email(db: AsyncSession, email: str) -> User | None:
         result = await db.scalars(select(User).where(User.email == email))
         return result.first()
-    
+
     @staticmethod
     async def update_password(db: AsyncSession, user_id: int, new_password_hash: str):
         user = await db.get(User, user_id)
@@ -33,9 +32,9 @@ class UserRepository:
         await db.commit()
         await db.refresh(new_user)
         return new_user
-    
+
     @staticmethod
     async def mark_as_verified(db: AsyncSession, user_id: int) -> None:
         stmt = update(User).where(User.id == user_id).values(is_verified=True)
         await db.execute(stmt)
-        await db.commit() 
+        await db.commit()

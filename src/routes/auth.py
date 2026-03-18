@@ -79,9 +79,7 @@ async def resend_verification_email(
     auth_service: AuthService = Depends(get_auth_service),
 ):
     await auth_service.resend_verification_email(email, background_tasks)
-    return MessageResponse(
-        message="If an account with that email exists and is not verified, a verification email has been resent"
-    )
+    return MessageResponse(message="If an account with that email exists and is not verified, a verification email has been resent")
 
 
 @router.post("/verify-email", response_model=MessageResponse)

@@ -15,10 +15,10 @@ async def get_current_user(token: str = Depends(ouath2_scheme), db: AsyncSession
     payload = AuthService.decode_access_token(token)
     user_id = int(payload.get("sub"))
     current_user = await UserRepository.get_by_id(db, user_id)
-    
+
     if not current_user:
         raise NotFoundError(resource="User", resource_id=user_id)
-        
+
     return current_user
 
 
