@@ -3,7 +3,6 @@ from pathlib import Path
 
 import jwt
 from fastapi_mail import ConnectionConfig, FastMail, MessageSchema, MessageType
-from regex import T
 
 from src.core.config import get_settings
 

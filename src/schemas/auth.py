@@ -55,8 +55,6 @@ class ChangePasswordRequest(BaseModel):
 
 class RegisterResponse(BaseModel):
     message: str
-
-
 class LoginResponse(BaseModel):
     token_response: TokenResponse
     name: str
