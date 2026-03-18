@@ -22,6 +22,7 @@ class TimestampMixin:
         onupdate=func.now(),
         nullable=False,
     )
+    
 
 
 class IsActiveMixin:
