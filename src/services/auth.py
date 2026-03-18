@@ -4,21 +4,24 @@ from datetime import UTC, datetime, timedelta
 import jwt
 from argon2 import PasswordHasher
 from argon2.exceptions import VerifyMismatchError
+from fastapi import BackgroundTasks
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.core.config import get_settings
 from src.models.user import RefreshToken, User
 from src.repositories.refresh_token import RefreshTokenRepository
 from src.repositories.user import UserRepository
-from src.schemas.auth import LoginResponse
+from src.schemas.auth import ChangePasswordRequest, LoginResponse
+from src.services.mail import MailService
 
 
 class AuthService:
-    def __init__(self, db: AsyncSession):
+    def __init__(self, db: AsyncSession, mail_service: MailService):
 
         self.db = db
         self.settings = get_settings()
         self.ph = PasswordHasher()
+        self.mail_service = mail_service
 
     def hash_password(self, password: str) -> str:
         return self.ph.hash(password)
@@ -72,13 +75,14 @@ class AuthService:
     async def revoke_all_refresh_tokens_for_user(self, user_id: int):
         await RefreshTokenRepository.revoke_all_for_user(self.db, user_id)
 
-    async def register_user(self, name: str, email: str, password: str) -> None:
+    async def register_user(self, name: str, email: str, password: str, background_tasks: BackgroundTasks) -> None:
         existing_user = await UserRepository.get_by_email(self.db, email)
         if existing_user:
             raise ValueError("Email already registered")
 
         password_hash = self.hash_password(password)
-        await UserRepository.create(self.db, name, email, password_hash)
+        user = await UserRepository.create(self.db, name, email, password_hash)
+        background_tasks.add_task(self.mail_service.send_verification_email, user_id=user.id, user_email=email, name=name)
 
     async def authenticate_user(self, email: str, password: str) -> LoginResponse:
         user = await UserRepository.get_by_email(self.db, email)
@@ -102,3 +106,56 @@ class AuthService:
             name=user.name,
             email=user.email,
         )
+
+    async def refresh_access_token(self, refresh_token: str) -> LoginResponse:
+        db_token = await self.verify_refresh_token(refresh_token)
+        user = await UserRepository.get_by_id(self.db, db_token.user_id)
+
+        if not user or not user.is_active:
+            raise ValueError("User account is inactive")
+
+        access_token = self.create_access_token(user)
+        new_refresh_token = await self.create_refresh_token(user, device_info=None)
+
+        await RefreshTokenRepository.mark_as_revoked(self.db, db_token)
+
+        return LoginResponse(
+            token_response={
+                "access_token": access_token,
+                "refresh_token": new_refresh_token,
+                "token_type": "bearer",
+                "expires_in": self.settings.access_token_expire_minutes * 60,
+            },
+            name=user.name,
+            email=user.email,
+        )
+    
+    async def logout(self, refresh_token: str):
+        await self.revoke_refresh_token(refresh_token)
+
+    async def logout_all_sessions(self, user_id: int):
+        await self.revoke_all_refresh_tokens_for_user(user_id)
+
+    async def change_password(self, change_password_request: ChangePasswordRequest, user_id: int):
+        user = await UserRepository.get_by_id(self.db, user_id)
+
+        if not user:
+            raise ValueError("User not found")
+
+        if not self.verify_password(change_password_request.current_password, user.password_hash):
+            raise ValueError("Current password is incorrect")
+
+        new_password_hash = self.hash_password(change_password_request.new_password)
+        await UserRepository.update_password(self.db, user_id, new_password_hash)
+        await self.revoke_all_refresh_tokens_for_user(user_id)
+
+    async def forgot_password(self, email: str, background_tasks: BackgroundTasks):
+        user = await UserRepository.get_by_email(self.db, email)
+        if user:
+            background_tasks.add_task(self.mail_service.send_password_reset_email, user_id=user.id, user_email=email, name=user.name)
+    
+    async def resend_verification_email(self, email: str, background_tasks: BackgroundTasks):
+        user = await UserRepository.get_by_email(self.db, email)
+        if user and not user.is_active:
+            background_tasks.add_task(self.mail_service.send_verification_email, user_id=user.id, user_email=email, name=user.name)
+

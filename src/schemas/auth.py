@@ -1,10 +1,19 @@
-from pydantic import BaseModel, EmailStr, Field
+
+
+from pydantic import BaseModel, EmailStr, Field, model_validator
 
 
 class RegisterRequest(BaseModel):
     name: str = Field(min_length=2, max_length=50, description="Name must be between 2 and 50 characters")
     email: EmailStr
     password: str = Field(min_length=8, max_length=128, description="Password must be between 8 and 128 characters")
+    password_confirm: str = Field(min_length=8, max_length=128, description="Password must be between 8 and 128 characters")
+
+    @model_validator(mode="after")
+    def validate_passwords_match(self):     
+            if self.password != self.password_confirm:
+                raise ValueError("Passwords do not match")
+            return self
 
 
 class LoginRequest(BaseModel):
@@ -35,6 +44,13 @@ class PasswordResetConfirmRequest(BaseModel):
 class ChangePasswordRequest(BaseModel):
     current_password: str = Field(min_length=8, max_length=128, description="Password must be between 8 and 128 characters")
     new_password: str = Field(min_length=8, max_length=128, description="Password must be between 8 and 128 characters")
+    new_password_confirm: str = Field(min_length=8, max_length=128, description="Password must be between 8 and 128 characters")
+
+    @model_validator(mode="after")
+    def validate_new_passwords_match(self):
+        if self.new_password != self.new_password_confirm:
+            raise ValueError("New passwords do not match")
+        return self
 
 
 class RegisterResponse(BaseModel):
@@ -45,3 +61,10 @@ class LoginResponse(BaseModel):
     token_response: TokenResponse
     name: str
     email: EmailStr
+
+class MessageResponse(BaseModel):
+    message: str
+
+
+
+

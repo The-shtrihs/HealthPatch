@@ -5,6 +5,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from src.core.database import get_session
 from src.repositories.user import UserRepository
 from src.services.auth import AuthService
+from src.services.mail import MailService
 
 ouath2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
 
@@ -22,4 +23,4 @@ async def get_current_user(token: str = Depends(ouath2_scheme), db: AsyncSession
 
 
 async def get_auth_service(db: AsyncSession = Depends(get_session)):
-    return AuthService(db)
+    return AuthService(db, MailService())
