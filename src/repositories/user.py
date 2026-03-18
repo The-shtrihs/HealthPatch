@@ -1,5 +1,5 @@
 
-from sqlalchemy import select
+from sqlalchemy import select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.models.user import User
@@ -33,3 +33,9 @@ class UserRepository:
         await db.commit()
         await db.refresh(new_user)
         return new_user
+    
+    @staticmethod
+    async def mark_as_verified(db: AsyncSession, user_id: int) -> None:
+        stmt = update(User).where(User.id == user_id).values(is_verified=True)
+        await db.execute(stmt)
+        await db.commit() 

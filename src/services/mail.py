@@ -1,7 +1,9 @@
 from datetime import UTC, datetime, timedelta
+from pathlib import Path
 
 import jwt
 from fastapi_mail import ConnectionConfig, FastMail, MessageSchema, MessageType
+from regex import T
 
 from src.core.config import get_settings
 
@@ -9,18 +11,19 @@ from src.core.config import get_settings
 class MailService:
     def __init__(self):
         self.settings = get_settings()
-        
+        template_folder = Path(__file__).parent.parent / "templates"
         self.conf = ConnectionConfig(
             MAIL_USERNAME=self.settings.smtp_username,
             MAIL_PASSWORD=self.settings.smtp_password,
-            MAIL_FROM=self.settings.smtp_username,
+            MAIL_FROM="the.shtrihs@gmail.com",
             MAIL_PORT=self.settings.smtp_port,
             MAIL_SERVER=self.settings.smtp_host,
             MAIL_FROM_NAME="HealthPatch Support",
             MAIL_STARTTLS=True,  
             MAIL_SSL_TLS=False,  
             USE_CREDENTIALS=True,
-            VALIDATE_CERTS=True
+            VALIDATE_CERTS=True,
+            TEMPLATE_FOLDER=str(template_folder)
         )
 
         self.fastmail = FastMail(self.conf)
@@ -47,36 +50,42 @@ class MailService:
         except jwt.InvalidTokenError:
             raise ValueError("Invalid token")
     
-    async def send_email(self, to_email: str, subject: str, html_body: str):
+    async def send_email(self, to_email: str, subject: str, template_name:str, template_body: dict):
         message = MessageSchema(
             subject=subject,
             recipients=[to_email], 
-            body=html_body,
+            template_body=template_body,
             subtype=MessageType.html
         )
         
-        await self.fastmail.send_message(message)
+        await self.fastmail.send_message(message, template_name=template_name)
     
     async def send_verification_email(self, user_id: int, user_email: str, name: str):
         token = self.create_email_token(user_id, user_email, purpose="email_verify")
         verification_link = f"{self.settings.frontend_url}/verify-email?token={token}" 
         
-        html_body = f"""
-        <p>Hi {name},</p>
-        <p>Thank you for registering. Please click the link below to verify your email address:</p>
-        <a href="{verification_link}">Verify Email</a>
-        <p>If you did not create an account, please ignore this email.</p>
-        """
-        await self.send_email(user_email, "Email Verification", html_body)
+        template_body = {
+            "name": name,
+            "link": verification_link
+        }
+        await self.send_email(
+            to_email=user_email, 
+            subject="Welcome to Health Patch - Verify your Email", 
+            template_name="verify_email.html", 
+            template_body=template_body
+        )
 
     async def send_password_reset_email(self, user_id: int, user_email: str, name: str):
         token = self.create_email_token(user_id, user_email, purpose="password_reset")
         reset_link = f"{self.settings.frontend_url}/reset-password?token={token}"
         
-        html_body = f"""
-        <p>Hi {name},</p>
-        <p>We received a request to reset your password. Please click the link below to set a new password:</p>
-        <a href="{reset_link}">Reset Password</a>
-        <p>If you did not request a password reset, please ignore this email.</p>
-        """
-        await self.send_email(user_email, "Password Reset Request", html_body)
+        template_body = {
+            "name": name,
+            "link": reset_link
+        }
+        await self.send_email(
+            to_email=user_email, 
+            subject="Health Patch - Password Reset Request", 
+            template_name="reset_password.html", 
+            template_body=template_body
+        )

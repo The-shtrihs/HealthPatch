@@ -158,4 +158,32 @@ class AuthService:
         user = await UserRepository.get_by_email(self.db, email)
         if user and not user.is_active:
             background_tasks.add_task(self.mail_service.send_verification_email, user_id=user.id, user_email=email, name=user.name)
+    
+    async def verify_email(self, token: str):
+        try:
+            payload = self.mail_service.decode_email_token(token, expected_purpose="email_verify")
+            user_id = int(payload.get("sub"))
+            user = await UserRepository.get_by_id(self.db, user_id)
+            if not user:
+                raise ValueError("User not found")
+            if user.is_verified:
+                raise ValueError("Email is already verified")
+            await UserRepository.mark_as_verified(self.db, user_id)
+        except ValueError as e:
+            raise ValueError(f"Email verification failed: {str(e)}")
+        
+    async def reset_password(self, token: str, change_password_request: ChangePasswordRequest):
+        try:
+            payload = self.mail_service.decode_email_token(token, expected_purpose="password_reset")
+            user_id = int(payload.get("sub"))
+            user = await UserRepository.get_by_id(self.db, user_id)
+            if not user:
+                raise ValueError("User not found")
+            new_password_hash = self.hash_password(change_password_request.new_password)
+            await UserRepository.update_password(self.db, user_id, new_password_hash)
+            await self.revoke_all_refresh_tokens_for_user(user_id)
+        except ValueError as e:
+            raise ValueError(f"Password reset failed: {str(e)}")
+        
+
 

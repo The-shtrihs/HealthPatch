@@ -11,12 +11,12 @@ router = APIRouter(prefix="/auth", tags=["Authentication"])
 
 
 @router.post("/register", status_code=201, response_model=RegisterResponse)
-async def register(data: RegisterRequest, auth_service: AuthService = Depends(get_auth_service)):
+async def register(data: RegisterRequest, background_tasks: BackgroundTasks, auth_service: AuthService = Depends(get_auth_service)):
     try:
-        await auth_service.register_user(data.name, data.email, data.password)
+        await auth_service.register_user(data.name, data.email, data.password, background_tasks)
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
-    return MessageResponse(message="User registered successfully")
+    return MessageResponse(message="User registered successfully. Please check your email to verify your account.")
 
 
 @router.post("/login", response_model=LoginResponse)
@@ -40,25 +40,44 @@ async def logout(refresh_token: str, auth_service: AuthService = Depends(get_aut
     await auth_service.logout(refresh_token)
     return MessageResponse(message="Logged out successfully")
 
-@router.post("/logout-all", status_code=204)
+@router.post("/logout-all", status_code=201)
 async def logout_all(auth_service: AuthService = Depends(get_auth_service), current_user: User = Depends(get_current_user)):
     await auth_service.logout_all_sessions(current_user.id)
     return MessageResponse(message="Logged out from all sessions successfully")
 
-@router.post("/change-password", status_code=204)
-async def change_password(change_password_request: ChangePasswordRequest, user_id: int, auth_service: AuthService = Depends(get_auth_service)):
+@router.post("/change-password", status_code=201)
+async def change_password(
+    change_password_request: ChangePasswordRequest, 
+    auth_service: AuthService = Depends(get_auth_service), 
+    current_user: User = Depends(get_current_user)):
     try:
-        await auth_service.change_password(change_password_request, user_id)
+        await auth_service.change_password(change_password_request, current_user.id)
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
     return MessageResponse(message="Password changed successfully")
 
-@router.post("/forgot-password", status_code=204)
+@router.post("/forgot-password", status_code=201)
 async def forgot_password(email: str, background_tasks: BackgroundTasks, auth_service: AuthService = Depends(get_auth_service)):
     await auth_service.forgot_password(email, background_tasks)
     return MessageResponse(message="If an account with that email exists, a password reset link has been sent")
 
-@router.post("/resend-verification-email", status_code=204)
+@router.post("/resend-verification-email", status_code=201)
 async def resend_verification_email(email: str, background_tasks: BackgroundTasks, auth_service: AuthService = Depends(get_auth_service)):
     await auth_service.resend_verification_email(email, background_tasks)
     return MessageResponse(message="If an account with that email exists and is not verified, a verification email has been resent")
+
+@router.post("/verify-email", status_code=201)
+async def verify_email(token: str, auth_service: AuthService = Depends(get_auth_service)):
+    try:
+        await auth_service.verify_email(token)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    return MessageResponse(message="Email verified successfully")
+
+@router.post("/reset-password", status_code=201)
+async def reset_password(token: str, change_password_request: ChangePasswordRequest, auth_service: AuthService = Depends(get_auth_service)):
+    try:
+        await auth_service.reset_password(token, change_password_request)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    return MessageResponse(message="Password reset successfully")
