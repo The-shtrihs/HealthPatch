@@ -10,9 +10,12 @@ from sqlalchemy.ext.asyncio import create_async_engine
 from src.core.config import get_settings
 from src.models.nutrition import Food, FoodPortion
 
-FOOD_BATCH_SIZE = 3000
+FOOD_BATCH_SIZE = 3500
 PORTION_BATCH_SIZE = 7000
 PROGRESS_EVERY = 20
+
+FOOD_FLUSHES_PER_TX = 20
+PORTION_FLUSHES_PER_TX = 20
 
 settings = get_settings()
 engine = create_async_engine(
@@ -69,21 +72,8 @@ async def clear_loader_tables(conn):
     print(f"[TIMER] Clear tables: {format_seconds(time.perf_counter() - started)}")
 
 
-async def upsert_food_batch(conn, batch):
-    stmt = insert(Food).values(batch)
-    stmt = stmt.on_conflict_do_update(
-        index_elements=[Food.fdc_id],
-        set_={
-            "name": stmt.excluded.name,
-            "brand_name": stmt.excluded.brand_name,
-            "data_type": stmt.excluded.data_type,
-            "calories_per_100g": stmt.excluded.calories_per_100g,
-            "protein_per_100g": stmt.excluded.protein_per_100g,
-            "fat_per_100g": stmt.excluded.fat_per_100g,
-            "carbs_per_100g": stmt.excluded.carbs_per_100g,
-        },
-    )
-    await conn.execute(stmt)
+async def insert_food_batch(conn, batch):
+    await conn.execute(insert(Food), batch)
 
 
 async def load_usda_data(csv_path: str):
@@ -133,48 +123,63 @@ async def load_usda_data(csv_path: str):
     food_flushes = 0
     food_skipped = 0
 
-    async with engine.begin() as conn:
-        for row in get_csv_reader(f"{csv_path}/food.csv"):
-            food_rows += 1
+    async with engine.connect() as conn:
+        tx = await conn.begin()
+        food_flushes_in_tx = 0
 
-            fdc_id = to_int(row.get("fdc_id"))
-            if fdc_id is None:
-                food_skipped += 1
-                continue
+        try:
+            for row in get_csv_reader(f"{csv_path}/food.csv"):
+                food_rows += 1
 
-            nutrients = nutrient_lookup.get(
-                fdc_id, {"cal": 0.0, "pro": 0.0, "fat": 0.0, "carb": 0.0}
-            )
+                fdc_id = to_int(row.get("fdc_id"))
+                if fdc_id is None:
+                    food_skipped += 1
+                    continue
 
-            food_item = {
-                "fdc_id": fdc_id,
-                "name": (row.get("description") or "Unknown")[:255],
-                "brand_name": brand_lookup.get(fdc_id),
-                "data_type": row.get("data_type"),
-                "calories_per_100g": nutrients["cal"],
-                "protein_per_100g": nutrients["pro"],
-                "fat_per_100g": nutrients["fat"],
-                "carbs_per_100g": nutrients["carb"],
-                "is_verified": False,
-            }
-            batch.append(food_item)
+                nutrients = nutrient_lookup.get(
+                    fdc_id, {"cal": 0.0, "pro": 0.0, "fat": 0.0, "carb": 0.0}
+                )
 
-            if len(batch) >= FOOD_BATCH_SIZE:
-                await upsert_food_batch(conn, batch)
-                batch = []
+                food_item = {
+                    "fdc_id": fdc_id,
+                    "name": (row.get("description") or "Unknown")[:255],
+                    "brand_name": brand_lookup.get(fdc_id),
+                    "data_type": row.get("data_type"),
+                    "calories_per_100g": nutrients["cal"],
+                    "protein_per_100g": nutrients["pro"],
+                    "fat_per_100g": nutrients["fat"],
+                    "carbs_per_100g": nutrients["carb"],
+                    "is_verified": False,
+                }
+                batch.append(food_item)
+
+                if len(batch) >= FOOD_BATCH_SIZE:
+                    await insert_food_batch(conn, batch)
+                    batch = []
+                    food_flushes += 1
+                    food_flushes_in_tx += 1
+
+                    if PROGRESS_EVERY > 0 and food_flushes % PROGRESS_EVERY == 0:
+                        elapsed = time.perf_counter() - foods_started
+                        rate = food_rows / elapsed if elapsed > 0 else 0.0
+                        print(
+                            f"[PROGRESS] foods rows={food_rows}, flushes={food_flushes}, "
+                            f"skipped={food_skipped}, elapsed={format_seconds(elapsed)}, rate={rate:.1f} rows/s"
+                        )
+
+                    if food_flushes_in_tx >= FOOD_FLUSHES_PER_TX:
+                        await tx.commit()
+                        tx = await conn.begin()
+                        food_flushes_in_tx = 0
+
+            if batch:
+                await insert_food_batch(conn, batch)
                 food_flushes += 1
 
-                if PROGRESS_EVERY > 0 and food_flushes % PROGRESS_EVERY == 0:
-                    elapsed = time.perf_counter() - foods_started
-                    rate = food_rows / elapsed if elapsed > 0 else 0.0
-                    print(
-                        f"[PROGRESS] foods rows={food_rows}, flushes={food_flushes}, "
-                        f"skipped={food_skipped}, elapsed={format_seconds(elapsed)}, rate={rate:.1f} rows/s"
-                    )
-
-        if batch:
-            await upsert_food_batch(conn, batch)
-            food_flushes += 1
+            await tx.commit()
+        except Exception:
+            await tx.rollback()
+            raise
 
     foods_elapsed = time.perf_counter() - foods_started
     foods_rate = food_rows / foods_elapsed if foods_elapsed > 0 else 0.0
@@ -198,41 +203,56 @@ async def load_usda_data(csv_path: str):
     portion_flushes = 0
     portion_skipped = 0
 
-    async with engine.begin() as conn:
-        for row in get_csv_reader(f"{csv_path}/food_portion.csv"):
-            fdc_id = to_int(row.get("fdc_id"))
-            if fdc_id is None:
-                portion_skipped += 1
-                continue
+    async with engine.connect() as conn:
+        tx = await conn.begin()
+        portion_flushes_in_tx = 0
 
-            if fdc_id in id_map:
-                portion_rows += 1
-                portion = {
-                    "food_id": id_map[fdc_id],
-                    "amount": to_float(row.get("amount"), 1.0),
-                    "measure_unit_name": ((row.get("modifier") or "serving")[:100]),
-                    "gram_weight": to_float(row.get("gram_weight"), 0.0),
-                }
-                batch.append(portion)
-            else:
-                portion_skipped += 1
+        try:
+            for row in get_csv_reader(f"{csv_path}/food_portion.csv"):
+                fdc_id = to_int(row.get("fdc_id"))
+                if fdc_id is None:
+                    portion_skipped += 1
+                    continue
 
-            if len(batch) >= PORTION_BATCH_SIZE:
+                if fdc_id in id_map:
+                    portion_rows += 1
+                    portion = {
+                        "food_id": id_map[fdc_id],
+                        "amount": to_float(row.get("amount"), 1.0),
+                        "measure_unit_name": (row.get("modifier") or "serving")[:100],
+                        "gram_weight": to_float(row.get("gram_weight"), 0.0),
+                    }
+                    batch.append(portion)
+                else:
+                    portion_skipped += 1
+
+                if len(batch) >= PORTION_BATCH_SIZE:
+                    await conn.execute(insert(FoodPortion), batch)
+                    batch = []
+                    portion_flushes += 1
+                    portion_flushes_in_tx += 1
+
+                    if PROGRESS_EVERY > 0 and portion_flushes % PROGRESS_EVERY == 0:
+                        elapsed = time.perf_counter() - portions_started
+                        rate = portion_rows / elapsed if elapsed > 0 else 0.0
+                        print(
+                            f"[PROGRESS] portions rows={portion_rows}, flushes={portion_flushes}, "
+                            f"skipped={portion_skipped}, elapsed={format_seconds(elapsed)}, rate={rate:.1f} rows/s"
+                        )
+
+                    if portion_flushes_in_tx >= PORTION_FLUSHES_PER_TX:
+                        await tx.commit()
+                        tx = await conn.begin()
+                        portion_flushes_in_tx = 0
+
+            if batch:
                 await conn.execute(insert(FoodPortion), batch)
-                batch = []
                 portion_flushes += 1
 
-                if PROGRESS_EVERY > 0 and portion_flushes % PROGRESS_EVERY == 0:
-                    elapsed = time.perf_counter() - portions_started
-                    rate = portion_rows / elapsed if elapsed > 0 else 0.0
-                    print(
-                        f"[PROGRESS] portions rows={portion_rows}, flushes={portion_flushes}, "
-                        f"skipped={portion_skipped}, elapsed={format_seconds(elapsed)}, rate={rate:.1f} rows/s"
-                    )
-
-        if batch:
-            await conn.execute(insert(FoodPortion), batch)
-            portion_flushes += 1
+            await tx.commit()
+        except Exception:
+            await tx.rollback()
+            raise
 
     portions_elapsed = time.perf_counter() - portions_started
     portions_rate = portion_rows / portions_elapsed if portions_elapsed > 0 else 0.0
