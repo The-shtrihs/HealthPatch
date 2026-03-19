@@ -66,7 +66,7 @@ async def clear_loader_tables(conn):
     print("Clearing existing loader data...")
     started = time.perf_counter()
 
-    await conn.execute(text("DELETE FROM food_portion"))
+    await conn.execute(text("TRUNCATE TABLE food_portion RESTART IDENTITY"))
     await conn.execute(text("DELETE FROM food"))
 
     print(f"[TIMER] Clear tables: {format_seconds(time.perf_counter() - started)}")
