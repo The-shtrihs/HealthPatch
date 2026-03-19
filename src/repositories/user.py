@@ -10,6 +10,11 @@ class UserRepository:
         return await db.get(User, user_id)
 
     @staticmethod
+    async def get_by_oauth(db: AsyncSession, provider: str, provider_id: str) -> User | None:
+        result = await db.scalars(select(User).where(User.oauth_provider == provider, User.oauth_provider_id == provider_id))
+        return result.first()
+
+    @staticmethod
     async def get_by_email(db: AsyncSession, email: str) -> User | None:
         result = await db.scalars(select(User).where(User.email == email))
         return result.first()
@@ -26,8 +31,29 @@ class UserRepository:
         return None
 
     @staticmethod
-    async def create(db: AsyncSession, name: str, email: str, password_hash: str) -> User:
-        new_user = User(name=name, email=email, password_hash=password_hash)
+    async def update_oauth_info(db: AsyncSession, user: User, provider: str, provider_id: str, avatar_url: str | None = None):
+        user.oauth_provider = provider
+        user.oauth_provider_id = provider_id
+        if avatar_url:
+            user.avatar_url = avatar_url
+        db.add(user)
+        await db.commit()
+        await db.refresh(user)
+        return user
+
+    @staticmethod
+    async def create(
+        db: AsyncSession,
+        name: str,
+        email: str,
+        password_hash: str,
+        provider: str | None = None,
+        provider_id: str | None = None,
+        avatar_url: str | None = None,
+    ) -> User:
+        new_user = User(
+            name=name, email=email, password_hash=password_hash, oauth_provider=provider, oauth_provider_id=provider_id, avatar_url=avatar_url
+        )
         db.add(new_user)
         await db.commit()
         await db.refresh(new_user)
