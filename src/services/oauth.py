@@ -1,4 +1,5 @@
 import secrets
+from tkinter import NO
 from urllib.parse import urlencode
 
 import httpx
@@ -169,7 +170,7 @@ class OAuthService:
                     db=self.db,
                     name=oauth_data.name,
                     email=oauth_data.email,
-                    password_hash=self.auth_service.hash_password(secrets.token_urlsafe(32)),
+                    password_hash= None,
                     provider=oauth_data.provider,
                     provider_id=oauth_data.provider_id,
                     avatar_url=oauth_data.avatar_url

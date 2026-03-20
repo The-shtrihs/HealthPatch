@@ -1,10 +1,13 @@
 import secrets
 from datetime import UTC, datetime, timedelta
+from os import access
+from weakref import ref
 
 import jwt
 from argon2 import PasswordHasher
 from argon2.exceptions import VerifyMismatchError
 from fastapi import BackgroundTasks
+from httpx import request
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.core.config import get_settings
@@ -19,16 +22,18 @@ from src.core.exceptions import (
 from src.models.user import RefreshToken, User
 from src.repositories.refresh_token import RefreshTokenRepository
 from src.repositories.user import UserRepository
-from src.schemas.auth import ChangePasswordRequest, LoginResponse
+from src.schemas.auth import ChangePasswordRequest, LoginResponse, MessageResponse, TwoFactorSetupResponse
 from src.services.mail import MailService
+from src.services.totp import TotpService
 
 
 class AuthService:
-    def __init__(self, db: AsyncSession, mail_service: MailService):
+    def __init__(self, db: AsyncSession, mail_service: MailService, totp_service: TotpService):
         self.db = db
         self.settings = get_settings()
         self.ph = PasswordHasher()
         self.mail_service = mail_service
+        self.totp_service = totp_service
 
     def hash_password(self, password: str) -> str:
         return self.ph.hash(password)
@@ -91,17 +96,35 @@ class AuthService:
         user = await UserRepository.create(self.db, name, email, password_hash)
         background_tasks.add_task(self.mail_service.send_verification_email, user_id=user.id, user_email=email, name=name)
 
-    async def authenticate_user(self, email: str, password: str) -> LoginResponse:
+    async def authenticate_user(self, email: str, password: str, device_info: str | None = None) -> LoginResponse:
         user = await UserRepository.get_by_email(self.db, email)
 
-        if not user or not self.verify_password(password, user.password_hash):
+        if not user:
+            raise InvalidCredentialsError()
+        
+        if not user.password_hash:
+            raise InvalidCredentialsError(message="This email is registered with an OAuth provider. Please log in using that provider.")
+        
+        if not self.verify_password(password, user.password_hash):
             raise InvalidCredentialsError()
 
         if not user.is_active:
             raise UserInactiveError()
-
+        
+        if user.is_2fa_enabled:
+            temp_token = self.create_access_token(user)
+            return LoginResponse(
+                token_response={
+                    "access_token": temp_token,
+                    "refresh_token": None,
+                    "token_type": "2fa_required",
+                    "expires_in": self.settings.access_token_expire_minutes * 60,
+                },
+                name=user.name,
+                email=user.email)
+            
         access_token = self.create_access_token(user)
-        refresh_token = await self.create_refresh_token(user, device_info=None)
+        refresh_token = await self.create_refresh_token(user, device_info=device_info)
 
         return LoginResponse(
             token_response={
@@ -189,3 +212,78 @@ class AuthService:
         new_password_hash = self.hash_password(change_password_request.new_password)
         await UserRepository.update_password(self.db, user_id, new_password_hash)
         await self.revoke_all_refresh_tokens_for_user(user_id)
+
+    async def enable_2fa(self, user_id: int) -> TwoFactorSetupResponse:
+        user = await UserRepository.get_by_id(self.db, user_id)
+        if not user:
+            raise NotFoundError(resource="User", resource_id=user_id)
+
+        if user.is_2fa_enabled:
+            raise InvalidTokenError("2FA is already enabled")
+
+        secret = self.totp_service.generate_totp_secret()
+        uri = self.totp_service.get_totp_uri(secret, user_email=user.email)
+        qr_code_base64 = self.totp_service.generate_qr_code_base64(uri)
+        await UserRepository.update_totp_secret(self.db, user_id, secret)
+        return TwoFactorSetupResponse(secret=secret, qr_code_base64=qr_code_base64)
+    
+    async def confirm_2fa_setup(self, user_id: int, token: str) -> MessageResponse:
+        user = await UserRepository.get_by_id(self.db, user_id)
+        if not user:
+            raise NotFoundError(resource="User", resource_id=user_id)
+
+        if not user.totp_secret:
+            raise InvalidTokenError("2FA is not enabled for this user")
+
+        if not self.totp_service.verify_totp(token, user.totp_secret):
+            raise InvalidTokenError("Invalid 2FA token")
+        await UserRepository.update_2fa_enabled(self.db, user_id, True)
+        return MessageResponse(message="2FA has been enabled successfully")
+    
+    async def disable_2fa(self, user_id: int, token: str) -> MessageResponse:
+        user = await UserRepository.get_by_id(self.db, user_id)
+        if not user:
+            raise NotFoundError(resource="User", resource_id=user_id)
+
+        if not user.is_2fa_enabled or not user.totp_secret:
+            raise InvalidTokenError("2FA is not enabled for this user")
+
+        if not self.totp_service.verify_totp(token, user.totp_secret):
+            raise InvalidTokenError("Invalid 2FA token")
+        
+        await UserRepository.update_2fa_enabled(self.db, user_id, False)
+        await UserRepository.update_totp_secret(self.db, user_id, None)
+        return MessageResponse(message="2FA has been disabled successfully")
+    
+    async def verify_2fa_token(self,token: str, device_info: str = None) -> LoginResponse:
+        payload = self.decode_access_token(token)
+        user_id = int(payload.get("sub"))
+        user = await UserRepository.get_by_id(self.db, user_id)
+
+        if not user: 
+            raise NotFoundError(resource="User", resource_id=user_id)
+        
+        if not user.is_2fa_enabled or not user.totp_secret:
+            raise InvalidTokenError("2FA is not enabled for this user")
+
+        if not self.totp_service.verify_totp(token, user.totp_secret):
+            raise InvalidTokenError("Invalid 2FA token")
+        
+        access_token = self.create_access_token(user)
+        refresh_token = await self.create_refresh_token(user, device_info=device_info)
+
+        return LoginResponse(
+            token_response={
+                "access_token": access_token,
+                "refresh_token": refresh_token,
+                "token_type": "bearer",
+                "expires_in": self.settings.access_token_expire_minutes * 60,
+            },
+            name=user.name,
+            email=user.email,
+        )
+
+
+    
+
+    

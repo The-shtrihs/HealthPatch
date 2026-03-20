@@ -1,3 +1,4 @@
+
 from pydantic import BaseModel, EmailStr, Field, model_validator
 
 
@@ -63,3 +64,8 @@ class LoginResponse(BaseModel):
 
 class MessageResponse(BaseModel):
     message: str
+
+class TwoFactorSetupResponse(BaseModel):
+    secret: str
+    qr_code_base64: str
+    message: str = "Scan the QR code with your authenticator app and enter the generated code to enable 2FA"

@@ -64,3 +64,15 @@ class UserRepository:
         stmt = update(User).where(User.id == user_id).values(is_verified=True)
         await db.execute(stmt)
         await db.commit()
+
+    @staticmethod
+    async def update_totp_secret(db: AsyncSession, user_id: int, totp_secret: str) -> None:
+        stmt = update(User).where(User.id == user_id).values(totp_secret=totp_secret)
+        await db.execute(stmt)
+        await db.commit()
+
+    @staticmethod
+    async def update_2fa_enabled(db: AsyncSession, user_id: int, is_enabled: bool) -> None:
+        stmt = update(User).where(User.id == user_id).values(is_2fa_enabled=is_enabled)
+        await db.execute(stmt)
+        await db.commit()

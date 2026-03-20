@@ -1,4 +1,4 @@
-from fastapi import APIRouter, BackgroundTasks, Depends
+from fastapi import APIRouter, BackgroundTasks, Depends, Request
 
 from src.models.user import User
 from src.routes.dependencies import get_auth_service, get_current_user
@@ -26,8 +26,9 @@ async def register(
 
 
 @router.post("/login", response_model=LoginResponse)
-async def login(data: LoginRequest, auth_service: AuthService = Depends(get_auth_service)):
-    auth_data = await auth_service.authenticate_user(data.email, data.password)
+async def login(request: Request, data: LoginRequest, auth_service: AuthService = Depends(get_auth_service)):
+    device_info = f"{request.headers.get('user-agent', 'unknown')} - {request.client.host}" 
+    auth_data = await auth_service.authenticate_user(data.email, data.password, device_info=device_info)
     return auth_data
 
 
