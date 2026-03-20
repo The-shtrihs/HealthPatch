@@ -1,6 +1,8 @@
 from datetime import datetime
 from typing import TYPE_CHECKING
 
+from enum import Enum as PyEnum
+from sqlalchemy import Enum as SQLAlchemyEnum
 from sqlalchemy import Boolean, DateTime, Float, ForeignKey, Integer, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -11,6 +13,15 @@ if TYPE_CHECKING:
     from src.models.nutrition import DailyDiary
     from src.models.social import Bookmark, Comment, Like
 
+class FitnessGoal(str, PyEnum):
+    WEIGHT_LOSS = "weight loss"
+    MUSCLE_GAIN = "muscle gain"
+    STRENGTH_BUILDING = "strength building"
+    ENDURANCE = "endurance"
+
+class Gender(str, PyEnum):
+    MALE = "male"
+    FEMALE = "female"
 
 class User(Base, TimestampMixin, IsActiveMixin):
     __tablename__ = "user"
@@ -40,7 +51,9 @@ class UserProfile(Base):
     user_id: Mapped[int] = mapped_column(ForeignKey("user.id", ondelete="CASCADE"), unique=True, nullable=False)
     weight: Mapped[float | None] = mapped_column(Float)
     height: Mapped[float | None] = mapped_column(Float)
-    fitness_goal: Mapped[str | None] = mapped_column(String(255))
+    age: Mapped[int | None] = mapped_column(Integer)
+    gender: Mapped[Gender | None] = mapped_column(SQLAlchemyEnum(Gender))
+    fitness_goal: Mapped[FitnessGoal | None] = mapped_column(SQLAlchemyEnum(FitnessGoal))
 
     user: Mapped["User"] = relationship(back_populates="profile")
 
