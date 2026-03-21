@@ -6,6 +6,7 @@ from src.core.exceptions import BadRequestError, NotFoundError
 from src.repositories.nutrition import NutritionRepository
 from src.services.nutrition_calculators import calculate_daily_norm
 
+
 class NutritionService:
     def __init__(self, db: AsyncSession):
         self.db = db
@@ -115,11 +116,6 @@ class NutritionService:
             missing_fields.append("fitness_goal")
 
         if missing_fields:
-            raise BadRequestError(
-                message=(
-                    "Complete profile is required for nutrition calculations. "
-                    f"Missing: {', '.join(missing_fields)}"
-                )
-            )
+            raise BadRequestError(message=(f"Complete profile is required for nutrition calculations. Missing: {', '.join(missing_fields)}"))
 
         return profile

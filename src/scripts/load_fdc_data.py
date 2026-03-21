@@ -135,9 +135,7 @@ async def load_usda_data(csv_path: str):
                     food_skipped += 1
                     continue
 
-                nutrients = nutrient_lookup.get(
-                    fdc_id, {"cal": 0.0, "pro": 0.0, "fat": 0.0, "carb": 0.0}
-                )
+                nutrients = nutrient_lookup.get(fdc_id, {"cal": 0.0, "pro": 0.0, "fat": 0.0, "carb": 0.0})
 
                 food_item = {
                     "fdc_id": fdc_id,

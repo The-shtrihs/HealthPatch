@@ -13,7 +13,6 @@ app = FastAPI()
 setup_exception_handlers(app=app)
 
 
-
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # --- Startup Logic ---

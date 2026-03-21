@@ -5,28 +5,25 @@ Revises: 0bfc85f1c349
 Create Date: 2026-03-20 19:26:52.813909
 
 """
-from typing import Sequence, Union
 
-from alembic import op
+from collections.abc import Sequence
+
 import sqlalchemy as sa
+from alembic import op
 from sqlalchemy.dialects import postgresql
 
-
 # revision identifiers, used by Alembic.
-revision: str = '1fa4ca704d4f'
-down_revision: Union[str, None] = '0bfc85f1c349'
-branch_labels: Union[str, Sequence[str], None] = None
-depends_on: Union[str, Sequence[str], None] = None
+revision: str = "1fa4ca704d4f"
+down_revision: str | None = "0bfc85f1c349"
+branch_labels: str | Sequence[str] | None = None
+depends_on: str | Sequence[str] | None = None
 
 
 def upgrade() -> None:
     bind = op.get_bind()
 
     gender_enum = postgresql.ENUM("MALE", "FEMALE", name="gender")
-    fitness_enum = postgresql.ENUM(
-        "WEIGHT_LOSS", "MUSCLE_GAIN", "STRENGTH_BUILDING", "ENDURANCE",
-        name="fitnessgoal"
-    )
+    fitness_enum = postgresql.ENUM("WEIGHT_LOSS", "MUSCLE_GAIN", "STRENGTH_BUILDING", "ENDURANCE", name="fitnessgoal")
 
     gender_enum.create(bind, checkfirst=True)
     fitness_enum.create(bind, checkfirst=True)
@@ -52,13 +49,11 @@ def upgrade() -> None:
         """,
     )
 
+
 def downgrade() -> None:
     bind = op.get_bind()
 
-    fitness_enum = postgresql.ENUM(
-        "WEIGHT_LOSS", "MUSCLE_GAIN", "STRENGTH_BUILDING", "ENDURANCE",
-        name="fitnessgoal"
-    )
+    fitness_enum = postgresql.ENUM("WEIGHT_LOSS", "MUSCLE_GAIN", "STRENGTH_BUILDING", "ENDURANCE", name="fitnessgoal")
     gender_enum = postgresql.ENUM("MALE", "FEMALE", name="gender")
 
     op.alter_column(

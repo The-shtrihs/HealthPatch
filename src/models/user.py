@@ -1,9 +1,9 @@
 from datetime import datetime
+from enum import StrEnum
 from typing import TYPE_CHECKING
 
-from enum import StrEnum
-from sqlalchemy import Enum as SQLAlchemyEnum
 from sqlalchemy import Boolean, DateTime, Float, ForeignKey, Integer, String
+from sqlalchemy import Enum as SQLAlchemyEnum
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from src.core.base import Base, IsActiveMixin, TimestampMixin
@@ -13,15 +13,18 @@ if TYPE_CHECKING:
     from src.models.nutrition import DailyDiary
     from src.models.social import Bookmark, Comment, Like
 
+
 class FitnessGoal(StrEnum):
     WEIGHT_LOSS = "weight loss"
     MUSCLE_GAIN = "muscle gain"
     STRENGTH_BUILDING = "strength building"
     ENDURANCE = "endurance"
 
+
 class Gender(StrEnum):
     MALE = "male"
     FEMALE = "female"
+
 
 class User(Base, TimestampMixin, IsActiveMixin):
     __tablename__ = "user"

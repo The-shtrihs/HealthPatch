@@ -126,9 +126,7 @@ def _resolve_activity_multiplier(profile: UserProfile) -> float:
     key = str(activity_level).strip().lower()
     multiplier = ACTIVITY_MULTIPLIERS.get(key)
     if multiplier is None:
-        raise BadRequestError(
-            message="Unsupported activity level. Use one of: sedentary, lightly_active, moderately_active, very_active"
-        )
+        raise BadRequestError(message="Unsupported activity level. Use one of: sedentary, lightly_active, moderately_active, very_active")
     return multiplier
 
 

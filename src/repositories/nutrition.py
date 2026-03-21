@@ -1,10 +1,12 @@
 from datetime import date
-from sqlalchemy.dialects.postgresql import insert
+
 from sqlalchemy import and_, func, select
+from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.models.nutrition import DailyDiary, Food, MealEntry
 from src.models.user import UserProfile
+
 
 class NutritionRepository:
     @staticmethod
@@ -26,11 +28,7 @@ class NutritionRepository:
             if diary is not None:
                 return diary
 
-        result = await db.scalars(
-            select(DailyDiary).where(
-                and_(DailyDiary.user_id == user_id, DailyDiary.target_date == target_date)
-            )
-        )
+        result = await db.scalars(select(DailyDiary).where(and_(DailyDiary.user_id == user_id, DailyDiary.target_date == target_date)))
         diary = result.first()
         return diary
 
