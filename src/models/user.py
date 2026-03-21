@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import TYPE_CHECKING
 
-from enum import Enum as PyEnum
+from enum import StrEnum
 from sqlalchemy import Enum as SQLAlchemyEnum
 from sqlalchemy import Boolean, DateTime, Float, ForeignKey, Integer, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
@@ -13,13 +13,13 @@ if TYPE_CHECKING:
     from src.models.nutrition import DailyDiary
     from src.models.social import Bookmark, Comment, Like
 
-class FitnessGoal(str, PyEnum):
+class FitnessGoal(StrEnum):
     WEIGHT_LOSS = "weight loss"
     MUSCLE_GAIN = "muscle gain"
     STRENGTH_BUILDING = "strength building"
     ENDURANCE = "endurance"
 
-class Gender(str, PyEnum):
+class Gender(StrEnum):
     MALE = "male"
     FEMALE = "female"
 

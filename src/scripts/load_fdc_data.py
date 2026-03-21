@@ -26,10 +26,9 @@ engine = create_async_engine(
 
 
 def get_csv_reader(file_path):
-    with open(file_path, mode="r", encoding="utf-8") as f:
+    with open(file_path, encoding="utf-8") as f:
         reader = csv.DictReader(f)
-        for row in reader:
-            yield row
+        yield from reader
 
 
 def to_int(value):
