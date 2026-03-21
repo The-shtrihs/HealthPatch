@@ -5,6 +5,7 @@ from fastapi import FastAPI
 from src.core.exceptions import setup_exception_handlers
 from src.core.tasks.scheduler import scheduler, setup_scheduler
 from src.routes.auth import router as auth_router
+from src.routes.nutrition import router as nutrition_router
 
 app = FastAPI()
 
@@ -27,6 +28,7 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(lifespan=lifespan)
 app.include_router(auth_router)
+app.include_router(nutrition_router)
 
 
 @app.get("/")
