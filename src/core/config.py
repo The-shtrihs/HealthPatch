@@ -17,6 +17,29 @@ class Settings(BaseSettings):
     smtp_password: str = ""
 
     frontend_url: str = "http://localhost:3000"
+    backend_url: str = "http://localhost:8000"
+
+    google_client_id: str = ""
+    google_client_secret: str = ""
+
+    github_client_id: str = ""
+    github_client_secret: str = ""
+
+    facebook_client_id: str = ""
+    facebook_client_secret: str = ""
+
+    google_auth_url: str = "https://accounts.google.com/o/oauth2/v2/auth"
+    google_token_url: str = "https://oauth2.googleapis.com/token"
+    google_userinfo_url: str = "https://www.googleapis.com/oauth2/v2/userinfo"
+
+    github_auth_url: str = "https://github.com/login/oauth/authorize"
+    github_token_url: str = "https://github.com/login/oauth/access_token"
+    github_user_url: str = "https://api.github.com/user"
+    github_emails_url: str = "https://api.github.com/user/emails"
+
+    fb_auth_url: str = "https://www.facebook.com/v18.0/dialog/oauth"
+    fb_token_url: str = "https://graph.facebook.com/v18.0/oauth/access_token"
+    fb_user_url: str = "https://graph.facebook.com/me"
 
     model_config = {"env_file": ".env", "env_file_encoding": "utf-8"}
 
