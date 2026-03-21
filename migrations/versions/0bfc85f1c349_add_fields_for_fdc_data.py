@@ -1,7 +1,7 @@
 """add fields for fdc data
 
 Revision ID: 0bfc85f1c349
-Revises: 9f5264b10694
+Revises: e7aaf17b7cbd
 Create Date: 2026-03-19 18:30:57.630351
 
 """
@@ -13,7 +13,7 @@ import sqlalchemy as sa
 
 # revision identifiers, used by Alembic.
 revision: str = '0bfc85f1c349'
-down_revision: Union[str, None] = '9f5264b10694'
+down_revision: Union[str, None] = 'e7aaf17b7cbd'
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 
