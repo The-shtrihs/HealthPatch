@@ -45,7 +45,6 @@ Each developer is the **full owner of their domain** — they design the module,
 - Workout session logging (`WORKOUT_SESSION`, `EXERCISE_SESSION`, `WORKOUT_SET`)
 - Workout plans and their structure (`WORKOUT_PLAN`)
 - Wearable device sync (`DEVICE_SYNC_METRIC`)
-- XP awarding and gamification (`CHARACTER`, `CHARACTER_STAT`, `ACHIEVEMENT`)
 
 **Boundary:** ends after saving the session and awarding XP. Does not handle nutrition display or authentication.
 
