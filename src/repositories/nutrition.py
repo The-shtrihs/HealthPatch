@@ -32,9 +32,6 @@ class NutritionRepository:
             )
         )
         diary = result.first()
-        if diary is None:
-            # Defensive guard; should never happen with unique key + conflict handling.
-            raise RuntimeError("Failed to get or create daily diary")
         return diary
 
     @staticmethod
