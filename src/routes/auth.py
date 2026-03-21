@@ -1,14 +1,18 @@
 from fastapi import APIRouter, BackgroundTasks, Depends, Request
+from fastapi.security import OAuth2PasswordRequestForm
 
 from src.models.user import User
 from src.routes.dependencies import get_auth_service, get_current_user
 from src.schemas.auth import (
     ChangePasswordRequest,
     LoginRequest,
-    LoginResponse,
     MessageResponse,
     RegisterRequest,
     RegisterResponse,
+    TokenResponse,
+    TwoFactorSetupResponse,
+    UserProfileResponse,
+    Verify2FARequest,
 )
 from src.services.auth import AuthService
 
@@ -25,14 +29,14 @@ async def register(
     return MessageResponse(message="User registered successfully. Please check your email to verify your account.")
 
 
-@router.post("/login", response_model=LoginResponse)
+@router.post("/login", response_model=TokenResponse)
 async def login(request: Request, data: LoginRequest, auth_service: AuthService = Depends(get_auth_service)):
-    device_info = f"{request.headers.get('user-agent', 'unknown')} - {request.client.host}" 
+    device_info = f"{request.headers.get('user-agent', 'unknown')} - {request.client.host}"
     auth_data = await auth_service.authenticate_user(data.email, data.password, device_info=device_info)
     return auth_data
 
 
-@router.post("/refresh", response_model=LoginResponse)
+@router.post("/refresh", response_model=TokenResponse)
 async def refresh_token(refresh_token: str, auth_service: AuthService = Depends(get_auth_service)):
     auth_data = await auth_service.refresh_access_token(refresh_token)
     return auth_data
@@ -97,3 +101,43 @@ async def reset_password(
 ):
     await auth_service.reset_password(token, change_password_request)
     return MessageResponse(message="Password reset successfully")
+
+
+@router.post("/enable-2fa", response_model=TwoFactorSetupResponse)
+async def enable_2fa(
+    auth_service: AuthService = Depends(get_auth_service),
+    current_user: User = Depends(get_current_user),
+):
+    return await auth_service.enable_2fa(current_user.id)
+    
+
+@router.post("/confirm-2fa", response_model=MessageResponse)
+async def confirm_2fa(
+    code: str,
+    auth_service: AuthService = Depends(get_auth_service),
+    current_user: User = Depends(get_current_user),
+):
+    return await auth_service.confirm_2fa_setup(current_user.id, code)
+
+@router.post("/disable-2fa", response_model=MessageResponse)
+async def disable_2fa(
+    code: str,
+    auth_service: AuthService = Depends(get_auth_service),
+    current_user: User = Depends(get_current_user),
+):
+    return await auth_service.disable_2fa(current_user.id, code)
+
+
+@router.post("/verify-2fa", response_model=TokenResponse)
+async def verify_2fa(
+    request: Request,
+    data: Verify2FARequest,
+    auth_service: AuthService = Depends(get_auth_service),
+):
+    device_info = f"{request.headers.get('user-agent', 'unknown')} - {request.client.host}"
+    return await auth_service.verify_2fa_token(data.temp_token, data.code, device_info)
+
+
+@router.get("/me", response_model=UserProfileResponse)
+async def get_current_user_profile(current_user: User = Depends(get_current_user)):
+    return current_user

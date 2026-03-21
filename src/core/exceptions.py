@@ -3,6 +3,7 @@ import traceback
 from datetime import UTC, datetime
 
 from fastapi import FastAPI, HTTPException, Request
+from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 from sqlalchemy.exc import IntegrityError
@@ -72,6 +73,39 @@ class EmailAlreadyVerifiedError(BadRequestError):
         super().__init__(message=message)
         self.error_code = "EMAIL_ALREADY_VERIFIED"
 
+class OAuthStateMismatchError(BadRequestError):
+    def __init__(self, message: str = "Invalid OAuth state (CSRF protection failed)"):
+        super().__init__(message=message)
+        self.error_code = "OAUTH_STATE_MISMATCH"
+
+class OAuthProviderError(BadRequestError):
+    def __init__(self, message: str = "Error communicating with OAuth provider"):
+        super().__init__(message=message)
+        self.error_code = "OAUTH_PROVIDER_ERROR"
+
+class InvalidTwoFactorCodeError(UnauthorizedError):
+    def __init__(self, message: str = "Invalid or expired 2FA code"):
+        super().__init__(message=message)
+        self.error_code = "INVALID_2FA_CODE"
+
+class TwoFactorAlreadyEnabledError(ConflictError):
+    def __init__(self, message: str = "Two-factor authentication is already enabled"):
+        super().__init__(message=message)
+        self.error_code = "2FA_ALREADY_ENABLED"
+
+class TwoFactorNotEnabledError(BadRequestError):
+    def __init__(self, message: str = "Two-factor authentication is not enabled for this user"):
+        super().__init__(message=message)
+        self.error_code = "2FA_NOT_ENABLED"
+
+class TooManyRequestsError(AppError):
+    def __init__(self, message: str = "Too many requests. Please try again later."):
+        super().__init__(message=message, status_code=429, error_code="TOO_MANY_REQUESTS")
+
+class PasswordMismatchError(BadRequestError):
+    def __init__(self, message: str = "Current password is incorrect"):
+        super().__init__(message=message)
+        self.error_code = "PASSWORD_MISMATCH"
 
 class ErrorResponse(BaseModel):
     error_code: str
@@ -129,6 +163,26 @@ def setup_exception_handlers(app: FastAPI):
             content=ErrorResponse(
                 error_code="INTERNAL_ERROR",
                 message="An unexpected error occurred",
+                timestamp=datetime.now(UTC).isoformat(),
+                path=str(request.url.path),
+            ).model_dump(),
+        )
+    @app.exception_handler(RequestValidationError)
+    async def validation_exception_handler(request: Request, exc: RequestValidationError):
+        error_messages = []
+        for error in exc.errors():
+            field = ".".join(str(loc) for loc in error["loc"][1:]) if len(error["loc"]) > 1 else str(error["loc"][0])
+            error_messages.append(f"'{field}': {error['msg']}")
+        
+        message = "Validation failed: " + "; ".join(error_messages)
+        
+        logger.warning(f"[VALIDATION_ERROR] {request.method} {request.url.path}: {message}")
+        
+        return JSONResponse(
+            status_code=422,
+            content=ErrorResponse(
+                error_code="VALIDATION_ERROR",
+                message=message,
                 timestamp=datetime.now(UTC).isoformat(),
                 path=str(request.url.path),
             ).model_dump(),

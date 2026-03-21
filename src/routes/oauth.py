@@ -2,11 +2,12 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi.responses import RedirectResponse
 
 from src.routes.dependencies import get_oauth_service
-from src.schemas.auth import LoginResponse
+from src.schemas.auth import TokenResponse
 from src.schemas.oauth import UserInfo
 from src.services.oauth import OAuthService
 
 router = APIRouter(prefix="/oauth", tags=["OAuth Authentication"])
+
 
 @router.get("/google")
 async def google_oauth_redirect(oauth_service: OAuthService = Depends(get_oauth_service)):
@@ -23,9 +24,9 @@ async def google_callback(
     if not oauth_service.verify_oauth_state(state, "google"):
         raise HTTPException(status_code=400, detail="Invalid state (CSRF protection)")
     oauth_data: UserInfo = await oauth_service.exchange_google_code(code)
-    user: LoginResponse = await oauth_service.handle_oauth_user(oauth_data)
+    token: TokenResponse = await oauth_service.handle_oauth_user(oauth_data)
 
-    redirect_url = f"{oauth_service.settings.frontend_url}/auth/callback?access_token={user.access_token}&refresh_token={user.refresh_token}"
+    redirect_url = f"{oauth_service.settings.frontend_url}/auth/callback?access_token={token.access_token}&refresh_token={token.refresh_token}"
 
     return RedirectResponse(redirect_url)
 
@@ -45,9 +46,9 @@ async def github_callback(
     if not oauth_service.verify_oauth_state(state, "github"):
         raise HTTPException(status_code=400, detail="Invalid state (CSRF protection)")
     oauth_data: UserInfo = await oauth_service.exchange_github_code(code)
-    user: LoginResponse = await oauth_service.handle_oauth_user(oauth_data)
+    token: TokenResponse = await oauth_service.handle_oauth_user(oauth_data)
 
-    redirect_url = f"{oauth_service.settings.frontend_url}/auth/callback?access_token={user.access_token}&refresh_token={user.refresh_token}"
+    redirect_url = f"{oauth_service.settings.frontend_url}/auth/callback?access_token={token.access_token}&refresh_token={token.refresh_token}"
 
     return RedirectResponse(redirect_url)
 
@@ -67,8 +68,8 @@ async def facebook_callback(
     if not oauth_service.verify_oauth_state(state, "facebook"):
         raise HTTPException(status_code=400, detail="Invalid state (CSRF protection)")
     oauth_data: UserInfo = await oauth_service.exchange_facebook_code(code)
-    user: LoginResponse = await oauth_service.handle_oauth_user(oauth_data)
+    token: TokenResponse = await oauth_service.handle_oauth_user(oauth_data)
 
-    redirect_url = f"{oauth_service.settings.frontend_url}/auth/callback?access_token={user.access_token}&refresh_token={user.refresh_token}"
+    redirect_url = f"{oauth_service.settings.frontend_url}/auth/callback?access_token={token.access_token}&refresh_token={token.refresh_token}"
 
     return RedirectResponse(redirect_url)

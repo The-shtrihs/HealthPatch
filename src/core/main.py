@@ -7,10 +7,6 @@ from src.core.tasks.scheduler import scheduler, setup_scheduler
 from src.routes.auth import router as auth_router
 from src.routes.oauth import router as oauth_router
 
-app = FastAPI()
-
-setup_exception_handlers(app=app)
-
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -27,6 +23,8 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(lifespan=lifespan)
+
+setup_exception_handlers(app=app)
 app.include_router(auth_router)
 app.include_router(oauth_router)
 
