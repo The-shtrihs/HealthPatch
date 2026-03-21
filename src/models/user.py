@@ -18,8 +18,13 @@ class User(Base, TimestampMixin, IsActiveMixin):
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     name: Mapped[str] = mapped_column(String(255), nullable=False)
     email: Mapped[str] = mapped_column(String(255), unique=True, nullable=False)
-    password_hash: Mapped[str] = mapped_column(String(255), nullable=False)
+    password_hash: Mapped[str | None] = mapped_column(String(255), nullable=True, default=None)
     is_verified: Mapped[bool] = mapped_column(default=False, nullable=False)
+    oauth_provider: Mapped[str | None] = mapped_column(String(20), default=None)
+    oauth_provider_id: Mapped[str | None] = mapped_column(String(255), default=None)
+    avatar_url: Mapped[str | None] = mapped_column(String(500), default=None)
+    totp_secret: Mapped[str | None] = mapped_column(String(32), default=None)
+    is_2fa_enabled: Mapped[bool] = mapped_column(Boolean, default=False)
 
     profile: Mapped["UserProfile"] = relationship(back_populates="user", uselist=False, cascade="all, delete-orphan")
 
