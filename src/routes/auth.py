@@ -1,5 +1,4 @@
 from fastapi import APIRouter, BackgroundTasks, Depends, Request
-from fastapi.security import OAuth2PasswordRequestForm
 
 from src.models.user import User
 from src.routes.dependencies import get_auth_service, get_current_user
@@ -109,7 +108,7 @@ async def enable_2fa(
     current_user: User = Depends(get_current_user),
 ):
     return await auth_service.enable_2fa(current_user.id)
-    
+
 
 @router.post("/confirm-2fa", response_model=MessageResponse)
 async def confirm_2fa(
@@ -118,6 +117,7 @@ async def confirm_2fa(
     current_user: User = Depends(get_current_user),
 ):
     return await auth_service.confirm_2fa_setup(current_user.id, code)
+
 
 @router.post("/disable-2fa", response_model=MessageResponse)
 async def disable_2fa(

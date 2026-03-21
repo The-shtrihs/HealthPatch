@@ -144,7 +144,7 @@ class OAuthService:
             )
             token_data = token_response.json()
             if "error" in token_data:
-                error_msg = token_data['error'].get('message', 'Unknown error')
+                error_msg = token_data["error"].get("message", "Unknown error")
                 raise OAuthProviderError(f"Facebook error: {error_msg}")
 
             fb_access_token = token_data["access_token"]
@@ -186,4 +186,3 @@ class OAuthService:
             token_type="bearer",
             expires_in=self.settings.access_token_expire_minutes * 60,
         )
-    

@@ -1,5 +1,4 @@
 import re
-from dataclasses import field
 
 from pydantic import BaseModel, EmailStr, Field, field_validator, model_validator
 
@@ -7,13 +6,12 @@ from pydantic import BaseModel, EmailStr, Field, field_validator, model_validato
 class RegisterRequest(BaseModel):
     name: str = Field(min_length=2, max_length=50, description="Name must be between 2 and 50 characters")
     email: EmailStr
-    password: str = Field(min_length=8, max_length=128, 
-                          description="Password must be between 8 and 128 characters.")
+    password: str = Field(min_length=8, max_length=128, description="Password must be between 8 and 128 characters.")
     password_confirm: str = Field(min_length=8, max_length=128, description="Password must be between 8 and 128 characters")
 
     @field_validator("password")
     @classmethod
-    def validate_password_strength(cls, value:str):
+    def validate_password_strength(cls, value: str):
         if not re.search(r"[a-z]", value):
             raise ValueError("Password must contain at least one lowercase letter")
         if not re.search(r"[A-Z]", value):
@@ -23,6 +21,7 @@ class RegisterRequest(BaseModel):
         if not re.search(r"[@$!%*?&_]", value):
             raise ValueError("Password must contain at least one special character (@$!%*?&_)")
         return value
+
     @model_validator(mode="after")
     def validate_passwords_match(self):
         if self.password != self.password_confirm:
@@ -80,9 +79,11 @@ class TwoFactorSetupResponse(BaseModel):
     qr_code_base64: str
     message: str = "Scan the QR code with your authenticator app and enter the generated code to enable 2FA"
 
+
 class Verify2FARequest(BaseModel):
-    temp_token: str  
+    temp_token: str
     code: str
+
 
 class UserProfileResponse(BaseModel):
     id: int
@@ -94,4 +95,4 @@ class UserProfileResponse(BaseModel):
     oauth_provider: str | None = None
 
     class Config:
-        from_attributes = True      
+        from_attributes = True

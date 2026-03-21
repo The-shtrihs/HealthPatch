@@ -55,9 +55,9 @@ class AuthService:
         expires_at = datetime.now(UTC) + timedelta(minutes=self.settings.refresh_token_expire_minutes)
         await RefreshTokenRepository.create(self.db, token_value, user.id, expires_at, device_info)
         return token_value
-    
+
     def create_2fa_token(self, user: User) -> str:
-        expire = datetime.now(UTC) + timedelta(minutes=5) 
+        expire = datetime.now(UTC) + timedelta(minutes=5)
         payload = {"sub": str(user.id), "email": user.email, "type": "2fa", "iat": datetime.now(UTC), "exp": expire}
         return jwt.encode(payload, self.settings.secret_key, algorithm=self.settings.algorithm)
 
@@ -73,7 +73,7 @@ class AuthService:
             raise InvalidTokenError("Token has expired")
         except jwt.InvalidTokenError as e:
             raise InvalidTokenError(f"Invalid token: {str(e)}")
-        
+
     @staticmethod
     def decode_2fa_token(token: str) -> dict:
         settings = get_settings()
@@ -138,7 +138,6 @@ class AuthService:
                 token_type="2fa_required",
                 expires_in=5 * 60,
             )
-            
 
         access_token = self.create_access_token(user)
         refresh_token = await self.create_refresh_token(user, device_info=device_info)
