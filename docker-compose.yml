@@ -28,6 +28,6 @@ services:
         condition: service_healthy
     volumes:
       - .:/app
-      - .:/app/.venv
+      - /app/.venv
 volumes:
   pg_data:
