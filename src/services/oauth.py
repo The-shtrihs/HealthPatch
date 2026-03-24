@@ -12,12 +12,7 @@ from src.services.auth import AuthService
 
 
 class OAuthService:
-    def __init__(
-        self, 
-        auth_service: AuthService, 
-        oauth_state_repo: OAuthStateRepository, 
-        user_repo: UserRepository
-    ):
+    def __init__(self, auth_service: AuthService, oauth_state_repo: OAuthStateRepository, user_repo: UserRepository):
         self.settings = get_settings()
         self.auth_service = auth_service
         self.oauth_state_repo = oauth_state_repo
@@ -31,7 +26,7 @@ class OAuthService:
             return None
         if data.ip_address and data.ip_address != ip_address:
             return None
-        
+
         return data.redirect_after
 
     async def get_google_auth_url(self, redirect_after: str = "/", ip_address: str | None = None) -> str:

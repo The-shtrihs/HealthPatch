@@ -13,12 +13,7 @@ SUPPORTED_PROVIDERS = ["google", "github", "facebook"]
 
 
 @router.get("/{provider}")
-async def oauth_redirect(
-    provider: str,
-    request: Request,
-    redirect_after: str = Query("/"),
-    oauth_service: OAuthService = Depends(get_oauth_service)
-):
+async def oauth_redirect(provider: str, request: Request, redirect_after: str = Query("/"), oauth_service: OAuthService = Depends(get_oauth_service)):
     if provider not in SUPPORTED_PROVIDERS:
         raise HTTPException(status_code=404, detail="OAuth provider not supported")
 
@@ -39,14 +34,14 @@ async def oauth_callback(
     provider: str,
     request: Request,
     state: str = Query(...),
-    code: str | None = Query(None),   
-    error: str | None = Query(None),  
+    code: str | None = Query(None),
+    error: str | None = Query(None),
     oauth_service: OAuthService = Depends(get_oauth_service),
-    settings = Depends(get_settings),
+    settings=Depends(get_settings),
 ):
     if provider not in SUPPORTED_PROVIDERS:
         raise HTTPException(status_code=404, detail="OAuth provider not supported")
-    
+
     frontend_url = settings.frontend_url.rstrip("/")
 
     if error:
@@ -58,7 +53,7 @@ async def oauth_callback(
     ip_address = request.client.host if request.client else None
 
     redirect_after = await oauth_service.verify_oauth_state(state, provider, ip_address)
-    
+
     if not redirect_after:
         raise HTTPException(status_code=400, detail="Invalid state (CSRF protection) or timeout")
 
@@ -72,10 +67,7 @@ async def oauth_callback(
     token: TokenResponse = await oauth_service.handle_oauth_user(oauth_data)
 
     redirect_url = (
-        f"{frontend_url}/auth/callback"
-        f"?access_token={token.access_token}"
-        f"&refresh_token={token.refresh_token}"
-        f"&redirect_after={redirect_after}"
+        f"{frontend_url}/auth/callback?access_token={token.access_token}&refresh_token={token.refresh_token}&redirect_after={redirect_after}"
     )
 
     return RedirectResponse(redirect_url)

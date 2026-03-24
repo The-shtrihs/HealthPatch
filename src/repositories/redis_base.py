@@ -5,7 +5,6 @@ import redis.asyncio as aioredis
 
 
 class BaseRedisRepository:
-
     def __init__(self, redis: aioredis.Redis):
         self.redis = redis
 
@@ -52,7 +51,7 @@ class BaseRedisRepository:
 
     async def decr(self, key: str, amount: int = 1) -> int:
         return await self.redis.decrby(key, amount)
-    
+
     async def set_json(
         self,
         key: str,

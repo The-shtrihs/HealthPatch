@@ -9,8 +9,9 @@ class UserInfo(BaseModel):
     avatar_url: str | None = None
     is_verified: bool = False
 
+
 class OAuthStateData(BaseModel):
-    provider: str         
-    redirect_after: str   
-    created_at: str        
-    ip_address: str | None = None   
+    provider: str
+    redirect_after: str
+    created_at: str
+    ip_address: str | None = None

@@ -40,12 +40,14 @@ class UserRepository:
         return user
 
     async def create(
-            self, name: str, 
-            email: str, 
-            password_hash: str | None, 
-            provider: str | None = None, 
-            provider_id: str | None = None, 
-            avatar_url: str | None = None) -> User:
+        self,
+        name: str,
+        email: str,
+        password_hash: str | None,
+        provider: str | None = None,
+        provider_id: str | None = None,
+        avatar_url: str | None = None,
+    ) -> User:
         new_user = User(
             name=name, email=email, password_hash=password_hash, oauth_provider=provider, oauth_provider_id=provider_id, avatar_url=avatar_url
         )

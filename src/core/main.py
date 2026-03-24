@@ -14,6 +14,7 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 settings = get_settings()
 
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # --- Startup Logic ---
@@ -29,13 +30,13 @@ async def lifespan(app: FastAPI):
 
     redis = redis_module.get_redis()
 
-    try: 
+    try:
         pong = await redis.ping()
         logger.info(f"Connected to Redis: {settings.redis_url}, ping response: {pong}")
 
     except Exception as e:
         logger.error(f"Failed to connect to Redis at {settings.redis_url}: {e}")
-        raise 
+        raise
 
     yield
 

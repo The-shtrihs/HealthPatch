@@ -7,10 +7,10 @@ from src.schemas.oauth import OAuthStateData
 
 settings = get_settings()
 
-class OAuthStateRepository(BaseRedisRepository):
 
+class OAuthStateRepository(BaseRedisRepository):
     KEY_PREFIX = "oauth_state"
-    DEFAULT_TTL = settings.oauth_state_expire_seconds   
+    DEFAULT_TTL = settings.oauth_state_expire_seconds
 
     def _make_key(self, state: str) -> str:
         return f"{self.KEY_PREFIX}:{state}"
@@ -26,23 +26,23 @@ class OAuthStateRepository(BaseRedisRepository):
         ttl: int = DEFAULT_TTL,
     ) -> str:
         state = self._generate_state()
-        
+
         data = OAuthStateData(
             provider=provider,
             redirect_after=redirect_after,
             created_at=datetime.now(UTC).isoformat(),
             ip_address=ip_address,
         )
-        
+
         await self.set_json(self._make_key(state), data.model_dump(), ttl=ttl)
         return state
 
     async def validate_and_consume(self, state: str) -> OAuthStateData | None:
         raw = await self.getdel_json(self._make_key(state))
-        
+
         if raw is None:
             return None
-        
+
         return OAuthStateData(**raw)
 
     async def peek(self, state: str) -> OAuthStateData | None:

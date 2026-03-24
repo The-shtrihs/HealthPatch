@@ -28,13 +28,7 @@ from src.services.totp import TotpService
 
 
 class AuthService:
-    def __init__(
-        self, 
-        user_repo: UserRepository, 
-        token_repo: RefreshTokenRepository, 
-        mail_service: MailService, 
-        totp_service: TotpService
-    ):
+    def __init__(self, user_repo: UserRepository, token_repo: RefreshTokenRepository, mail_service: MailService, totp_service: TotpService):
         self.user_repo = user_repo
         self.token_repo = token_repo
         self.mail_service = mail_service
@@ -251,7 +245,7 @@ class AuthService:
 
         if not self.totp_service.verify_totp(code, user.totp_secret):
             raise InvalidTwoFactorCodeError()
-            
+
         await self.user_repo.update_2fa_enabled(user_id, True)
         return MessageResponse(message="2FA has been enabled successfully")
 
