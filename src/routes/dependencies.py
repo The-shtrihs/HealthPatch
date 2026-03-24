@@ -10,6 +10,7 @@ from src.repositories.refresh_token import RefreshTokenRepository
 from src.repositories.user import UserRepository
 from src.services.auth import AuthService
 from src.services.mail import MailService
+from src.services.nutrition import NutritionService
 from src.services.oauth import OAuthService
 from src.services.totp import TotpService
 
@@ -62,3 +63,6 @@ async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(s
         raise NotFoundError(resource="User", resource_id=user_id)
 
     return current_user
+
+async def get_nutrition_service(db: AsyncSession = Depends(get_session)):
+    return NutritionService(db)

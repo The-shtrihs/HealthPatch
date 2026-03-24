@@ -42,7 +42,7 @@ services:
         condition: service_healthy
     volumes:
       - .:/app
-
+      - /app/.venv
 volumes:
   pg_data:
   redis_data:
