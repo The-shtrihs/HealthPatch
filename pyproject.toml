@@ -21,6 +21,7 @@ dependencies = [
     "jinja2>=3.1.6",
     "pyotp>=2.9.0",
     "qrcode[pil]>=8.2",
+    "redis[hiredis]>=7.4.0",
 ]
 
 [tool.ruff]

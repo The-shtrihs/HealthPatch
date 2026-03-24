@@ -1,11 +1,10 @@
-import secrets
 from urllib.parse import urlencode
 
 import httpx
-from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.core.config import get_settings
 from src.core.exceptions import OAuthProviderError
+from src.repositories.oauth_state import OAuthStateRepository
 from src.repositories.user import UserRepository
 from src.schemas.auth import TokenResponse
 from src.schemas.oauth import UserInfo
@@ -13,23 +12,30 @@ from src.services.auth import AuthService
 
 
 class OAuthService:
-    def __init__(self, db: AsyncSession, auth_service: AuthService):
+    def __init__(
+        self, 
+        auth_service: AuthService, 
+        oauth_state_repo: OAuthStateRepository, 
+        user_repo: UserRepository
+    ):
         self.settings = get_settings()
-        self.oauth_states: dict[str, str] = {}
-        self.db = db
         self.auth_service = auth_service
+        self.oauth_state_repo = oauth_state_repo
+        self.user_repo = user_repo
 
-    def generate_oauth_state(self, provider: str) -> str:
-        state = secrets.token_urlsafe(32)
-        self.oauth_states[state] = provider
-        return state
+    async def verify_oauth_state(self, state: str, provider: str, ip_address: str | None = None) -> str | None:
+        data = await self.oauth_state_repo.validate_and_consume(state)
+        if not data:
+            return None
+        if data.provider != provider:
+            return None
+        if data.ip_address and data.ip_address != ip_address:
+            return None
+        
+        return data.redirect_after
 
-    def verify_oauth_state(self, state: str, provider: str) -> bool:
-        stored_provider = self.oauth_states.get(state)
-        return stored_provider == provider
-
-    def get_google_auth_url(self) -> str:
-        state = self.generate_oauth_state("google")
+    async def get_google_auth_url(self, redirect_after: str = "/", ip_address: str | None = None) -> str:
+        state = await self.oauth_state_repo.create(provider="google", redirect_after=redirect_after, ip_address=ip_address)
         params = {
             "client_id": self.settings.google_client_id,
             "redirect_uri": f"{self.settings.backend_url}/oauth/google/callback",
@@ -72,8 +78,8 @@ class OAuthService:
                 is_verified=userinfo.get("email_verified", False),
             )
 
-    def get_github_auth_url(self) -> str:
-        state = self.generate_oauth_state("github")
+    async def get_github_auth_url(self, redirect_after: str = "/", ip_address: str | None = None) -> str:
+        state = await self.oauth_state_repo.create(provider="github", redirect_after=redirect_after, ip_address=ip_address)
         params = {
             "client_id": self.settings.github_client_id,
             "redirect_uri": f"{self.settings.backend_url}/oauth/github/callback",
@@ -120,8 +126,8 @@ class OAuthService:
                 is_verified=True,
             )
 
-    def get_facebook_auth_url(self) -> str:
-        state = self.generate_oauth_state("facebook")
+    async def get_facebook_auth_url(self, redirect_after: str = "/", ip_address: str | None = None) -> str:
+        state = await self.oauth_state_repo.create(provider="facebook", redirect_after=redirect_after, ip_address=ip_address)
         params = {
             "client_id": self.settings.facebook_client_id,
             "redirect_uri": f"{self.settings.backend_url}/oauth/facebook/callback",
@@ -161,14 +167,13 @@ class OAuthService:
             )
 
     async def handle_oauth_user(self, oauth_data: UserInfo) -> TokenResponse:
-        user = await UserRepository.get_by_oauth(self.db, oauth_data.provider, oauth_data.provider_id)
+        user = await self.user_repo.get_by_oauth(oauth_data.provider, oauth_data.provider_id)
         if not user:
-            user = await UserRepository.get_by_email(self.db, oauth_data.email)
+            user = await self.user_repo.get_by_email(oauth_data.email)
             if user:
-                user = await UserRepository.update_oauth_info(self.db, user, oauth_data.provider, oauth_data.provider_id, oauth_data.avatar_url)
+                user = await self.user_repo.update_oauth_info(user, oauth_data.provider, oauth_data.provider_id, oauth_data.avatar_url)
             else:
-                user = await UserRepository.create(
-                    db=self.db,
+                user = await self.user_repo.create(
                     name=oauth_data.name,
                     email=oauth_data.email,
                     password_hash=None,

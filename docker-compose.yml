@@ -15,6 +15,20 @@ services:
       interval: 5s
       timeout: 3s
       retries: 5
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"   
+    volumes:
+      - redis_data:/data
+      - ./redis.conf:/etc/redis/redis.conf   
+    command: redis-server /etc/redis/redis.conf
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+      start_period: 5s
 
   api:
     build: .
@@ -28,5 +42,7 @@ services:
         condition: service_healthy
     volumes:
       - .:/app
+
 volumes:
   pg_data:
+  redis_data:

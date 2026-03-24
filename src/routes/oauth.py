@@ -1,6 +1,7 @@
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from fastapi.responses import RedirectResponse
 
+from src.core.config import get_settings
 from src.routes.dependencies import get_oauth_service
 from src.schemas.auth import TokenResponse
 from src.schemas.oauth import UserInfo
@@ -8,68 +9,73 @@ from src.services.oauth import OAuthService
 
 router = APIRouter(prefix="/oauth", tags=["OAuth Authentication"])
 
+SUPPORTED_PROVIDERS = ["google", "github", "facebook"]
 
-@router.get("/google")
-async def google_oauth_redirect(oauth_service: OAuthService = Depends(get_oauth_service)):
-    auth_url = oauth_service.get_google_auth_url()
+
+@router.get("/{provider}")
+async def oauth_redirect(
+    provider: str,
+    request: Request,
+    redirect_after: str = Query("/"),
+    oauth_service: OAuthService = Depends(get_oauth_service)
+):
+    if provider not in SUPPORTED_PROVIDERS:
+        raise HTTPException(status_code=404, detail="OAuth provider not supported")
+
+    ip_address = request.client.host if request.client else None
+
+    if provider == "google":
+        auth_url = await oauth_service.get_google_auth_url(redirect_after, ip_address)
+    elif provider == "github":
+        auth_url = await oauth_service.get_github_auth_url(redirect_after, ip_address)
+    elif provider == "facebook":
+        auth_url = await oauth_service.get_facebook_auth_url(redirect_after, ip_address)
+
     return RedirectResponse(auth_url)
 
 
-@router.get("/google/callback")
-async def google_callback(
-    code: str = Query(...),
+@router.get("/{provider}/callback")
+async def oauth_callback(
+    provider: str,
+    request: Request,
     state: str = Query(...),
+    code: str | None = Query(None),   
+    error: str | None = Query(None),  
     oauth_service: OAuthService = Depends(get_oauth_service),
+    settings = Depends(get_settings),
 ):
-    if not oauth_service.verify_oauth_state(state, "google"):
-        raise HTTPException(status_code=400, detail="Invalid state (CSRF protection)")
-    oauth_data: UserInfo = await oauth_service.exchange_google_code(code)
+    if provider not in SUPPORTED_PROVIDERS:
+        raise HTTPException(status_code=404, detail="OAuth provider not supported")
+    
+    frontend_url = settings.frontend_url.rstrip("/")
+
+    if error:
+        return RedirectResponse(f"{frontend_url}/login?error={error}")
+
+    if not code:
+        raise HTTPException(status_code=400, detail="Authorization code is missing")
+
+    ip_address = request.client.host if request.client else None
+
+    redirect_after = await oauth_service.verify_oauth_state(state, provider, ip_address)
+    
+    if not redirect_after:
+        raise HTTPException(status_code=400, detail="Invalid state (CSRF protection) or timeout")
+
+    if provider == "google":
+        oauth_data: UserInfo = await oauth_service.exchange_google_code(code)
+    elif provider == "github":
+        oauth_data: UserInfo = await oauth_service.exchange_github_code(code)
+    elif provider == "facebook":
+        oauth_data: UserInfo = await oauth_service.exchange_facebook_code(code)
+
     token: TokenResponse = await oauth_service.handle_oauth_user(oauth_data)
 
-    redirect_url = f"{oauth_service.settings.frontend_url}/auth/callback?access_token={token.access_token}&refresh_token={token.refresh_token}"
-
-    return RedirectResponse(redirect_url)
-
-
-@router.get("/github")
-async def github_oauth_redirect(oauth_service: OAuthService = Depends(get_oauth_service)):
-    auth_url = oauth_service.get_github_auth_url()
-    return RedirectResponse(auth_url)
-
-
-@router.get("/github/callback")
-async def github_callback(
-    code: str = Query(...),
-    state: str = Query(...),
-    oauth_service: OAuthService = Depends(get_oauth_service),
-):
-    if not oauth_service.verify_oauth_state(state, "github"):
-        raise HTTPException(status_code=400, detail="Invalid state (CSRF protection)")
-    oauth_data: UserInfo = await oauth_service.exchange_github_code(code)
-    token: TokenResponse = await oauth_service.handle_oauth_user(oauth_data)
-
-    redirect_url = f"{oauth_service.settings.frontend_url}/auth/callback?access_token={token.access_token}&refresh_token={token.refresh_token}"
-
-    return RedirectResponse(redirect_url)
-
-
-@router.get("/facebook")
-async def facebook_oauth_redirect(oauth_service: OAuthService = Depends(get_oauth_service)):
-    auth_url = oauth_service.get_facebook_auth_url()
-    return RedirectResponse(auth_url)
-
-
-@router.get("/facebook/callback")
-async def facebook_callback(
-    code: str = Query(...),
-    state: str = Query(...),
-    oauth_service: OAuthService = Depends(get_oauth_service),
-):
-    if not oauth_service.verify_oauth_state(state, "facebook"):
-        raise HTTPException(status_code=400, detail="Invalid state (CSRF protection)")
-    oauth_data: UserInfo = await oauth_service.exchange_facebook_code(code)
-    token: TokenResponse = await oauth_service.handle_oauth_user(oauth_data)
-
-    redirect_url = f"{oauth_service.settings.frontend_url}/auth/callback?access_token={token.access_token}&refresh_token={token.refresh_token}"
+    redirect_url = (
+        f"{frontend_url}/auth/callback"
+        f"?access_token={token.access_token}"
+        f"&refresh_token={token.refresh_token}"
+        f"&redirect_after={redirect_after}"
+    )
 
     return RedirectResponse(redirect_url)
