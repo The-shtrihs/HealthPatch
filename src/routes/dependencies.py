@@ -64,5 +64,6 @@ async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(s
 
     return current_user
 
+
 async def get_nutrition_service(db: AsyncSession = Depends(get_session)):
     return NutritionService(db)
