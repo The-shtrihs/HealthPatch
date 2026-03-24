@@ -16,6 +16,13 @@ class Settings(BaseSettings):
     smtp_username: str = ""
     smtp_password: str = ""
 
+    redis_url: str = "redis://redis:6379/0"
+    redis_max_connections: int = 20
+    oauth_state_expire_seconds: int = 300
+    cache_default_expire_seconds: int = 300
+    rate_limit_requests: int = 100
+    rate_limit_window_seconds: int = 60
+
     frontend_url: str = "http://localhost:3000"
     backend_url: str = "http://localhost:8000"
 
