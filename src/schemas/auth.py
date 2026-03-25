@@ -96,3 +96,11 @@ class UserProfileResponse(BaseModel):
 
     class Config:
         from_attributes = True
+class RateLimitResponse(BaseModel):
+    allowed: bool
+    limit: int
+    remaining: int
+    reset_at: int      
+    retry_after: int    
+
+
