@@ -46,7 +46,7 @@ class RateLimitRepository(BaseRedisRepository):
                 reset_at=int(now) + retry_after,
                 retry_after=retry_after,
             )
-        
+
         member = f"{now:.6f}:{uuid.uuid4().hex[:8]}"
         await self.redis.zadd(key, {member: now})
 

@@ -70,16 +70,18 @@ async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(s
 async def get_nutrition_service(db: AsyncSession = Depends(get_session)):
     return NutritionService(db)
 
+
 async def get_cache_repo(redis=Depends(get_redis)):
     return CacheRepository(redis)
+
 
 async def get_rate_limit_repo(redis=Depends(get_redis)):
     return RateLimitRepository(redis)
 
+
 def make_rate_limiter(limit: int = 60, window: int = 60):
-    
+
     async def rate_limit_dep(request: Request, rate_limit_repo: RateLimitRepository = Depends(get_rate_limit_repo)):
-    
 
         identifier = f"ip:{request.client.host}:{request.url.path}"
 
@@ -93,5 +95,3 @@ def make_rate_limiter(limit: int = 60, window: int = 60):
             )
 
     return rate_limit_dep
-
-

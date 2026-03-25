@@ -14,7 +14,7 @@ def cached(
         async def wrapper(*args, **kwargs):
             if skip_cache_if and skip_cache_if(*args, **kwargs):
                 return await func(*args, **kwargs)
-            
+
             cache_repo = kwargs.get("cache_repo")
 
             cache_key = cache_repo.make_key(key_prefix or func.__qualname__, *args, **kwargs.values())

@@ -9,15 +9,9 @@ from src.repositories.rate_limit import RateLimitRepository
 
 
 class RateLimitMiddleware(BaseHTTPMiddleware):
-    def __init__(
-        self, 
-        app, 
-        repo_factory: Callable[[], RateLimitRepository], 
-        limit: int = 60, 
-        window: int = 60
-    ):
+    def __init__(self, app, repo_factory: Callable[[], RateLimitRepository], limit: int = 60, window: int = 60):
         super().__init__(app)
-        self.repo_factory = repo_factory 
+        self.repo_factory = repo_factory
         self.limit = limit
         self.window = window
 

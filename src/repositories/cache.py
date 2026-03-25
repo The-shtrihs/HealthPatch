@@ -7,7 +7,6 @@ from src.repositories.redis_base import BaseRedisRepository
 
 
 class CacheRepository(BaseRedisRepository):
-
     KEY_PREFIX = "cache"
 
     def make_key(self, namespace: str, *parts: Any) -> str:
@@ -25,7 +24,7 @@ class CacheRepository(BaseRedisRepository):
         factory: Callable,
         ttl: int = 300,
     ) -> Any:
-       
+
         cached = await self.get_json(key)
         if cached is not None:
             return cached
