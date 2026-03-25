@@ -1,11 +1,13 @@
-from fastapi import Depends
+from fastapi import Depends, HTTPException, Request
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.core.database import get_session
 from src.core.exceptions import NotFoundError
 from src.core.redis import get_redis
+from src.repositories.cache import CacheRepository
 from src.repositories.oauth_state import OAuthStateRepository
+from src.repositories.rate_limit import RateLimitRepository
 from src.repositories.refresh_token import RefreshTokenRepository
 from src.repositories.user import UserRepository
 from src.services.auth import AuthService
@@ -67,3 +69,29 @@ async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(s
 
 async def get_nutrition_service(db: AsyncSession = Depends(get_session)):
     return NutritionService(db)
+
+
+async def get_cache_repo(redis=Depends(get_redis)):
+    return CacheRepository(redis)
+
+
+async def get_rate_limit_repo(redis=Depends(get_redis)):
+    return RateLimitRepository(redis)
+
+
+def make_rate_limiter(limit: int = 60, window: int = 60):
+
+    async def rate_limit_dep(request: Request, rate_limit_repo: RateLimitRepository = Depends(get_rate_limit_repo)):
+
+        identifier = f"ip:{request.client.host}:{request.url.path}"
+
+        result = await rate_limit_repo.check(identifier=identifier, limit=limit, window=window)
+
+        if not result.allowed:
+            raise HTTPException(
+                status_code=429,
+                detail="Too many requests. Please try again later.",
+                headers={"Retry-After": str(result.retry_after)},
+            )
+
+    return rate_limit_dep
