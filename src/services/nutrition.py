@@ -10,6 +10,7 @@ from src.services.nutrition_calculators import calculate_daily_norm
 class NutritionService:
     def __init__(self, db: AsyncSession):
         self.db = db
+        self.repo = NutritionRepository(db)
 
     async def get_daily_norm(self, user_id: int) -> dict[str, float]:
         profile = await self._get_validated_profile(user_id)
@@ -17,7 +18,7 @@ class NutritionService:
 
     async def get_day_overview(self, user_id: int, target_date: date) -> dict:
         norm = await self.get_daily_norm(user_id)
-        consumed = await NutritionRepository.get_day_consumed_totals(self.db, user_id, target_date)
+        consumed = await self.repo.get_day_consumed_totals(user_id, target_date)
 
         remaining = {
             "calories": max(0.0, norm["calories"] - consumed["calories"]),
@@ -52,10 +53,9 @@ class NutritionService:
         async with self.db.begin():
             await self._get_validated_profile(user_id)
 
-            diary = await NutritionRepository.get_or_create_daily_diary(self.db, user_id, day)
+            diary = await self.repo.get_or_create_daily_diary(user_id, day)
 
-            meal_entry = await NutritionRepository.add_meal_entry(
-                db=self.db,
+            meal_entry = await self.repo.add_meal_entry(
                 diary_id=diary.id,
                 food_id=food_id,
                 meal_type=meal_type,
@@ -73,12 +73,12 @@ class NutritionService:
         async with self.db.begin():
             await self._get_validated_profile(user_id)
 
-            row = await NutritionRepository.get_user_meal_entry_with_target_date(self.db, user_id, meal_entry_id)
+            row = await self.repo.get_user_meal_entry_with_target_date(user_id, meal_entry_id)
             if row is None:
                 raise NotFoundError(resource="Meal entry", resource_id=meal_entry_id)
 
             meal_entry, target_date = row
-            await NutritionRepository.delete_meal_entry(self.db, meal_entry)
+            await self.repo.delete_meal_entry(meal_entry)
 
             overview = await self.get_day_overview(user_id, target_date)
             return {
@@ -89,8 +89,7 @@ class NutritionService:
 
     async def update_daily_diary(self, user_id: int, target_date: date, water_ml: int | None, notes: str | None):
         async with self.db.begin():
-            return await NutritionRepository.update_daily_diary(
-                db=self.db,
+            return await self.repo.update_daily_diary(
                 user_id=user_id,
                 target_date=target_date,
                 water_ml=water_ml,
@@ -98,7 +97,7 @@ class NutritionService:
             )
 
     async def _get_validated_profile(self, user_id: int):
-        profile = await NutritionRepository.get_user_profile(self.db, user_id)
+        profile = await self.repo.get_user_profile(user_id)
 
         if not profile:
             raise NotFoundError(resource="User profile")
