@@ -29,9 +29,7 @@ class NutritionRepository:
             if diary is not None:
                 return diary
 
-        result = await self.db.scalars(
-            select(DailyDiary).where(and_(DailyDiary.user_id == user_id, DailyDiary.target_date == target_date))
-        )
+        result = await self.db.scalars(select(DailyDiary).where(and_(DailyDiary.user_id == user_id, DailyDiary.target_date == target_date)))
         diary = result.first()
         return diary
 
