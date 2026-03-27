@@ -8,6 +8,7 @@ from src.core.redis import get_redis
 from src.repositories.oauth_state import OAuthStateRepository
 from src.repositories.refresh_token import RefreshTokenRepository
 from src.repositories.user import UserRepository
+from src.services.activity import ActivityService
 from src.services.auth import AuthService
 from src.services.mail import MailService
 from src.services.nutrition import NutritionService
@@ -67,3 +68,7 @@ async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(s
 
 async def get_nutrition_service(db: AsyncSession = Depends(get_session)):
     return NutritionService(db)
+
+
+async def get_activity_service(db: AsyncSession = Depends(get_session)) -> ActivityService:
+    return ActivityService(db)

@@ -104,6 +104,18 @@ class TwoFactorNotEnabledError(BadRequestError):
         self.error_code = "2FA_NOT_ENABLED"
 
 
+class SessionAlreadyEndedError(ConflictError):
+    def __init__(self, message: str = "Session is already ended"):
+        super().__init__(message=message)
+        self.error_code = "SESSION_ALREADY_ENDED"
+
+
+class NotResourceOwnerError(ForbiddenError):
+    def __init__(self, message: str = "You do not own this resource"):
+        super().__init__(message=message)
+        self.error_code = "NOT_RESOURCE_OWNER"
+
+
 class TooManyRequestsError(AppError):
     def __init__(self, message: str = "Too many requests. Please try again later."):
         super().__init__(message=message, status_code=429, error_code="TOO_MANY_REQUESTS")
