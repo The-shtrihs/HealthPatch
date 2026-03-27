@@ -116,7 +116,6 @@ def _build_pr_response(pr) -> PersonalRecordResponse:
     )
 
 
-
 class ActivityService:
     def __init__(self, db: AsyncSession):
         self.db = db
