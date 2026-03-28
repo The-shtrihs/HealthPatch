@@ -40,4 +40,3 @@ async def delete_my_account(
     profile_service: ProfileService = Depends(get_profile_service),
 ):
     await profile_service.delete_account(current_user)
-    

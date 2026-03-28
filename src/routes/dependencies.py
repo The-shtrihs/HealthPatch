@@ -102,6 +102,7 @@ def make_rate_limiter(limit: int = 60, window: int = 60):
 async def get_profile_repo(db: AsyncSession = Depends(get_session)) -> ProfileRepository:
     return ProfileRepository(db)
 
+
 async def get_profile_service(
     profile_repo: ProfileRepository = Depends(get_profile_repo),
 ) -> ProfileService:

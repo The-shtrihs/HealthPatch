@@ -10,17 +10,11 @@ class ProfileRepository:
         self.db = db
 
     async def get_full_user(self, user_id: int) -> User | None:
-        result = await self.db.scalars(
-            select(User)
-            .where(User.id == user_id)
-            .options(selectinload(User.profile))
-        )
+        result = await self.db.scalars(select(User).where(User.id == user_id).options(selectinload(User.profile)))
         return result.first()
 
     async def get_or_create_profile(self, user_id: int) -> UserProfile:
-        result = await self.db.scalars(
-            select(UserProfile).where(UserProfile.user_id == user_id)
-        )
+        result = await self.db.scalars(select(UserProfile).where(UserProfile.user_id == user_id))
         profile = result.first()
         if not profile:
             profile = UserProfile(user_id=user_id)
