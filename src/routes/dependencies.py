@@ -10,6 +10,7 @@ from src.repositories.oauth_state import OAuthStateRepository
 from src.repositories.rate_limit import RateLimitRepository
 from src.repositories.refresh_token import RefreshTokenRepository
 from src.repositories.user import UserRepository
+from src.services.activity import ActivityService
 from src.services.auth import AuthService
 from src.services.mail import MailService
 from src.services.nutrition import NutritionService
@@ -95,3 +96,7 @@ def make_rate_limiter(limit: int = 60, window: int = 60):
             )
 
     return rate_limit_dep
+
+
+async def get_activity_service(db: AsyncSession = Depends(get_session)) -> ActivityService:
+    return ActivityService(db)
