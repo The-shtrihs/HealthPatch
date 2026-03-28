@@ -7,6 +7,7 @@ from src.core.exceptions import NotFoundError
 from src.core.redis import get_redis
 from src.repositories.cache import CacheRepository
 from src.repositories.oauth_state import OAuthStateRepository
+from src.repositories.profile import ProfileRepository
 from src.repositories.rate_limit import RateLimitRepository
 from src.repositories.refresh_token import RefreshTokenRepository
 from src.repositories.user import UserRepository
@@ -14,6 +15,7 @@ from src.services.auth import AuthService
 from src.services.mail import MailService
 from src.services.nutrition import NutritionService
 from src.services.oauth import OAuthService
+from src.services.profile import ProfileService
 from src.services.totp import TotpService
 
 security = HTTPBearer()
@@ -95,3 +97,12 @@ def make_rate_limiter(limit: int = 60, window: int = 60):
             )
 
     return rate_limit_dep
+
+
+async def get_profile_repo(db: AsyncSession = Depends(get_session)) -> ProfileRepository:
+    return ProfileRepository(db)
+
+async def get_profile_service(
+    profile_repo: ProfileRepository = Depends(get_profile_repo),
+) -> ProfileService:
+    return ProfileService(profile_repo)
