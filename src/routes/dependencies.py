@@ -14,6 +14,7 @@ from src.services.auth import AuthService
 from src.services.mail import MailService
 from src.services.nutrition import NutritionService
 from src.services.oauth import OAuthService
+from src.services.social import SocialService
 from src.services.totp import TotpService
 
 security = HTTPBearer()
@@ -69,6 +70,10 @@ async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(s
 
 async def get_nutrition_service(db: AsyncSession = Depends(get_session)):
     return NutritionService(db)
+
+
+async def get_social_service(db: AsyncSession = Depends(get_session)):
+    return SocialService(db)
 
 
 async def get_cache_repo(redis=Depends(get_redis)):
