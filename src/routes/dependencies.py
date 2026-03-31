@@ -108,6 +108,7 @@ async def get_profile_service(
     profile_repo: ProfileRepository = Depends(get_profile_repo),
 ) -> ProfileService:
     return ProfileService(profile_repo)
-  
+
+
 async def get_activity_service(db: AsyncSession = Depends(get_session)) -> ActivityService:
     return ActivityService(db)
