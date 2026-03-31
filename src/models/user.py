@@ -9,7 +9,7 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from src.core.base import Base, IsActiveMixin, TimestampMixin
 
 if TYPE_CHECKING:
-    from src.models.activity import WorkoutPlan, WorkoutSession
+    from src.models.activity import PersonalRecord, WorkoutPlan, WorkoutSession
     from src.models.nutrition import DailyDiary
     from src.models.social import Bookmark, Comment, Like
 
@@ -48,6 +48,7 @@ class User(Base, TimestampMixin, IsActiveMixin):
     bookmarks: Mapped[list["Bookmark"]] = relationship(back_populates="user", cascade="all, delete-orphan")
 
     workout_sessions: Mapped[list["WorkoutSession"]] = relationship(back_populates="user", cascade="all, delete-orphan")
+    personal_records: Mapped[list["PersonalRecord"]] = relationship(back_populates="user", cascade="all, delete-orphan")
     daily_diaries: Mapped[list["DailyDiary"]] = relationship(back_populates="user", cascade="all, delete-orphan")
     refresh_tokens: Mapped[list["RefreshToken"]] = relationship(back_populates="user", cascade="all, delete-orphan")
 
