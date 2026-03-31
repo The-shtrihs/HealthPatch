@@ -31,7 +31,9 @@ services:
       start_period: 5s
 
   api:
-    build: .
+    build: 
+      context: .
+      target: prod
     restart: unless-stopped
     ports:
       - "8000:8000"
