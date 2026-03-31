@@ -98,8 +98,10 @@ def make_rate_limiter(limit: int = 60, window: int = 60):
 
     return rate_limit_dep
 
+
 async def get_activity_uow(db: AsyncSession = Depends(get_session)) -> ActivityUnitOfWork:
     return ActivityUnitOfWork(db)
+
 
 async def get_activity_service(uow: ActivityUnitOfWork = Depends(get_activity_uow)) -> ActivityService:
     return ActivityService(uow)

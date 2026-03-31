@@ -81,7 +81,6 @@ class ActivityService:
         items, total = await self.repo.list_public_plans(offset=offset, limit=size)
         return _build_workout_plan_list_response(items, total, page, size)
 
-
     async def list_user_plans(self, user_id: int, page: int, size: int) -> WorkoutPlanListResponse:
         offset = (page - 1) * size
         items, total = await self.repo.list_user_plans(user_id=user_id, offset=offset, limit=size)
@@ -417,10 +416,7 @@ def _build_training_response(training: PlanTraining) -> PlanTrainingResponse:
         name=training.name,
         weekday=training.weekday.value if training.weekday else None,
         order_num=training.order_num,
-        exercises=[
-            _build_training_exercise_response(pte)
-            for pte in sorted(training.exercises, key=lambda x: x.order_num)
-        ],
+        exercises=[_build_training_exercise_response(pte) for pte in sorted(training.exercises, key=lambda x: x.order_num)],
     )
 
 
@@ -446,10 +442,7 @@ def _build_pr_response(pr) -> PersonalRecordResponse:
 
 
 def _build_session_detail_response(session: WorkoutSession) -> SessionDetailResponse:
-    exercise_sessions = [
-        _build_exercise_session_response(es, es.exercise)
-        for es in sorted(session.exercise_sessions, key=lambda x: x.order_num)
-    ]
+    exercise_sessions = [_build_exercise_session_response(es, es.exercise) for es in sorted(session.exercise_sessions, key=lambda x: x.order_num)]
     return SessionDetailResponse(
         id=session.id,
         user_id=session.user_id,
