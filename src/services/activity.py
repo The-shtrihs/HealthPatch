@@ -1,6 +1,7 @@
 from src.core.exceptions import BadRequestError, ForbiddenError, NotFoundError, NotResourceOwnerError, SessionAlreadyEndedError
 from src.models.activity import Exercise, ExerciseSession, PlanTraining, WorkoutPlan, WorkoutSession
 from src.repositories.activity import ActivityRepository
+from src.repositories.activity_uow import ActivityUnitOfWork
 from src.schemas.activity import (
     AddExerciseToSessionRequest,
     AddExerciseToTrainingRequest,
@@ -31,16 +32,19 @@ from src.schemas.activity import (
 
 
 class ActivityService:
-    def __init__(self, activity_repo: ActivityRepository):
-        self.repo = activity_repo
+    def __init__(self, uow: ActivityUnitOfWork):
+        self.uow = uow
+
+    @property
+    def repo(self) -> ActivityRepository:
+        return self.uow.activity
 
     async def list_muscle_groups(self) -> list[MuscleGroupResponse]:
         groups = await self.repo.list_muscle_groups()
         return _build_muscle_group_list_response(groups)
 
     async def create_muscle_group(self, payload: CreateMuscleGroupRequest) -> MuscleGroupResponse:
-        
-        
+        async with self.uow:
             mg = await self.repo.create_muscle_group(payload.name.strip())
         return _build_muscle_group_response(mg)
 
@@ -56,7 +60,7 @@ class ActivityService:
         return _build_exercise_response(exercise)
 
     async def create_exercise(self, payload: CreateExerciseRequest) -> ExerciseResponse:
-        async with self.db.begin():
+        async with self.uow:
             if payload.primary_muscle_group_id is not None:
                 mg = await self.repo.get_muscle_group_by_id(payload.primary_muscle_group_id)
                 if mg is None:
@@ -92,7 +96,7 @@ class ActivityService:
         return _build_plan_detail_response(plan)
 
     async def create_plan(self, user_id: int, payload: CreateWorkoutPlanRequest) -> PlanDetailResponse:
-        async with self.db.begin():
+        async with self.uow:
             plan = await self.repo.create_plan(author_id=user_id, title=payload.title, description=payload.description, is_public=payload.is_public)
 
             for t in payload.trainings:
@@ -116,7 +120,7 @@ class ActivityService:
         return _build_plan_detail_response(full)
 
     async def update_plan(self, plan_id: int, user_id: int, payload: UpdateWorkoutPlanRequest) -> WorkoutPlanResponse:
-        async with self.db.begin():
+        async with self.uow:
             plan = await self.repo.get_plan_by_id(plan_id)
             if plan is None:
                 raise NotFoundError(resource="WorkoutPlan", resource_id=plan_id)
@@ -126,7 +130,7 @@ class ActivityService:
         return _build_plan_response(plan)
 
     async def delete_plan(self, plan_id: int, user_id: int) -> None:
-        async with self.db.begin():
+        async with self.uow:
             plan = await self.repo.get_plan_by_id(plan_id)
             if plan is None:
                 raise NotFoundError(resource="WorkoutPlan", resource_id=plan_id)
@@ -135,7 +139,7 @@ class ActivityService:
             await self.repo.delete_plan(plan)
 
     async def add_training(self, plan_id: int, user_id: int, payload: CreatePlanTrainingRequest) -> PlanTrainingResponse:
-        async with self.db.begin():
+        async with self.uow:
             plan = await self.repo.get_plan_by_id(plan_id)
             if plan is None:
                 raise NotFoundError(resource="WorkoutPlan", resource_id=plan_id)
@@ -147,7 +151,7 @@ class ActivityService:
         return _build_training_response(full)
 
     async def delete_training(self, plan_id: int, training_id: int, user_id: int) -> None:
-        async with self.db.begin():
+        async with self.uow:
             plan = await self.repo.get_plan_by_id(plan_id)
             if plan is None:
                 raise NotFoundError(resource="WorkoutPlan", resource_id=plan_id)
@@ -161,7 +165,7 @@ class ActivityService:
     async def add_exercise_to_training(
         self, plan_id: int, training_id: int, user_id: int, payload: AddExerciseToTrainingRequest
     ) -> PlanTrainingExerciseResponse:
-        async with self.db.begin():
+        async with self.uow:
             plan = await self.repo.get_plan_by_id(plan_id)
             if plan is None:
                 raise NotFoundError(resource="WorkoutPlan", resource_id=plan_id)
@@ -188,7 +192,7 @@ class ActivityService:
         return _build_training_exercise_response(pte)
 
     async def delete_training_exercise(self, plan_id: int, training_id: int, pte_id: int, user_id: int) -> None:
-        async with self.db.begin():
+        async with self.uow:
             plan = await self.repo.get_plan_by_id(plan_id)
             if plan is None:
                 raise NotFoundError(resource="WorkoutPlan", resource_id=plan_id)
@@ -206,7 +210,7 @@ class ActivityService:
             await self.repo.delete_training_exercise(pte)
 
     async def start_session(self, user_id: int, payload: StartSessionRequest) -> WorkoutSessionResponse:
-        async with self.db.begin():
+        async with self.uow:
             training: PlanTraining | None = None
 
             if payload.plan_training_id is not None:
@@ -232,7 +236,7 @@ class ActivityService:
         return _build_session_response(session)
 
     async def end_session(self, session_id: int, user_id: int) -> WorkoutSessionResponse:
-        async with self.db.begin():
+        async with self.uow:
             session = await self.repo.get_session_by_id(session_id)
             if session is None:
                 raise NotFoundError(resource="WorkoutSession", resource_id=session_id)
@@ -259,7 +263,7 @@ class ActivityService:
         return _build_session_list_response(items, total, page, size)
 
     async def add_exercise_to_session(self, session_id: int, user_id: int, payload: AddExerciseToSessionRequest) -> ExerciseSessionResponse:
-        async with self.db.begin():
+        async with self.uow:
             session = await self.repo.get_session_by_id(session_id)
             if session is None:
                 raise NotFoundError(resource="WorkoutSession", resource_id=session_id)
@@ -282,7 +286,7 @@ class ActivityService:
         return _build_exercise_session_response(es, exercise)
 
     async def add_set(self, session_id: int, exercise_session_id: int, user_id: int, payload: LogSetRequest) -> WorkoutSetResponse:
-        async with self.db.begin():
+        async with self.uow:
             session = await self.repo.get_session_by_id(session_id)
             if session is None:
                 raise NotFoundError(resource="WorkoutSession", resource_id=session_id)
@@ -314,7 +318,7 @@ class ActivityService:
         return [_build_pr_response(pr) for pr in records]
 
     async def upsert_personal_record(self, user_id: int, payload: UpsertPersonalRecordRequest) -> PersonalRecordResponse:
-        async with self.db.begin():
+        async with self.uow:
             exercise = await self.repo.get_exercise_by_id(payload.exercise_id)
             if exercise is None:
                 raise NotFoundError(resource="Exercise", resource_id=payload.exercise_id)
@@ -332,7 +336,7 @@ class ActivityService:
         return _build_pr_response(pr)
 
     async def delete_personal_record(self, pr_id: int, user_id: int) -> DeletePersonalRecordResponse:
-        async with self.db.begin():
+        async with self.uow:
             pr = await self.repo.get_personal_record_by_id(pr_id)
             if pr is None:
                 raise NotFoundError(resource="PersonalRecord", resource_id=pr_id)
