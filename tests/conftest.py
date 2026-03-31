@@ -40,6 +40,7 @@ async def db_session():
         await session.close()
         await transaction.rollback()
 
+
 @pytest_asyncio.fixture
 async def fake_redis():
     r = fakeredis.aioredis.FakeRedis()
@@ -59,9 +60,7 @@ async def client(db_session: AsyncSession, fake_redis):
     app.dependency_overrides[get_session] = override_get_session
     app.dependency_overrides[get_redis] = override_get_redis
 
-    async with AsyncClient(
-        transport=ASGITransport(app=app), base_url="http://test"
-    ) as ac:
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
         yield ac
 
     app.dependency_overrides.clear()
@@ -85,11 +84,7 @@ async def auth_headers(client: AsyncClient, registered_user, db_session) -> dict
 
     from src.models.user import User
 
-    await db_session.execute(
-        update(User)
-        .where(User.email == registered_user["email"])
-        .values(is_verified=True)
-    )
+    await db_session.execute(update(User).where(User.email == registered_user["email"]).values(is_verified=True))
     await db_session.commit()
 
     resp = await client.post(
