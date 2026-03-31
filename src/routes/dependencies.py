@@ -5,6 +5,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from src.core.database import get_session
 from src.core.exceptions import NotFoundError
 from src.core.redis import get_redis
+from src.repositories.activity import ActivityRepository
 from src.repositories.cache import CacheRepository
 from src.repositories.oauth_state import OAuthStateRepository
 from src.repositories.rate_limit import RateLimitRepository
@@ -97,6 +98,8 @@ def make_rate_limiter(limit: int = 60, window: int = 60):
 
     return rate_limit_dep
 
+async def get_activity_repo(db: AsyncSession = Depends(get_session)):
+    return ActivityRepository(db)
 
-async def get_activity_service(db: AsyncSession = Depends(get_session)) -> ActivityService:
-    return ActivityService(db)
+async def get_activity_service(activity_repo: ActivityRepository = Depends(get_activity_repo)) -> ActivityService:
+    return ActivityService(activity_repo)
