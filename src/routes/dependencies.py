@@ -11,6 +11,7 @@ from src.repositories.profile import ProfileRepository
 from src.repositories.rate_limit import RateLimitRepository
 from src.repositories.refresh_token import RefreshTokenRepository
 from src.repositories.user import UserRepository
+from src.services.activity import ActivityService
 from src.services.auth import AuthService
 from src.services.mail import MailService
 from src.services.nutrition import NutritionService
@@ -107,3 +108,6 @@ async def get_profile_service(
     profile_repo: ProfileRepository = Depends(get_profile_repo),
 ) -> ProfileService:
     return ProfileService(profile_repo)
+  
+async def get_activity_service(db: AsyncSession = Depends(get_session)) -> ActivityService:
+    return ActivityService(db)
