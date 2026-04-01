@@ -24,11 +24,7 @@ class ProfileRepository:
             await self.db.refresh(profile)
         return profile
 
-    async def update_fitness_profile(
-        self,
-        user_id: int,
-        data: FitnessProfileUpdate
-    ) -> UserProfile:
+    async def update_fitness_profile(self, user_id: int, data: FitnessProfileUpdate) -> UserProfile:
         profile = await self.get_or_create_profile(user_id)
         for field, value in data.model_dump(exclude_none=True).items():
             setattr(profile, field, value)

@@ -51,10 +51,7 @@ class ProfileService:
         return await self.get_full_profile(current_user.id)
 
     async def update_fitness_profile(self, user_id: int, data: FitnessProfileUpdate) -> FitnessProfileResponse:
-        profile = await self.profile_repo.update_fitness_profile(
-            user_id=user_id,
-            data=data
-        )
+        profile = await self.profile_repo.update_fitness_profile(user_id=user_id, data=data)
         return _build_fitness_response(profile)
 
     async def delete_account(self, user: User) -> None:
