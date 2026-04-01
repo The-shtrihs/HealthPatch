@@ -3,6 +3,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from src.models.user import User, UserProfile
+from src.schemas.profile import FitnessProfileUpdate, UserInfoUpdate
 
 
 class ProfileRepository:
@@ -19,40 +20,26 @@ class ProfileRepository:
         if not profile:
             profile = UserProfile(user_id=user_id)
             self.db.add(profile)
-            await self.db.commit()
+            await self.db.flush()
             await self.db.refresh(profile)
         return profile
 
     async def update_fitness_profile(
         self,
         user_id: int,
-        weight: float | None,
-        height: float | None,
-        age: int | None,
-        gender,
-        fitness_goal,
+        data: FitnessProfileUpdate
     ) -> UserProfile:
         profile = await self.get_or_create_profile(user_id)
-        if weight is not None:
-            profile.weight = weight
-        if height is not None:
-            profile.height = height
-        if age is not None:
-            profile.age = age
-        if gender is not None:
-            profile.gender = gender
-        if fitness_goal is not None:
-            profile.fitness_goal = fitness_goal
+        for field, value in data.model_dump(exclude_none=True).items():
+            setattr(profile, field, value)
         self.db.add(profile)
         await self.db.commit()
         await self.db.refresh(profile)
         return profile
 
-    async def update_user_info(self, user: User, name: str | None, avatar_url: str | None) -> User:
-        if name is not None:
-            user.name = name
-        if avatar_url is not None:
-            user.avatar_url = avatar_url
+    async def update_user_info(self, user: User, data: UserInfoUpdate) -> User:
+        for field, value in data.model_dump(exclude_none=True).items():
+            setattr(user, field, value)
         self.db.add(user)
         await self.db.commit()
         await self.db.refresh(user)

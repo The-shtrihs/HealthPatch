@@ -43,19 +43,17 @@ class ProfileService:
         )
 
     async def update_user_info(self, current_user: User, data: UserInfoUpdate) -> FullProfileResponse:
-        if data.name is None and data.avatar_url is None:
-            return await self.get_full_profile(current_user.id)
-        await self.profile_repo.update_user_info(current_user, data.name, data.avatar_url)
+        if data.model_dump(exclude_none=True):
+            return await self.profile_repo.update_user_info(
+                user=current_user,
+                data=data,
+            )
         return await self.get_full_profile(current_user.id)
 
     async def update_fitness_profile(self, user_id: int, data: FitnessProfileUpdate) -> FitnessProfileResponse:
         profile = await self.profile_repo.update_fitness_profile(
             user_id=user_id,
-            weight=data.weight,
-            height=data.height,
-            age=data.age,
-            gender=data.gender,
-            fitness_goal=data.fitness_goal,
+            data=data
         )
         return _build_fitness_response(profile)
 
