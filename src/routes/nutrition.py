@@ -1,6 +1,6 @@
 from datetime import UTC, date, datetime
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, status
 
 from src.models.user import User
 from src.routes.dependencies import get_current_user, get_nutrition_service
@@ -36,7 +36,7 @@ async def get_day_overview(
     return await nutrition_service.get_day_overview(current_user.id, day)
 
 
-@router.post("/entries", response_model=AddMealEntryResponse, status_code=201)
+@router.post("/entries", response_model=AddMealEntryResponse, status_code=status.HTTP_201_CREATED)
 async def add_meal_entry(
     payload: AddMealEntryRequest,
     nutrition_service: NutritionService = Depends(get_nutrition_service),

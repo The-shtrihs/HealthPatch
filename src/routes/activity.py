@@ -1,5 +1,6 @@
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, Query, status
 
+from src.core.constants import DEFAULT_PAGE, DEFAULT_PAGE_SIZE, MAX_PAGE_SIZE, MIN_PAGE, MIN_PAGE_SIZE
 from src.models.user import User
 from src.routes.dependencies import get_activity_service, get_current_user
 from src.schemas.activity import (
@@ -39,7 +40,7 @@ async def list_muscle_groups(service: ActivityService = Depends(get_activity_ser
     return await service.list_muscle_groups()
 
 
-@router.post("/muscle-groups", response_model=MuscleGroupResponse, status_code=201)
+@router.post("/muscle-groups", response_model=MuscleGroupResponse, status_code=status.HTTP_201_CREATED)
 async def create_muscle_group(
     payload: CreateMuscleGroupRequest,
     service: ActivityService = Depends(get_activity_service),
@@ -51,8 +52,8 @@ async def create_muscle_group(
 @router.get("/exercises", response_model=ExerciseListResponse)
 async def list_exercises(
     search: str | None = None,
-    page: int = Query(default=1, ge=1),
-    size: int = Query(default=20, ge=1, le=100),
+    page: int = Query(default=DEFAULT_PAGE, ge=MIN_PAGE),
+    size: int = Query(default=DEFAULT_PAGE_SIZE, ge=MIN_PAGE_SIZE, le=MAX_PAGE_SIZE),
     service: ActivityService = Depends(get_activity_service),
 ):
     return await service.list_exercises(search=search, page=page, size=size)
@@ -63,7 +64,7 @@ async def get_exercise(exercise_id: int, service: ActivityService = Depends(get_
     return await service.get_exercise(exercise_id)
 
 
-@router.post("/exercises", response_model=ExerciseResponse, status_code=201)
+@router.post("/exercises", response_model=ExerciseResponse, status_code=status.HTTP_201_CREATED)
 async def create_exercise(
     payload: CreateExerciseRequest,
     service: ActivityService = Depends(get_activity_service),
@@ -74,8 +75,8 @@ async def create_exercise(
 
 @router.get("/plans/public", response_model=WorkoutPlanListResponse)
 async def list_public_plans(
-    page: int = Query(default=1, ge=1),
-    size: int = Query(default=20, ge=1, le=100),
+    page: int = Query(default=DEFAULT_PAGE, ge=MIN_PAGE),
+    size: int = Query(default=DEFAULT_PAGE_SIZE, ge=MIN_PAGE_SIZE, le=MAX_PAGE_SIZE),
     service: ActivityService = Depends(get_activity_service),
 ):
     return await service.list_public_plans(page=page, size=size)
@@ -83,15 +84,15 @@ async def list_public_plans(
 
 @router.get("/plans", response_model=WorkoutPlanListResponse)
 async def list_my_plans(
-    page: int = Query(default=1, ge=1),
-    size: int = Query(default=20, ge=1, le=100),
+    page: int = Query(default=DEFAULT_PAGE, ge=MIN_PAGE),
+    size: int = Query(default=DEFAULT_PAGE_SIZE, ge=MIN_PAGE_SIZE, le=MAX_PAGE_SIZE),
     service: ActivityService = Depends(get_activity_service),
     current_user: User = Depends(get_current_user),
 ):
     return await service.list_user_plans(user_id=current_user.id, page=page, size=size)
 
 
-@router.post("/plans", response_model=PlanDetailResponse, status_code=201)
+@router.post("/plans", response_model=PlanDetailResponse, status_code=status.HTTP_201_CREATED)
 async def create_plan(
     payload: CreateWorkoutPlanRequest,
     service: ActivityService = Depends(get_activity_service),
@@ -119,7 +120,7 @@ async def update_plan(
     return await service.update_plan(plan_id=plan_id, user_id=current_user.id, payload=payload)
 
 
-@router.delete("/plans/{plan_id}", status_code=204)
+@router.delete("/plans/{plan_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_plan(
     plan_id: int,
     service: ActivityService = Depends(get_activity_service),
@@ -128,7 +129,7 @@ async def delete_plan(
     await service.delete_plan(plan_id=plan_id, user_id=current_user.id)
 
 
-@router.post("/plans/{plan_id}/trainings", response_model=PlanTrainingResponse, status_code=201)
+@router.post("/plans/{plan_id}/trainings", response_model=PlanTrainingResponse, status_code=status.HTTP_201_CREATED)
 async def add_training(
     plan_id: int,
     payload: CreatePlanTrainingRequest,
@@ -138,7 +139,7 @@ async def add_training(
     return await service.add_training(plan_id=plan_id, user_id=current_user.id, payload=payload)
 
 
-@router.delete("/plans/{plan_id}/trainings/{training_id}", status_code=204)
+@router.delete("/plans/{plan_id}/trainings/{training_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_training(
     plan_id: int,
     training_id: int,
@@ -148,7 +149,7 @@ async def delete_training(
     await service.delete_training(plan_id=plan_id, training_id=training_id, user_id=current_user.id)
 
 
-@router.post("/plans/{plan_id}/trainings/{training_id}/exercises", response_model=PlanTrainingExerciseResponse, status_code=201)
+@router.post("/plans/{plan_id}/trainings/{training_id}/exercises", response_model=PlanTrainingExerciseResponse, status_code=status.HTTP_201_CREATED)
 async def add_exercise_to_training(
     plan_id: int,
     training_id: int,
@@ -159,7 +160,7 @@ async def add_exercise_to_training(
     return await service.add_exercise_to_training(plan_id=plan_id, training_id=training_id, user_id=current_user.id, payload=payload)
 
 
-@router.delete("/plans/{plan_id}/trainings/{training_id}/exercises/{pte_id}", status_code=204)
+@router.delete("/plans/{plan_id}/trainings/{training_id}/exercises/{pte_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_training_exercise(
     plan_id: int,
     training_id: int,
@@ -170,7 +171,7 @@ async def delete_training_exercise(
     await service.delete_training_exercise(plan_id=plan_id, training_id=training_id, pte_id=pte_id, user_id=current_user.id)
 
 
-@router.post("/sessions", response_model=WorkoutSessionResponse, status_code=201)
+@router.post("/sessions", response_model=WorkoutSessionResponse, status_code=status.HTTP_201_CREATED)
 async def start_session(
     payload: StartSessionRequest,
     service: ActivityService = Depends(get_activity_service),
@@ -181,8 +182,8 @@ async def start_session(
 
 @router.get("/sessions", response_model=SessionListResponse)
 async def list_sessions(
-    page: int = Query(default=1, ge=1),
-    size: int = Query(default=20, ge=1, le=100),
+    page: int = Query(default=DEFAULT_PAGE, ge=MIN_PAGE),
+    size: int = Query(default=DEFAULT_PAGE_SIZE, ge=MIN_PAGE_SIZE, le=MAX_PAGE_SIZE),
     service: ActivityService = Depends(get_activity_service),
     current_user: User = Depends(get_current_user),
 ):
@@ -207,7 +208,7 @@ async def end_session(
     return await service.end_session(session_id=session_id, user_id=current_user.id)
 
 
-@router.post("/sessions/{session_id}/exercises", response_model=ExerciseSessionResponse, status_code=201)
+@router.post("/sessions/{session_id}/exercises", response_model=ExerciseSessionResponse, status_code=status.HTTP_201_CREATED)
 async def add_exercise_to_session(
     session_id: int,
     payload: AddExerciseToSessionRequest,
@@ -217,7 +218,7 @@ async def add_exercise_to_session(
     return await service.add_exercise_to_session(session_id=session_id, user_id=current_user.id, payload=payload)
 
 
-@router.post("/sessions/{session_id}/exercises/{exercise_session_id}/sets", response_model=WorkoutSetResponse, status_code=201)
+@router.post("/sessions/{session_id}/exercises/{exercise_session_id}/sets", response_model=WorkoutSetResponse, status_code=status.HTTP_201_CREATED)
 async def add_set(
     session_id: int,
     exercise_session_id: int,
@@ -236,7 +237,7 @@ async def list_personal_records(
     return await service.list_personal_records(user_id=current_user.id)
 
 
-@router.post("/personal-records", response_model=PersonalRecordResponse, status_code=201)
+@router.post("/personal-records", response_model=PersonalRecordResponse, status_code=status.HTTP_201_CREATED)
 async def upsert_personal_record(
     payload: UpsertPersonalRecordRequest,
     service: ActivityService = Depends(get_activity_service),

@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, Query, Request
+from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
 from fastapi.responses import RedirectResponse
 
 from src.core.config import get_settings
@@ -15,7 +15,7 @@ SUPPORTED_PROVIDERS = ["google", "github", "facebook"]
 @router.get("/{provider}")
 async def oauth_redirect(provider: str, request: Request, redirect_after: str = Query("/"), oauth_service: OAuthService = Depends(get_oauth_service)):
     if provider not in SUPPORTED_PROVIDERS:
-        raise HTTPException(status_code=404, detail="OAuth provider not supported")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="OAuth provider not supported")
 
     ip_address = request.client.host if request.client else None
 
@@ -40,7 +40,7 @@ async def oauth_callback(
     settings=Depends(get_settings),
 ):
     if provider not in SUPPORTED_PROVIDERS:
-        raise HTTPException(status_code=404, detail="OAuth provider not supported")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="OAuth provider not supported")
 
     frontend_url = settings.frontend_url.rstrip("/")
 
@@ -48,14 +48,14 @@ async def oauth_callback(
         return RedirectResponse(f"{frontend_url}/login?error={error}")
 
     if not code:
-        raise HTTPException(status_code=400, detail="Authorization code is missing")
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Authorization code is missing")
 
     ip_address = request.client.host if request.client else None
 
     redirect_after = await oauth_service.verify_oauth_state(state, provider, ip_address)
 
     if not redirect_after:
-        raise HTTPException(status_code=400, detail="Invalid state (CSRF protection) or timeout")
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid state (CSRF protection) or timeout")
 
     if provider == "google":
         oauth_data: UserInfo = await oauth_service.exchange_google_code(code)

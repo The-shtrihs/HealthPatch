@@ -1,7 +1,8 @@
-from fastapi import Depends, HTTPException, Request
+from fastapi import Depends, HTTPException, Request, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from src.core.constants import DEFAULT_RATE_LIMIT, DEFAULT_RATE_WINDOW_SECONDS
 from src.core.database import get_session
 from src.core.exceptions import NotFoundError
 from src.core.redis import get_redis
@@ -83,7 +84,7 @@ async def get_rate_limit_repo(redis=Depends(get_redis)):
     return RateLimitRepository(redis)
 
 
-def make_rate_limiter(limit: int = 60, window: int = 60):
+def make_rate_limiter(limit: int = DEFAULT_RATE_LIMIT, window: int = DEFAULT_RATE_WINDOW_SECONDS):
 
     async def rate_limit_dep(request: Request, rate_limit_repo: RateLimitRepository = Depends(get_rate_limit_repo)):
 
@@ -93,7 +94,7 @@ def make_rate_limiter(limit: int = 60, window: int = 60):
 
         if not result.allowed:
             raise HTTPException(
-                status_code=429,
+                status_code=status.HTTP_429_TOO_MANY_REQUESTS,
                 detail="Too many requests. Please try again later.",
                 headers={"Retry-After": str(result.retry_after)},
             )

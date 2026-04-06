@@ -7,6 +7,7 @@ from argon2.exceptions import VerifyMismatchError
 from fastapi import BackgroundTasks
 
 from src.core.config import get_settings
+from src.core.constants import REFRESH_TOKEN_BYTES, SECONDS_PER_MINUTE, TWO_FA_TOKEN_EXPIRE_MINUTES, TWO_FA_TOKEN_EXPIRE_SECONDS
 from src.core.exceptions import (
     EmailAlreadyExistsError,
     EmailAlreadyVerifiedError,
@@ -51,13 +52,13 @@ class AuthService:
         return jwt.encode(payload, self.settings.secret_key, algorithm=self.settings.algorithm)
 
     async def create_refresh_token(self, user: User, device_info: str | None = None) -> str:
-        token_value = secrets.token_urlsafe(64)
+        token_value = secrets.token_urlsafe(REFRESH_TOKEN_BYTES)
         expires_at = datetime.now(UTC) + timedelta(minutes=self.settings.refresh_token_expire_minutes)
         await self.token_repo.create(token_value, user.id, expires_at, device_info)
         return token_value
 
     def create_2fa_token(self, user: User) -> str:
-        expire = datetime.now(UTC) + timedelta(minutes=5)
+        expire = datetime.now(UTC) + timedelta(minutes=TWO_FA_TOKEN_EXPIRE_MINUTES)
         payload = {"sub": str(user.id), "email": user.email, "type": "2fa", "iat": datetime.now(UTC), "exp": expire}
         return jwt.encode(payload, self.settings.secret_key, algorithm=self.settings.algorithm)
 
@@ -136,7 +137,7 @@ class AuthService:
                 access_token=temp_token,
                 refresh_token=None,
                 token_type="2fa_required",
-                expires_in=5 * 60,
+                expires_in=TWO_FA_TOKEN_EXPIRE_SECONDS,
             )
 
         access_token = self.create_access_token(user)
@@ -146,7 +147,7 @@ class AuthService:
             access_token=access_token,
             refresh_token=refresh_token,
             token_type="bearer",
-            expires_in=self.settings.access_token_expire_minutes * 60,
+            expires_in=self.settings.access_token_expire_minutes * SECONDS_PER_MINUTE,
         )
 
     async def refresh_access_token(self, refresh_token: str) -> TokenResponse:
@@ -165,7 +166,7 @@ class AuthService:
             access_token=access_token,
             refresh_token=new_refresh_token,
             token_type="bearer",
-            expires_in=self.settings.access_token_expire_minutes * 60,
+            expires_in=self.settings.access_token_expire_minutes * SECONDS_PER_MINUTE,
         )
 
     async def logout(self, refresh_token: str):
@@ -285,5 +286,5 @@ class AuthService:
             access_token=access_token,
             refresh_token=refresh_token,
             token_type="bearer",
-            expires_in=self.settings.access_token_expire_minutes * 60,
+            expires_in=self.settings.access_token_expire_minutes * SECONDS_PER_MINUTE,
         )
