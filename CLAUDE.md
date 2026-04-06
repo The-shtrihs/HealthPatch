@@ -36,17 +36,17 @@ uv sync
 uv sync --dev
 
 # Lint and format
-uv run ruff check . --fix
-uv run ruff format .
+ruff check . --fix
+ruff format .
 
 # Run tests
-uv run pytest
+pytest
 
 # Create a new migration
-uv run alembic revision --autogenerate -m "description"
+alembic revision --autogenerate -m "description"
 
 # Apply migrations
-uv run alembic upgrade head
+alembic upgrade head
 ```
 
 ## Architecture
