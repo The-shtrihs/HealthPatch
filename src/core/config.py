@@ -1,15 +1,25 @@
 from anyio.functools import lru_cache
 from pydantic_settings import BaseSettings
 
+from src.core.constants import (
+    ACCESS_TOKEN_EXPIRE_MINUTES,
+    DEFAULT_CACHE_TTL_SECONDS,
+    DEFAULT_RATE_LIMIT,
+    DEFAULT_RATE_WINDOW_SECONDS,
+    EMAIL_TOKEN_EXPIRE_MINUTES,
+    OAUTH_STATE_TTL_SECONDS,
+    REFRESH_TOKEN_EXPIRE_MINUTES,
+)
+
 
 class Settings(BaseSettings):
     database_url: str
 
     secret_key: str
     algorithm: str = "HS256"
-    access_token_expire_minutes: int = 60
-    refresh_token_expire_minutes: int = 60 * 24 * 7
-    email_token_expire_minutes: int = 60 * 24
+    access_token_expire_minutes: int = ACCESS_TOKEN_EXPIRE_MINUTES
+    refresh_token_expire_minutes: int = REFRESH_TOKEN_EXPIRE_MINUTES
+    email_token_expire_minutes: int = EMAIL_TOKEN_EXPIRE_MINUTES
 
     smtp_host: str = "sandbox.smtp.mailtrap.io"
     smtp_port: int = 2525
@@ -18,10 +28,10 @@ class Settings(BaseSettings):
 
     redis_url: str = "redis://redis:6379/0"
     redis_max_connections: int = 20
-    oauth_state_expire_seconds: int = 300
-    cache_default_expire_seconds: int = 300
-    rate_limit_requests: int = 100
-    rate_limit_window_seconds: int = 60
+    oauth_state_expire_seconds: int = OAUTH_STATE_TTL_SECONDS
+    cache_default_expire_seconds: int = DEFAULT_CACHE_TTL_SECONDS
+    rate_limit_requests: int = DEFAULT_RATE_LIMIT
+    rate_limit_window_seconds: int = DEFAULT_RATE_WINDOW_SECONDS
 
     frontend_url: str = "http://localhost:3000"
     backend_url: str = "http://localhost:8000"

@@ -1,15 +1,18 @@
 # app/middleware/rate_limit.py
 from collections.abc import Callable
 
-from fastapi import Request
+from fastapi import Request, status
 from fastapi.responses import JSONResponse
 from starlette.middleware.base import BaseHTTPMiddleware
 
+from src.core.constants import DEFAULT_RATE_LIMIT, DEFAULT_RATE_WINDOW_SECONDS
 from src.repositories.rate_limit import RateLimitRepository
 
 
 class RateLimitMiddleware(BaseHTTPMiddleware):
-    def __init__(self, app, repo_factory: Callable[[], RateLimitRepository], limit: int = 60, window: int = 60):
+    def __init__(
+        self, app, repo_factory: Callable[[], RateLimitRepository], limit: int = DEFAULT_RATE_LIMIT, window: int = DEFAULT_RATE_WINDOW_SECONDS
+    ):
         super().__init__(app)
         self.repo_factory = repo_factory
         self.limit = limit
@@ -34,7 +37,7 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
 
         if not result.allowed:
             return JSONResponse(
-                status_code=429,
+                status_code=status.HTTP_429_TOO_MANY_REQUESTS,
                 content={
                     "detail": "Too Many Requests",
                     "retry_after": result.retry_after,

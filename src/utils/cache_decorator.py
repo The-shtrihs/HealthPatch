@@ -2,9 +2,11 @@
 import functools
 from collections.abc import Callable
 
+from src.core.constants import DEFAULT_CACHE_TTL_SECONDS
+
 
 def cached(
-    ttl: int = 300,
+    ttl: int = DEFAULT_CACHE_TTL_SECONDS,
     key_prefix: str | None = None,
     skip_cache_if: Callable[..., bool] | None = None,
 ):

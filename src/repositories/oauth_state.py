@@ -2,6 +2,7 @@ import secrets
 from datetime import UTC, datetime
 
 from src.core.config import get_settings
+from src.core.constants import OAUTH_STATE_TOKEN_BYTES
 from src.repositories.redis_base import BaseRedisRepository
 from src.schemas.oauth import OAuthStateData
 
@@ -16,7 +17,7 @@ class OAuthStateRepository(BaseRedisRepository):
         return f"{self.KEY_PREFIX}:{state}"
 
     def _generate_state(self) -> str:
-        return secrets.token_urlsafe(32)
+        return secrets.token_urlsafe(OAUTH_STATE_TOKEN_BYTES)
 
     async def create(
         self,

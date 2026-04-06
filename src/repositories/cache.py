@@ -3,6 +3,7 @@ import hashlib
 from collections.abc import Callable
 from typing import Any
 
+from src.core.constants import DEFAULT_CACHE_TTL_SECONDS
 from src.repositories.redis_base import BaseRedisRepository
 
 
@@ -22,7 +23,7 @@ class CacheRepository(BaseRedisRepository):
         self,
         key: str,
         factory: Callable,
-        ttl: int = 300,
+        ttl: int = DEFAULT_CACHE_TTL_SECONDS,
     ) -> Any:
 
         cached = await self.get_json(key)

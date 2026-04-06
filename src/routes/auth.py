@@ -1,4 +1,4 @@
-from fastapi import APIRouter, BackgroundTasks, Depends, Request
+from fastapi import APIRouter, BackgroundTasks, Depends, Request, status
 
 from src.models.user import User
 from src.routes.dependencies import get_auth_service, get_current_user
@@ -18,7 +18,7 @@ from src.services.auth import AuthService
 router = APIRouter(prefix="/auth", tags=["Authentication"])
 
 
-@router.post("/register", status_code=201, response_model=RegisterResponse)
+@router.post("/register", status_code=status.HTTP_201_CREATED, response_model=RegisterResponse)
 async def register(
     data: RegisterRequest,
     background_tasks: BackgroundTasks,
