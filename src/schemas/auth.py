@@ -1,6 +1,6 @@
 import re
 
-from pydantic import BaseModel, EmailStr, Field, field_validator, model_validator
+from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator, model_validator
 
 
 class RegisterRequest(BaseModel):
@@ -94,8 +94,7 @@ class UserProfileResponse(BaseModel):
     is_2fa_enabled: bool
     oauth_provider: str | None = None
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class RateLimitResponse(BaseModel):

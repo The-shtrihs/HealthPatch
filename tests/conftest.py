@@ -1,3 +1,5 @@
+from unittest.mock import AsyncMock, MagicMock
+
 import fakeredis.aioredis
 import pytest_asyncio
 from httpx import ASGITransport, AsyncClient
@@ -12,6 +14,7 @@ from src.core.config import get_settings
 from src.core.database import get_session
 from src.core.main import app
 from src.core.redis import get_redis
+from src.routes.dependencies import get_mail_service
 
 settings = get_settings()
 
@@ -50,15 +53,27 @@ async def fake_redis():
 
 
 @pytest_asyncio.fixture
-async def client(db_session: AsyncSession, fake_redis):
+async def mock_mail_service():
+    service = MagicMock()
+    service.send_verification_email = AsyncMock()
+    service.send_password_reset_email = AsyncMock()
+    return service
+
+
+@pytest_asyncio.fixture
+async def client(db_session: AsyncSession, fake_redis, mock_mail_service):
     async def override_get_session():
         yield db_session
 
     async def override_get_redis():
         return fake_redis
 
+    async def override_get_mail_service():
+        return mock_mail_service
+
     app.dependency_overrides[get_session] = override_get_session
     app.dependency_overrides[get_redis] = override_get_redis
+    app.dependency_overrides[get_mail_service] = override_get_mail_service
 
     async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
         yield ac
