@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 from src.models.activity import Weekday
 
@@ -7,8 +7,7 @@ class MuscleGroupResponse(BaseModel):
     id: int
     name: str
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class CreateMuscleGroupRequest(BaseModel):
@@ -27,8 +26,7 @@ class ExerciseResponse(BaseModel):
     primary_muscle_group: MuscleGroupResponse | None
     secondary_muscle_groups: list[MuscleGroupResponse]
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class ExerciseListResponse(BaseModel):
@@ -73,8 +71,7 @@ class WorkoutPlanResponse(BaseModel):
     description: str | None
     is_public: bool
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class WorkoutPlanListResponse(BaseModel):
@@ -99,8 +96,7 @@ class PlanTrainingExerciseResponse(BaseModel):
     target_reps: int
     target_weight_pct: float | None
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class PlanTrainingResponse(BaseModel):
@@ -111,8 +107,7 @@ class PlanTrainingResponse(BaseModel):
     order_num: int
     exercises: list[PlanTrainingExerciseResponse]
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class PlanDetailResponse(BaseModel):
@@ -123,8 +118,7 @@ class PlanDetailResponse(BaseModel):
     is_public: bool
     trainings: list[PlanTrainingResponse]
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class AddExerciseToTrainingRequest(BaseModel):
@@ -145,8 +139,7 @@ class WorkoutSetResponse(BaseModel):
     reps: int
     weight: float
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class ExerciseSessionResponse(BaseModel):
@@ -157,8 +150,7 @@ class ExerciseSessionResponse(BaseModel):
     is_from_template: bool
     sets: list[WorkoutSetResponse]
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class WorkoutSessionResponse(BaseModel):
@@ -169,8 +161,7 @@ class WorkoutSessionResponse(BaseModel):
     ended_at: str | None
     duration_minutes: float | None
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class SessionDetailResponse(BaseModel):
@@ -182,8 +173,7 @@ class SessionDetailResponse(BaseModel):
     duration_minutes: float | None
     exercise_sessions: list[ExerciseSessionResponse]
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class SessionListResponse(BaseModel):
@@ -217,8 +207,7 @@ class PersonalRecordResponse(BaseModel):
     weight: float
     recorded_at: str
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class DeletePersonalRecordResponse(BaseModel):

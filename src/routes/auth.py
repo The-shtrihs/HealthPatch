@@ -1,7 +1,10 @@
+from collections.abc import Callable
+
 from fastapi import APIRouter, BackgroundTasks, Depends, Request, status
 
+from src.core.constants import DEFAULT_RATE_LIMIT
 from src.models.user import User
-from src.routes.dependencies import get_auth_service, get_current_user
+from src.routes.dependencies import get_auth_service, get_current_user, make_rate_limiter
 from src.schemas.auth import (
     ChangePasswordRequest,
     LoginRequest,
@@ -23,13 +26,15 @@ async def register(
     data: RegisterRequest,
     background_tasks: BackgroundTasks,
     auth_service: AuthService = Depends(get_auth_service),
+    rate_limiter: Callable = Depends(make_rate_limiter(limit=DEFAULT_RATE_LIMIT, window=3600)),
 ):
     await auth_service.register_user(data.name, data.email, data.password, background_tasks)
     return MessageResponse(message="User registered successfully. Please check your email to verify your account.")
 
 
 @router.post("/login", response_model=TokenResponse)
-async def login(request: Request, data: LoginRequest, auth_service: AuthService = Depends(get_auth_service)):
+async def login(request: Request, data: LoginRequest, auth_service: AuthService = Depends(get_auth_service), 
+                rate_limiter: Callable = Depends(make_rate_limiter(limit=DEFAULT_RATE_LIMIT, window=60))):
     device_info = f"{request.headers.get('user-agent', 'unknown')} - {request.client.host}"
     auth_data = await auth_service.authenticate_user(data.email, data.password, device_info=device_info)
     return auth_data
@@ -71,6 +76,7 @@ async def forgot_password(
     email: str,
     background_tasks: BackgroundTasks,
     auth_service: AuthService = Depends(get_auth_service),
+    rate_limiter: Callable = Depends(make_rate_limiter(limit=3, window=3600)),
 ):
     await auth_service.forgot_password(email, background_tasks)
     return MessageResponse(message="If an account with that email exists, a password reset link has been sent")
@@ -81,6 +87,7 @@ async def resend_verification_email(
     email: str,
     background_tasks: BackgroundTasks,
     auth_service: AuthService = Depends(get_auth_service),
+    rate_limiter: Callable = Depends(make_rate_limiter(limit=3, window=3600)),
 ):
     await auth_service.resend_verification_email(email, background_tasks)
     return MessageResponse(message="If an account with that email exists and is not verified, a verification email has been resent")
@@ -133,6 +140,7 @@ async def verify_2fa(
     request: Request,
     data: Verify2FARequest,
     auth_service: AuthService = Depends(get_auth_service),
+    rate_limiter: Callable = Depends(make_rate_limiter(limit=5, window=60)),
 ):
     device_info = f"{request.headers.get('user-agent', 'unknown')} - {request.client.host}"
     return await auth_service.verify_2fa_token(data.temp_token, data.code, device_info)

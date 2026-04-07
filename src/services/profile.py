@@ -44,10 +44,11 @@ class ProfileService:
 
     async def update_user_info(self, current_user: User, data: UserInfoUpdate) -> FullProfileResponse:
         if data.model_dump(exclude_none=True):
-            return await self.profile_repo.update_user_info(
+            user = await self.profile_repo.update_user_info(
                 user=current_user,
                 data=data,
             )
+            return await self.get_full_profile(user.id)
         return await self.get_full_profile(current_user.id)
 
     async def update_fitness_profile(self, user_id: int, data: FitnessProfileUpdate) -> FitnessProfileResponse:

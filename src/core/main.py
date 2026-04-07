@@ -11,6 +11,7 @@ from src.routes.activity import router as activity_router
 from src.routes.auth import router as auth_router
 from src.routes.nutrition import router as nutrition_router
 from src.routes.oauth import router as oauth_router
+from src.routes.profile import router as profile_router
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -58,7 +59,7 @@ app.include_router(activity_router)
 app.include_router(auth_router)
 app.include_router(nutrition_router)
 app.include_router(oauth_router)
-
+app.include_router(profile_router)
 
 @app.get("/")
 async def hello_world():

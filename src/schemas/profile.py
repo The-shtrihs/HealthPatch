@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 from src.models.user import FitnessGoal, Gender
 
@@ -24,8 +24,7 @@ class FitnessProfileResponse(BaseModel):
     fitness_goal: FitnessGoal | None
     bmi: float | None = None
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class FullProfileResponse(BaseModel):
@@ -38,5 +37,5 @@ class FullProfileResponse(BaseModel):
     oauth_provider: str | None
     profile: FitnessProfileResponse | None
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
+
