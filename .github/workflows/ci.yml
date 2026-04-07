@@ -7,7 +7,7 @@ on:
 
 jobs:
   lint-and-format:
-    runs-on: ubuntu-latest
+    runs-on: blacksmith-4vcpu-ubuntu-2204
     permissions:
       contents: write
 
@@ -43,4 +43,6 @@ jobs:
             git pull --rebase origin ${{ github.head_ref || github.ref_name }} && 
             git push origin HEAD:${{ github.head_ref || github.ref_name }}
           )
+
+          
   
