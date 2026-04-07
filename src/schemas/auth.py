@@ -96,6 +96,7 @@ class UserProfileResponse(BaseModel):
 
     model_config = ConfigDict(from_attributes=True)
 
+
 class RateLimitResponse(BaseModel):
     allowed: bool
     limit: int

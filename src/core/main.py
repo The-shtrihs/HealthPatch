@@ -61,6 +61,7 @@ app.include_router(nutrition_router)
 app.include_router(oauth_router)
 app.include_router(profile_router)
 
+
 @app.get("/")
 async def hello_world():
     return {"message": "Hello from shtrihs!!!"}

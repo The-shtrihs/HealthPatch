@@ -78,9 +78,7 @@ class TestUpdateUserInfo:
 
     @pytest.mark.asyncio
     async def test_update_avatar_url_returns_200(self, client: AsyncClient, auth_headers: dict):
-        resp = await client.patch(
-            "/profile/me", headers=auth_headers, json={"avatar_url": "https://example.com/avatar.png"}
-        )
+        resp = await client.patch("/profile/me", headers=auth_headers, json={"avatar_url": "https://example.com/avatar.png"})
         assert resp.status_code == 200
 
     @pytest.mark.asyncio
@@ -93,7 +91,8 @@ class TestUpdateUserInfo:
     @pytest.mark.asyncio
     async def test_update_both_fields_returns_200(self, client: AsyncClient, auth_headers: dict):
         resp = await client.patch(
-            "/profile/me", headers=auth_headers,
+            "/profile/me",
+            headers=auth_headers,
             json={"name": "Full Update", "avatar_url": "https://example.com/pic.png"},
         )
         assert resp.status_code == 200
@@ -101,7 +100,8 @@ class TestUpdateUserInfo:
     @pytest.mark.asyncio
     async def test_update_both_fields_persist(self, client: AsyncClient, auth_headers: dict):
         await client.patch(
-            "/profile/me", headers=auth_headers,
+            "/profile/me",
+            headers=auth_headers,
             json={"name": "Full Update", "avatar_url": "https://example.com/pic.png"},
         )
         resp = await client.get("/profile/me", headers=auth_headers)
@@ -166,6 +166,7 @@ class TestUpdateUserInfo:
         resp = await client.get("/profile/me", headers=auth_headers)
         assert resp.json()["name"] == registered_user["name"]
 
+
 class TestFitnessProfile:
     @pytest.mark.asyncio
     async def test_requires_auth(self, client: AsyncClient):
@@ -190,7 +191,7 @@ class TestFitnessProfile:
     @pytest.mark.asyncio
     async def test_bmi_calculated_correctly(self, client: AsyncClient, auth_headers: dict):
         resp = await client.put("/profile/me/fitness", headers=auth_headers, json={"weight": 70.0, "height": 175.0})
-        assert resp.json()["bmi"] == 22.9  
+        assert resp.json()["bmi"] == 22.9
 
     @pytest.mark.asyncio
     async def test_bmi_none_without_height(self, client: AsyncClient, auth_headers: dict):

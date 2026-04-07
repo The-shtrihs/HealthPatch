@@ -38,4 +38,3 @@ class FullProfileResponse(BaseModel):
     profile: FitnessProfileResponse | None
 
     model_config = ConfigDict(from_attributes=True)
-

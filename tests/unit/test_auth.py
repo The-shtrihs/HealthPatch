@@ -119,8 +119,7 @@ class TestPassword:
     def test_two_hashes_of_same_password_differ(self, auth_service):
         h1 = auth_service.hash_password("Secret123!")
         h2 = auth_service.hash_password("Secret123!")
-        assert h1 != h2  
-
+        assert h1 != h2
 
 
 class TestTokens:
@@ -183,7 +182,6 @@ class TestTokens:
             AuthService.decode_access_token(tampered)
 
 
-
 class TestRegister:
     @pytest.mark.asyncio
     async def test_register_success_creates_user(self, auth_service, user_repo, active_user):
@@ -233,6 +231,7 @@ class TestRegister:
             await auth_service.register_user("Name", active_user.email, "Secret123!", bg)
 
         bg.add_task.assert_not_called()
+
 
 class TestAuthenticate:
     @pytest.mark.asyncio
@@ -317,7 +316,6 @@ class TestAuthenticate:
 
         call_args = token_repo.create.call_args.args
         assert "Chrome/iPhone" in call_args
-
 
 
 class TestRefreshToken:
@@ -453,7 +451,6 @@ class TestChangePassword:
 
         user_repo.update_password.assert_not_called()
         token_repo.revoke_all_for_user.assert_not_called()
-
 
 
 class TestTwoFactor:

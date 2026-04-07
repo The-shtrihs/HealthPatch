@@ -16,7 +16,8 @@ def register_payload():
 async def verified_auth_headers(client: AsyncClient, register_payload: dict) -> dict:
     """Register + verify + login in one shot — reusable across test classes."""
     await client.post("/auth/register", json=register_payload)
-    return {}  
+    return {}
+
 
 class TestRegister:
     @pytest.mark.asyncio
@@ -139,6 +140,7 @@ class TestLogin:
         resp = await client.post("/auth/login", json={"email": "not-email", "password": "Test1234!"})
         assert resp.status_code == 422
 
+
 class TestGetMe:
     @pytest.mark.asyncio
     async def test_without_token_returns_401_or_403(self, client: AsyncClient):
@@ -187,7 +189,7 @@ class TestRefresh:
         old_token = login.json()["access_token"]
         refresh_token = login.json()["refresh_token"]
 
-        await asyncio.sleep(1)  
+        await asyncio.sleep(1)
 
         resp = await client.post(f"/auth/refresh?refresh_token={refresh_token}")
         assert resp.status_code == 200
@@ -235,6 +237,7 @@ class TestRefresh:
 
         resp = await client.post(f"/auth/refresh?refresh_token={refresh_token}")
         assert "access_token" not in resp.json() or resp.status_code != 200
+
 
 class TestLogout:
     @pytest.mark.asyncio
@@ -403,7 +406,6 @@ class TestForgotPassword:
         resp = await client.post(f"/auth/forgot-password?email={registered_user['email']}")
         assert resp.status_code == 200
 
-
     @pytest.mark.asyncio
     async def test_nonexistent_and_existing_same_response_shape(self, client: AsyncClient, registered_user: dict):
         """Both cases must return identical response shape (security: no user enumeration)."""
@@ -411,7 +413,6 @@ class TestForgotPassword:
         real = await client.post(f"/auth/forgot-password?email={registered_user['email']}")
         assert ghost.status_code == real.status_code
         assert set(ghost.json().keys()) == set(real.json().keys())
-
 
 
 class TestResendVerification:
@@ -424,4 +425,3 @@ class TestResendVerification:
     async def test_unverified_user_returns_200(self, client: AsyncClient, registered_user: dict):
         resp = await client.post(f"/auth/resend-verification-email?email={registered_user['email']}")
         assert resp.status_code == 200
-

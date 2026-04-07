@@ -2,7 +2,7 @@ from unittest.mock import AsyncMock, MagicMock
 
 import fakeredis.aioredis
 import pytest_asyncio
-from httpx import ASGITransport, AsyncClient, patch
+from httpx import ASGITransport, AsyncClient
 from sqlalchemy.ext.asyncio import (
     AsyncSession,
     create_async_engine,
@@ -68,12 +68,12 @@ async def client(db_session: AsyncSession, fake_redis, mock_mail_service):
     async def override_get_redis():
         return fake_redis
 
-    async def override_get_mail_service():  
+    async def override_get_mail_service():
         return mock_mail_service
 
     app.dependency_overrides[get_session] = override_get_session
     app.dependency_overrides[get_redis] = override_get_redis
-    app.dependency_overrides[get_mail_service] = override_get_mail_service  
+    app.dependency_overrides[get_mail_service] = override_get_mail_service
 
     async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
         yield ac
@@ -108,5 +108,3 @@ async def auth_headers(client: AsyncClient, registered_user, db_session) -> dict
     )
     token = resp.json()["access_token"]
     return {"Authorization": f"Bearer {token}"}
-
-

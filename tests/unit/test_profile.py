@@ -48,6 +48,7 @@ def user_with_profile(active_user, fitness_profile):
     active_user.profile = fitness_profile
     return active_user
 
+
 class TestCalcBmi:
     def test_standard_values(self):
         assert _calc_bmi(70.0, 175.0) == 22.9
@@ -148,6 +149,7 @@ class TestGetFullProfile:
 
         profile_repo.get_full_user.assert_called_once()
 
+
 class TestUpdateUserInfo:
     @pytest.mark.asyncio
     async def test_with_name_calls_repo(self, profile_service, profile_repo, active_user):
@@ -171,7 +173,7 @@ class TestUpdateUserInfo:
 
     @pytest.mark.asyncio
     async def test_empty_data_skips_repo(self, profile_service, profile_repo, active_user):
-        data = UserInfoUpdate()  
+        data = UserInfoUpdate()
         profile_repo.get_full_user.return_value = active_user
 
         await profile_service.update_user_info(active_user, data)
@@ -196,7 +198,6 @@ class TestUpdateUserInfo:
         await profile_service.update_user_info(active_user, data)
 
         profile_repo.get_full_user.assert_called_once_with(active_user.id)
-
 
 
 class TestUpdateFitnessProfile:

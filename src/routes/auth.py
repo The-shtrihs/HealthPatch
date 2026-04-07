@@ -33,8 +33,12 @@ async def register(
 
 
 @router.post("/login", response_model=TokenResponse)
-async def login(request: Request, data: LoginRequest, auth_service: AuthService = Depends(get_auth_service), 
-                rate_limiter: Callable = Depends(make_rate_limiter(limit=DEFAULT_RATE_LIMIT, window=60))):
+async def login(
+    request: Request,
+    data: LoginRequest,
+    auth_service: AuthService = Depends(get_auth_service),
+    rate_limiter: Callable = Depends(make_rate_limiter(limit=DEFAULT_RATE_LIMIT, window=60)),
+):
     device_info = f"{request.headers.get('user-agent', 'unknown')} - {request.client.host}"
     auth_data = await auth_service.authenticate_user(data.email, data.password, device_info=device_info)
     return auth_data
