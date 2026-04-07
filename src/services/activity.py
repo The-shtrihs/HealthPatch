@@ -40,7 +40,7 @@ class ActivityService:
 
     @property
     def repo(self) -> ActivityRepository:
-        return self.uow.activity
+        return self.uow.repo
 
     async def list_muscle_groups(self) -> list[MuscleGroupResponse]:
         groups = await self.repo.list_muscle_groups()

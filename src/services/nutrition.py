@@ -1,16 +1,18 @@
 from datetime import UTC, date, datetime
 
-from sqlalchemy.ext.asyncio import AsyncSession
-
 from src.core.exceptions import BadRequestError, NotFoundError
 from src.repositories.nutrition import NutritionRepository
+from src.repositories.nutrition_uow import NutritionUnitOfWork
 from src.services.nutrition_calculators import calculate_daily_norm
 
 
 class NutritionService:
-    def __init__(self, db: AsyncSession):
-        self.db = db
-        self.repo = NutritionRepository(db)
+    def __init__(self, uow: NutritionUnitOfWork):
+        self.uow = uow
+
+    @property
+    def repo(self) -> NutritionRepository:
+        return self.uow.repo
 
     async def get_daily_norm(self, user_id: int) -> dict[str, float]:
         profile = await self._get_validated_profile(user_id)
@@ -50,7 +52,7 @@ class NutritionService:
             raise BadRequestError(message="Meal type is required")
 
         day = target_date or datetime.now(UTC).date()
-        async with self.db.begin():
+        async with self.uow:
             await self._get_validated_profile(user_id)
 
             diary = await self.repo.get_or_create_daily_diary(user_id, day)
@@ -70,7 +72,7 @@ class NutritionService:
             }
 
     async def delete_meal_entry_and_recalculate(self, user_id: int, meal_entry_id: int) -> dict:
-        async with self.db.begin():
+        async with self.uow:
             await self._get_validated_profile(user_id)
 
             row = await self.repo.get_user_meal_entry_with_target_date(user_id, meal_entry_id)
@@ -88,7 +90,7 @@ class NutritionService:
             }
 
     async def update_daily_diary(self, user_id: int, target_date: date, water_ml: int | None, notes: str | None):
-        async with self.db.begin():
+        async with self.uow:
             return await self.repo.update_daily_diary(
                 user_id=user_id,
                 target_date=target_date,

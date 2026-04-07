@@ -8,6 +8,7 @@ from src.core.exceptions import NotFoundError
 from src.core.redis import get_redis
 from src.repositories.activity_uow import ActivityUnitOfWork
 from src.repositories.cache import CacheRepository
+from src.repositories.nutrition_uow import NutritionUnitOfWork
 from src.repositories.oauth_state import OAuthStateRepository
 from src.repositories.profile import ProfileRepository
 from src.repositories.rate_limit import RateLimitRepository
@@ -72,8 +73,12 @@ async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(s
     return current_user
 
 
-async def get_nutrition_service(db: AsyncSession = Depends(get_session)):
-    return NutritionService(db)
+async def get_nutrition_uow(db: AsyncSession = Depends(get_session)) -> NutritionUnitOfWork:
+    return NutritionUnitOfWork(db)
+
+
+async def get_nutrition_service(uow: NutritionUnitOfWork = Depends(get_nutrition_uow)):
+    return NutritionService(uow)
 
 
 async def get_cache_repo(redis=Depends(get_redis)):

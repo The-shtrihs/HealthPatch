@@ -45,7 +45,7 @@ def service(repo: AsyncMock) -> ActivityService:
     activity_service.db.begin = MagicMock(return_value=AsyncContextManagerMock())
 
     uow = AsyncMock()
-    uow.activity = repo
+    uow.repo = repo
     uow.__aenter__.return_value = uow
     uow.__aexit__.return_value = False
     activity_service.uow = uow
