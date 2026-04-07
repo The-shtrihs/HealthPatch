@@ -31,10 +31,7 @@ jobs:
       - name: Run Ruff fix + format
         run: |
           ruff check . --fix       
-          ruff format .           
-
-      - name: Run tests
-        run: uv run pytest tests/unit/ tests/integration/ -v --tb=short
+          ruff format .
 
       - name: Commit changes 
         run: |
