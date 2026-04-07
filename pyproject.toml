@@ -22,6 +22,8 @@ dependencies = [
     "pyotp>=2.9.0",
     "qrcode[pil]>=8.2",
     "redis[hiredis]>=7.4.0",
+    "pytest>=9.0.2",
+    "pytest-dotenv>=0.5.2",
 ]
 
 [tool.ruff]
