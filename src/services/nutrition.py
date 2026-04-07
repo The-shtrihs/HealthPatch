@@ -50,51 +50,48 @@ class NutritionService:
             raise BadRequestError(message="Meal type is required")
 
         day = target_date or datetime.now(UTC).date()
-        async with self.db.begin():
-            await self._get_validated_profile(user_id)
+        await self._get_validated_profile(user_id)
 
-            diary = await self.repo.get_or_create_daily_diary(user_id, day)
+        diary = await self.repo.get_or_create_daily_diary(user_id, day)
 
-            meal_entry = await self.repo.add_meal_entry(
-                diary_id=diary.id,
-                food_id=food_id,
-                meal_type=meal_type,
-                weight_grams=weight_grams,
-            )
+        meal_entry = await self.repo.add_meal_entry(
+            diary_id=diary.id,
+            food_id=food_id,
+            meal_type=meal_type,
+            weight_grams=weight_grams,
+        )
 
-            overview = await self.get_day_overview(user_id, day)
-            return {
-                "meal_entry_id": meal_entry.id,
-                "target_date": day,
-                "remaining": overview["remaining"],
-            }
+        overview = await self.get_day_overview(user_id, day)
+        return {
+            "meal_entry_id": meal_entry.id,
+            "target_date": day,
+            "remaining": overview["remaining"],
+        }
 
     async def delete_meal_entry_and_recalculate(self, user_id: int, meal_entry_id: int) -> dict:
-        async with self.db.begin():
-            await self._get_validated_profile(user_id)
+        await self._get_validated_profile(user_id)
 
-            row = await self.repo.get_user_meal_entry_with_target_date(user_id, meal_entry_id)
-            if row is None:
-                raise NotFoundError(resource="Meal entry", resource_id=meal_entry_id)
+        row = await self.repo.get_user_meal_entry_with_target_date(user_id, meal_entry_id)
+        if row is None:
+            raise NotFoundError(resource="Meal entry", resource_id=meal_entry_id)
 
-            meal_entry, target_date = row
-            await self.repo.delete_meal_entry(meal_entry)
+        meal_entry, target_date = row
+        await self.repo.delete_meal_entry(meal_entry)
 
-            overview = await self.get_day_overview(user_id, target_date)
-            return {
-                "deleted_meal_entry_id": meal_entry_id,
-                "target_date": target_date,
-                "remaining": overview["remaining"],
-            }
+        overview = await self.get_day_overview(user_id, target_date)
+        return {
+            "deleted_meal_entry_id": meal_entry_id,
+            "target_date": target_date,
+            "remaining": overview["remaining"],
+        }
 
     async def update_daily_diary(self, user_id: int, target_date: date, water_ml: int | None, notes: str | None):
-        async with self.db.begin():
-            return await self.repo.update_daily_diary(
-                user_id=user_id,
-                target_date=target_date,
-                water_ml=water_ml,
-                notes=notes,
-            )
+        return await self.repo.update_daily_diary(
+            user_id=user_id,
+            target_date=target_date,
+            water_ml=water_ml,
+            notes=notes,
+        )
 
     async def _get_validated_profile(self, user_id: int):
         profile = await self.repo.get_user_profile(user_id)
