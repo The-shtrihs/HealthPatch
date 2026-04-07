@@ -33,6 +33,9 @@ jobs:
           ruff check . --fix       
           ruff format .           
 
+      - name: Run tests
+        run: uv run pytest tests/unit/ tests/integration/ -v --tb=short
+
       - name: Commit changes 
         run: |
           git config --global user.name  "github-actions[bot]"
