@@ -1,8 +1,8 @@
 from datetime import UTC, date, datetime
 
 from src.core.exceptions import BadRequestError, NotFoundError
-from src.repositories.nutrition_uow import NutritionUnitOfWork
 from src.repositories.nutrition import NutritionRepository
+from src.repositories.nutrition_uow import NutritionUnitOfWork
 from src.services.nutrition_calculators import calculate_daily_norm
 
 
