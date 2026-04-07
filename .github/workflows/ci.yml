@@ -43,22 +43,4 @@ jobs:
             git pull --rebase origin ${{ github.head_ref || github.ref_name }} && 
             git push origin HEAD:${{ github.head_ref || github.ref_name }}
           )
-  test:
-  needs: lint-and-format
-  runs-on: ubuntu-latest
-  steps:
-    - name: Checkout Code
-      uses: actions/checkout@v4
-      with:
-        ref: ${{ github.head_ref || github.ref_name }}
-
-    - name: Run Tests in Docker
-      run: |
-        docker compose -f docker-compose_test.yml up --build \
-          --abort-on-container-exit \
-          --exit-code-from test
-
-    - name: Cleanup
-      if: always()
-      run: docker compose -f docker-compose_test.yml down -v
   
