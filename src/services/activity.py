@@ -1,3 +1,6 @@
+from sqlalchemy import inspect as sa_inspect
+from sqlalchemy.exc import NoInspectionAvailable
+
 from src.core.exceptions import BadRequestError, ForbiddenError, NotFoundError, NotResourceOwnerError, SessionAlreadyEndedError
 from src.models.activity import Exercise, ExerciseSession, PlanTraining, WorkoutPlan, WorkoutSession
 from src.repositories.activity import ActivityRepository
@@ -364,13 +367,19 @@ def _build_session_response(session: WorkoutSession) -> WorkoutSessionResponse:
 
 
 def _build_exercise_session_response(es: ExerciseSession, exercise: Exercise) -> ExerciseSessionResponse:
+    try:
+        unloaded = sa_inspect(es).unloaded
+        sets = [] if "sets" in unloaded else es.sets
+    except NoInspectionAvailable:
+        sets = getattr(es, "sets", [])
+
     return ExerciseSessionResponse(
         id=es.id,
         exercise_id=es.exercise_id,
         exercise_name=exercise.name,
         order_num=es.order_num,
         is_from_template=es.is_from_template,
-        sets=[WorkoutSetResponse(id=s.id, set_number=s.set_number, reps=s.reps, weight=s.weight) for s in es.sets],
+        sets=[WorkoutSetResponse(id=s.id, set_number=s.set_number, reps=s.reps, weight=s.weight) for s in sets],
     )
 
 
