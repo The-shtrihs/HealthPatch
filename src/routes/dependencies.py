@@ -62,16 +62,21 @@ async def get_oauth_service(
     return OAuthService(auth_service, oauth_state_repo, user_repo)
 
 
-async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(security), user_repo: UserRepository = Depends(get_user_repo)):
+async def get_current_user(
+    credentials: HTTPAuthorizationCredentials = Depends(security),
+    user_repo: UserRepository = Depends(get_user_repo),
+):
+    from src.core.exceptions import UserInactiveError
+
     payload = AuthService.decode_access_token(credentials.credentials)
     user_id = int(payload.get("sub"))
     current_user = await user_repo.get_by_id(user_id)
 
     if not current_user:
         raise NotFoundError(resource="User", resource_id=user_id)
-    
-    if not current_user.is_active:       
-        raise UserInactiveError()         
+
+    if not current_user.is_active:  
+        raise UserInactiveError()
 
     return current_user
 
