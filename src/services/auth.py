@@ -265,7 +265,7 @@ class AuthService:
         await self.user_repo.update_totp_secret(user_id, None)
         return MessageResponse(message="2FA has been disabled successfully")
 
-    async def verify_2fa_token(self, temp_token: str, code: str, device_info: str = None) -> TokenResponse:
+    async def verify_2fa_token(self, temp_token: str, code: str, device_info: str | None = None) -> TokenResponse:
         payload = self.decode_2fa_token(temp_token)
         user_id = int(payload.get("sub"))
         user = await self.user_repo.get_by_id(user_id)

@@ -4,7 +4,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.core.constants import DEFAULT_RATE_LIMIT, DEFAULT_RATE_WINDOW_SECONDS
 from src.core.database import get_session
-from src.core.exceptions import NotFoundError
+from src.core.exceptions import NotFoundError, UserInactiveError
 from src.core.redis import get_redis
 from src.repositories.activity_uow import ActivityUnitOfWork
 from src.repositories.cache import CacheRepository
@@ -69,6 +69,9 @@ async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(s
 
     if not current_user:
         raise NotFoundError(resource="User", resource_id=user_id)
+    
+    if not current_user.is_active:       
+        raise UserInactiveError()         
 
     return current_user
 

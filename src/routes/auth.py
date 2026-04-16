@@ -14,6 +14,7 @@ from src.schemas.auth import (
     TokenResponse,
     TwoFactorSetupResponse,
     UserProfileResponse,
+    RefreshRequest,
     Verify2FARequest,
 )
 from src.services.auth import AuthService
@@ -45,14 +46,14 @@ async def login(
 
 
 @router.post("/refresh", response_model=TokenResponse)
-async def refresh_token(refresh_token: str, auth_service: AuthService = Depends(get_auth_service)):
-    auth_data = await auth_service.refresh_access_token(refresh_token)
+async def refresh_token(data: RefreshRequest, auth_service: AuthService = Depends(get_auth_service)):
+    auth_data = await auth_service.refresh_access_token(data.refresh_token)
     return auth_data
 
 
 @router.post("/logout", response_model=MessageResponse)
-async def logout(refresh_token: str, auth_service: AuthService = Depends(get_auth_service)):
-    await auth_service.logout(refresh_token)
+async def logout(data: RefreshRequest, auth_service: AuthService = Depends(get_auth_service)):
+    await auth_service.logout(data.refresh_token)
     return MessageResponse(message="Logged out successfully")
 
 
