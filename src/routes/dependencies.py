@@ -16,11 +16,11 @@ from src.repositories.refresh_token import RefreshTokenRepository
 from src.repositories.user import UserRepository
 from src.services.activity import ActivityService
 from src.services.auth import AuthService
-from src.services.mail import MailService
+from src.shared.infrastructure.mail import MailService
 from src.services.nutrition import NutritionService
 from src.services.oauth import OAuthService
 from src.services.profile import ProfileService
-from src.services.totp import TotpService
+from src.shared.infrastructure.totp import TotpService
 
 security = HTTPBearer()
 

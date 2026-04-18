@@ -24,8 +24,8 @@ from src.models.user import RefreshToken, User
 from src.repositories.refresh_token import RefreshTokenRepository
 from src.repositories.user import UserRepository
 from src.schemas.auth import ChangePasswordRequest, MessageResponse, TokenResponse, TwoFactorSetupResponse
-from src.services.mail import MailService
-from src.services.totp import TotpService
+from src.shared.infrastructure.mail import MailService
+from src.shared.infrastructure.totp import TotpService
 
 
 class AuthService:
