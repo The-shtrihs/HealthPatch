@@ -90,12 +90,21 @@ CALCULATORS: dict[FitnessGoal, GoalCalculator] = {
 }
 
 
+class NutritionCalculatorFactory:
+	_calculators: dict[FitnessGoal, GoalCalculator] = CALCULATORS
+
+	@classmethod
+	def get_calculator(cls, goal: FitnessGoal) -> GoalCalculator:
+		calculator = cls._calculators.get(goal)
+		if calculator is None:
+			raise UnsupportedFitnessGoalError(str(goal))
+		return calculator
+
+
 def calculate_daily_norm(profile: NutritionProfileDomain) -> MacroTotalsDomain:
 	profile.ensure_complete()
 
-	calculator = CALCULATORS.get(profile.fitness_goal)
-	if calculator is None:
-		raise UnsupportedFitnessGoalError(str(profile.fitness_goal))
+	calculator = NutritionCalculatorFactory.get_calculator(profile.fitness_goal)
 
 	calories = calculator.calories(profile)
 	protein_g, fat_g, carbs_g = calculator.macros(profile, calories)
