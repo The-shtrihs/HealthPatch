@@ -10,8 +10,8 @@ from src.auth.presentation.routes import router as auth_router
 from src.core.config import get_settings
 from src.core.exceptions import setup_exception_handlers
 from src.core.tasks.scheduler import scheduler, setup_scheduler
-from src.nutrition.presentation.routers import router as nutrition_router
 from src.nutrition.presentation.error_mapper import setup_nutrition_error_handlers
+from src.nutrition.presentation.routers import router as nutrition_router
 from src.routes.activity import router as activity_router
 from src.user.presentation.routes import router as profile_router
 
