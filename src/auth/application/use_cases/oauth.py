@@ -1,12 +1,10 @@
-import secrets
-from datetime import UTC, datetime, timedelta
-
 from src.auth.application.dto import TokenResult
+from src.auth.application.providers.dto import OAuthUserInfo
 from src.auth.application.token_utils import TokenUtils, issue_refresh_token
 from src.auth.domain.factory import UserFactory
 from src.auth.domain.interfaces import IRefreshTokenRepository, IUserRepository
 from src.core.config import get_settings
-from src.core.constants import REFRESH_TOKEN_BYTES, SECONDS_PER_MINUTE
+from src.core.constants import SECONDS_PER_MINUTE
 
 
 class HandleOAuthUserUseCase:
@@ -14,39 +12,38 @@ class HandleOAuthUserUseCase:
         self,
         user_repo: IUserRepository,
         token_repo: IRefreshTokenRepository,
-    ):
+    ) -> None:
         self._user_repo = user_repo
         self._token_repo = token_repo
         self._factory = UserFactory(user_repo)
         self._settings = get_settings()
 
-    async def execute(
-        self,
-        provider: str,
-        provider_id: str,
-        email: str,
-        name: str,
-        avatar_url: str | None,
-    ) -> TokenResult:
-        user = await self._user_repo.get_by_oauth(provider, provider_id)
+    async def execute(self, info: OAuthUserInfo) -> TokenResult:
+        user = await self._user_repo.get_by_oauth(info.provider, info.provider_id)
 
         if not user:
-            user = await self._user_repo.get_by_email(email)
+            user = await self._user_repo.get_by_email(info.email)
             if user:
-                user.oauth_provider = provider
-                user.oauth_provider_id = provider_id
-                if avatar_url:
-                    user.avatar_url = avatar_url
+                user.oauth_provider = info.provider
+                user.oauth_provider_id = info.provider_id
+                if info.avatar_url:
+                    user.avatar_url = info.avatar_url
                 user = await self._user_repo.save(user)
             else:
-                oauth_user = self._factory.create_oauth(
-                    name=name, email=email, provider=provider,
-                    provider_id=provider_id, avatar_url=avatar_url,
+                oauth_domain = self._factory.create_oauth(
+                    name=info.name,
+                    email=info.email,
+                    provider=info.provider,
+                    provider_id=info.provider_id,
+                    avatar_url=info.avatar_url,
                 )
                 user = await self._user_repo.create(
-                    name=oauth_user.name, email=oauth_user.email,
-                    password_hash=None, provider=provider,
-                    provider_id=provider_id, avatar_url=avatar_url,
+                    name=oauth_domain.name,
+                    email=oauth_domain.email,
+                    password_hash=None,
+                    provider=info.provider,
+                    provider_id=info.provider_id,
+                    avatar_url=info.avatar_url,
                 )
 
         refresh_token = await issue_refresh_token(self._token_repo, user.id, device_info=None)

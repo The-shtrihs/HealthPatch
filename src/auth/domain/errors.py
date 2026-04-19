@@ -53,3 +53,8 @@ class InvalidTwoFactorCodeError(AuthDomainError):
 class PasswordMismatchError(AuthDomainError):
     def __init__(self):
         super().__init__("Current password is incorrect")
+
+
+class OAuthProviderError(AuthDomainError):
+    def __init__(self, message: str = "OAuth provider error"):
+        super().__init__(message)

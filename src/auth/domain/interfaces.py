@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod
 from datetime import datetime
 from typing import Protocol
 
-from src.auth.domain.models import RefreshTokenDomain, UserDomain
+from src.auth.domain.models import RefreshTokenDomain, UserDomain, OAuthStateData
 
 
 class IUserRepository(ABC):
@@ -44,6 +44,19 @@ class IRefreshTokenRepository(ABC):
 
     @abstractmethod
     async def revoke_all_for_user(self, user_id: int) -> None: ...
+
+
+class IOAuthStateRepository(ABC):
+    @abstractmethod
+    async def create(
+        self,
+        provider: str,
+        redirect_after: str = "/",
+        ip_address: str | None = None,
+    ) -> str: ...
+
+    @abstractmethod
+    async def validate_and_consume(self, state: str) -> OAuthStateData | None: ...
 
 
 class IMailService(Protocol):

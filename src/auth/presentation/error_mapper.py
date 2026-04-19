@@ -1,12 +1,21 @@
 from datetime import UTC, datetime
+
 from fastapi import FastAPI
 from fastapi.responses import JSONResponse
 
 from src.auth.domain.errors import (
-    AuthDomainError, EmailAlreadyExistsError, EmailAlreadyVerifiedError,
-    InvalidCredentialsError, InvalidTokenError, InvalidTwoFactorCodeError,
-    PasswordMismatchError, TwoFactorAlreadyEnabledError, TwoFactorNotEnabledError,
-    UserInactiveError, UserNotFoundError,
+    AuthDomainError,
+    EmailAlreadyExistsError,
+    EmailAlreadyVerifiedError,
+    InvalidCredentialsError,
+    InvalidTokenError,
+    InvalidTwoFactorCodeError,
+    OAuthProviderError,
+    PasswordMismatchError,
+    TwoFactorAlreadyEnabledError,
+    TwoFactorNotEnabledError,
+    UserInactiveError,
+    UserNotFoundError,
 )
 
 _ERROR_MAP: dict[type[AuthDomainError], tuple[int, str]] = {
@@ -20,6 +29,7 @@ _ERROR_MAP: dict[type[AuthDomainError], tuple[int, str]] = {
     TwoFactorNotEnabledError:     (400, "2FA_NOT_ENABLED"),
     InvalidTwoFactorCodeError:    (401, "INVALID_2FA_CODE"),
     PasswordMismatchError:        (400, "PASSWORD_MISMATCH"),
+    OAuthProviderError:           (502, "OAUTH_PROVIDER_ERROR"),
 }
 
 

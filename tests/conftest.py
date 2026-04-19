@@ -3,18 +3,15 @@ from unittest.mock import AsyncMock, MagicMock
 import fakeredis.aioredis
 import pytest_asyncio
 from httpx import ASGITransport, AsyncClient
-from sqlalchemy.ext.asyncio import (
-    AsyncSession,
-    create_async_engine,
-)
+from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.pool import NullPool
 
+from src.auth.presentation.dependencies import get_mail_service
 from src.core.base import Base
 from src.core.config import get_settings
 from src.core.database import get_session
 from src.core.main import app
 from src.core.redis import get_redis
-from src.routes.dependencies import get_mail_service
 
 settings = get_settings()
 
@@ -99,7 +96,9 @@ async def auth_headers(client: AsyncClient, registered_user, db_session) -> dict
 
     from src.models.user import User
 
-    await db_session.execute(update(User).where(User.email == registered_user["email"]).values(is_verified=True))
+    await db_session.execute(
+        update(User).where(User.email == registered_user["email"]).values(is_verified=True)
+    )
     await db_session.commit()
 
     resp = await client.post(

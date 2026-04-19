@@ -16,6 +16,7 @@ from src.auth.application.use_cases.two_factor import (
 from src.auth.application.use_cases.verify_email import ResendVerificationUseCase, VerifyEmailUseCase
 from src.auth.domain.errors import UserInactiveError, UserNotFoundError
 from src.auth.domain.models import UserDomain
+from src.auth.infrastructure.oauth_state_repository import RedisOAuthStateRepository
 from src.auth.infrastructure.repositories import (
     SqlAlchemyRefreshTokenRepository, SqlAlchemyUserRepository,
 )
@@ -146,3 +147,16 @@ def make_rate_limiter(limit: int = DEFAULT_RATE_LIMIT, window: int = DEFAULT_RAT
                 headers={"Retry-After": str(result.retry_after)},
             )
     return dep
+
+async def get_oauth_state_repo(redis=Depends(get_redis)) -> RedisOAuthStateRepository:
+    return RedisOAuthStateRepository(redis)
+
+
+async def get_handle_oauth_uc(
+    db=Depends(get_session),
+    token_db=Depends(get_session),
+) -> HandleOAuthUserUseCase:
+    return HandleOAuthUserUseCase(
+        user_repo=SqlAlchemyUserRepository(db),
+        token_repo=SqlAlchemyRefreshTokenRepository(token_db),
+    )
