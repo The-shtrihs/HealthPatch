@@ -4,7 +4,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.core.constants import DEFAULT_RATE_LIMIT, DEFAULT_RATE_WINDOW_SECONDS
 from src.core.database import get_session
-from src.core.exceptions import NotFoundError
+from src.core.exceptions import NotFoundError, UserInactiveError
 from src.core.redis import get_redis
 from src.repositories.activity_uow import ActivityUnitOfWork
 from src.repositories.cache import CacheRepository
@@ -16,11 +16,11 @@ from src.repositories.refresh_token import RefreshTokenRepository
 from src.repositories.user import UserRepository
 from src.services.activity import ActivityService
 from src.services.auth import AuthService
-from src.services.mail import MailService
 from src.services.nutrition import NutritionService
 from src.services.oauth import OAuthService
 from src.services.profile import ProfileService
-from src.services.totp import TotpService
+from src.shared.infrastructure.mail import MailService
+from src.shared.infrastructure.totp import TotpService
 
 security = HTTPBearer()
 
@@ -62,13 +62,20 @@ async def get_oauth_service(
     return OAuthService(auth_service, oauth_state_repo, user_repo)
 
 
-async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(security), user_repo: UserRepository = Depends(get_user_repo)):
+async def get_current_user(
+    credentials: HTTPAuthorizationCredentials = Depends(security),
+    user_repo: UserRepository = Depends(get_user_repo),
+):
+
     payload = AuthService.decode_access_token(credentials.credentials)
     user_id = int(payload.get("sub"))
     current_user = await user_repo.get_by_id(user_id)
 
     if not current_user:
         raise NotFoundError(resource="User", resource_id=user_id)
+
+    if not current_user.is_active:
+        raise UserInactiveError()
 
     return current_user
 

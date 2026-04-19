@@ -15,7 +15,6 @@ async def fitness_payload():
 
 @pytest.fixture
 async def profile_with_fitness(client: AsyncClient, auth_headers: dict, fitness_payload: dict):
-    """Pre-populate fitness profile so tests that need existing data can use it."""
     await client.put("/profile/me/fitness", headers=auth_headers, json=fitness_payload)
     return fitness_payload
 
@@ -211,7 +210,6 @@ class TestFitnessProfile:
 
     @pytest.mark.asyncio
     async def test_creates_profile_on_first_call(self, client: AsyncClient, auth_headers: dict):
-        """New user has no fitness profile — PUT must create it."""
         resp = await client.put("/profile/me/fitness", headers=auth_headers, json={"age": 30})
         assert resp.status_code == 200
         assert resp.json()["age"] == 30
