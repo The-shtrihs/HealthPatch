@@ -60,11 +60,16 @@ class UserProfileDomain:
                 gender=gender, fitness_goal=fitness_goal,
             )
         else:
-            if weight is not None: self.fitness.weight = weight
-            if height is not None: self.fitness.height = height
-            if age is not None: self.fitness.age = age
-            if gender is not None: self.fitness.gender = gender
-            if fitness_goal is not None: self.fitness.fitness_goal = fitness_goal
+            if weight is not None:
+                self.fitness.weight = weight
+            if height is not None:
+                self.fitness.height = height
+            if age is not None:
+                self.fitness.age = age
+            if gender is not None:
+                self.fitness.gender = gender
+            if fitness_goal is not None:
+                self.fitness.fitness_goal = fitness_goal
 
     def deactivate(self) -> None:
         self.is_active = False
