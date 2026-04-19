@@ -4,18 +4,16 @@ from sqlalchemy.orm import selectinload
 
 from src.models.user import User, UserProfile
 from src.user.domain.interfaces import IUserProfileRepository
-from src.user.domain.models import FitnessGoal, FitnessProfileDomain, Gender, UserProfileDomain
-
+from src.user.domain.models import FitnessProfileDomain, UserProfileDomain
 from src.user.infrastructure.mapper import _orm_to_fitness, _orm_to_profile
+
 
 class SqlAlchemyUserProfileRepository(IUserProfileRepository):
     def __init__(self, db: AsyncSession):
         self._db = db
 
     async def get_full_profile(self, user_id: int) -> UserProfileDomain | None:
-        result = await self._db.scalars(
-            select(User).where(User.id == user_id).options(selectinload(User.profile))
-        )
+        result = await self._db.scalars(select(User).where(User.id == user_id).options(selectinload(User.profile)))
         user = result.first()
         return _orm_to_profile(user) if user else None
 

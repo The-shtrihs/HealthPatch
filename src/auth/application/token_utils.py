@@ -1,3 +1,4 @@
+import secrets
 from datetime import UTC, datetime, timedelta
 
 import jwt
@@ -5,15 +6,10 @@ from argon2 import PasswordHasher
 from argon2.exceptions import VerifyMismatchError
 
 from src.auth.domain.errors import InvalidTokenError
-from src.core.config import get_settings
-from src.core.constants import TWO_FA_TOKEN_EXPIRE_MINUTES
-import secrets
-from datetime import UTC, datetime, timedelta
-
 from src.auth.domain.interfaces import IRefreshTokenRepository
-from src.auth.domain.models import RefreshTokenDomain
 from src.core.config import get_settings
-from src.core.constants import REFRESH_TOKEN_BYTES
+from src.core.constants import REFRESH_TOKEN_BYTES, TWO_FA_TOKEN_EXPIRE_MINUTES
+
 
 async def issue_refresh_token(
     token_repo: IRefreshTokenRepository,
@@ -42,7 +38,6 @@ class PasswordUtils:
 
 
 class TokenUtils:
-
     @staticmethod
     def create_access_token(user_id: int, email: str) -> str:
         settings = get_settings()
@@ -94,5 +89,3 @@ class TokenUtils:
             raise InvalidTokenError("2FA token has expired")
         except jwt.InvalidTokenError as e:
             raise InvalidTokenError(f"Invalid 2FA token: {e}")
-        
-    

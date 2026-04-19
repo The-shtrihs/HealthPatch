@@ -9,12 +9,12 @@ from src.schemas.auth import (
     ChangePasswordRequest,
     LoginRequest,
     MessageResponse,
+    RefreshRequest,
     RegisterRequest,
     RegisterResponse,
     TokenResponse,
     TwoFactorSetupResponse,
     UserProfileResponse,
-    RefreshRequest,
     Verify2FARequest,
 )
 from src.services.auth import AuthService

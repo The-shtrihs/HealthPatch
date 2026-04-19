@@ -16,10 +16,10 @@ from src.repositories.refresh_token import RefreshTokenRepository
 from src.repositories.user import UserRepository
 from src.services.activity import ActivityService
 from src.services.auth import AuthService
-from src.shared.infrastructure.mail import MailService
 from src.services.nutrition import NutritionService
 from src.services.oauth import OAuthService
 from src.services.profile import ProfileService
+from src.shared.infrastructure.mail import MailService
 from src.shared.infrastructure.totp import TotpService
 
 security = HTTPBearer()
@@ -66,7 +66,6 @@ async def get_current_user(
     credentials: HTTPAuthorizationCredentials = Depends(security),
     user_repo: UserRepository = Depends(get_user_repo),
 ):
-    from src.core.exceptions import UserInactiveError
 
     payload = AuthService.decode_access_token(credentials.credentials)
     user_id = int(payload.get("sub"))
@@ -75,7 +74,7 @@ async def get_current_user(
     if not current_user:
         raise NotFoundError(resource="User", resource_id=user_id)
 
-    if not current_user.is_active:  
+    if not current_user.is_active:
         raise UserInactiveError()
 
     return current_user

@@ -12,10 +12,12 @@ class ForgotPasswordUseCase:
 
     async def execute(self, email: str, background_tasks: BackgroundTasks) -> None:
         user = await self._user_repo.get_by_email(email)
-        if user:  
+        if user:
             background_tasks.add_task(
                 self._mail.send_password_reset_email,
-                user_id=user.id, user_email=user.email, name=user.name,
+                user_id=user.id,
+                user_email=user.email,
+                name=user.name,
             )
 
 

@@ -96,9 +96,7 @@ async def auth_headers(client: AsyncClient, registered_user, db_session) -> dict
 
     from src.models.user import User
 
-    await db_session.execute(
-        update(User).where(User.email == registered_user["email"]).values(is_verified=True)
-    )
+    await db_session.execute(update(User).where(User.email == registered_user["email"]).values(is_verified=True))
     await db_session.commit()
 
     resp = await client.post(

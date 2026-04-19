@@ -35,9 +35,7 @@ class GitHubOAuthProvider:
             )
             token_data = token_resp.json()
             if "error" in token_data:
-                raise OAuthProviderError(
-                    f"GitHub error: {token_data.get('error_description', 'Unknown error')}"
-                )
+                raise OAuthProviderError(f"GitHub error: {token_data.get('error_description', 'Unknown error')}")
 
             headers = {"Authorization": f"Bearer {token_data['access_token']}"}
             user_resp = await client.get(self._s.github_user_url, headers=headers)

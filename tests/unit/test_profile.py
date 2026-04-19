@@ -12,6 +12,7 @@ from src.user.domain.models import (
     UserProfileDomain,
 )
 
+
 @pytest.fixture
 def profile_repo():
     return AsyncMock()
@@ -81,6 +82,7 @@ class TestFitnessProfileDomain:
         f = FitnessProfileDomain(weight=70.0, height=0.0, age=25, gender=None, fitness_goal=None)
         assert f.calc_bmi() is None
 
+
 class TestUserProfileDomain:
     def test_update_info_changes_name(self, profile):
         profile.update_info(name="New Name")
@@ -133,10 +135,15 @@ class TestUpdateInfo:
     @pytest.mark.asyncio
     async def test_update_info_name(self, use_cases, profile_repo, profile):
         updated_profile = UserProfileDomain(
-            id=profile.id, name="New Name", email=profile.email,
-            avatar_url=profile.avatar_url, is_verified=profile.is_verified,
-            is_active=profile.is_active, is_2fa_enabled=profile.is_2fa_enabled,
-            oauth_provider=profile.oauth_provider, fitness=profile.fitness,
+            id=profile.id,
+            name="New Name",
+            email=profile.email,
+            avatar_url=profile.avatar_url,
+            is_verified=profile.is_verified,
+            is_active=profile.is_active,
+            is_2fa_enabled=profile.is_2fa_enabled,
+            oauth_provider=profile.oauth_provider,
+            fitness=profile.fitness,
         )
         profile_repo.get_full_profile.return_value = profile
         profile_repo.save_user_info.return_value = updated_profile
@@ -176,8 +183,11 @@ class TestUpdateFitness:
         profile_repo.save_fitness.return_value = profile.fitness
 
         cmd = UpdateFitnessCommand(
-            weight=80.0, height=180.0, age=30,
-            gender=Gender.MALE, fitness_goal=FitnessGoal.STRENGTH_BUILDING,
+            weight=80.0,
+            height=180.0,
+            age=30,
+            gender=Gender.MALE,
+            fitness_goal=FitnessGoal.STRENGTH_BUILDING,
         )
         result = await use_cases.update_fitness(1, cmd)
 
@@ -187,15 +197,21 @@ class TestUpdateFitness:
     @pytest.mark.asyncio
     async def test_update_fitness_creates_profile_when_none(self, use_cases, profile_repo, profile_without_fitness):
         new_fitness = FitnessProfileDomain(
-            weight=70.0, height=175.0, age=25,
-            gender=Gender.FEMALE, fitness_goal=FitnessGoal.ENDURANCE,
+            weight=70.0,
+            height=175.0,
+            age=25,
+            gender=Gender.FEMALE,
+            fitness_goal=FitnessGoal.ENDURANCE,
         )
         profile_repo.get_full_profile.return_value = profile_without_fitness
         profile_repo.save_fitness.return_value = new_fitness
 
         cmd = UpdateFitnessCommand(
-            weight=70.0, height=175.0, age=25,
-            gender=Gender.FEMALE, fitness_goal=FitnessGoal.ENDURANCE,
+            weight=70.0,
+            height=175.0,
+            age=25,
+            gender=Gender.FEMALE,
+            fitness_goal=FitnessGoal.ENDURANCE,
         )
         result = await use_cases.update_fitness(1, cmd)
 

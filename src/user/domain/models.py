@@ -56,8 +56,11 @@ class UserProfileDomain:
     ) -> None:
         if self.fitness is None:
             self.fitness = FitnessProfileDomain(
-                weight=weight, height=height, age=age,
-                gender=gender, fitness_goal=fitness_goal,
+                weight=weight,
+                height=height,
+                age=age,
+                gender=gender,
+                fitness_goal=fitness_goal,
             )
         else:
             if weight is not None:

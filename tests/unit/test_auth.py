@@ -220,10 +220,17 @@ class TestRegisterUseCase:
     @pytest.mark.asyncio
     async def test_register_sends_verification_email(self, uc, user_repo, mail_service):
         new_user = UserDomain(
-            id=5, name="Name", email="user@example.com",
-            password_hash=None, is_verified=False, is_active=True,
-            oauth_provider=None, oauth_provider_id=None,
-            avatar_url=None, totp_secret=None, is_2fa_enabled=False,
+            id=5,
+            name="Name",
+            email="user@example.com",
+            password_hash=None,
+            is_verified=False,
+            is_active=True,
+            oauth_provider=None,
+            oauth_provider_id=None,
+            avatar_url=None,
+            totp_secret=None,
+            is_2fa_enabled=False,
         )
         user_repo.get_by_email.return_value = None
         user_repo.create.return_value = new_user
@@ -247,6 +254,7 @@ class TestRegisterUseCase:
             await uc.execute("Name", active_user.email, "Secret123!", bg)
 
         bg.add_task.assert_not_called()
+
 
 class TestLoginUseCase:
     @pytest.fixture
@@ -334,6 +342,7 @@ class TestLoginUseCase:
 
         call_args = token_repo.create.call_args
         assert "Chrome/iPhone" in str(call_args)
+
 
 class TestRefreshTokenUseCase:
     @pytest.fixture

@@ -19,17 +19,17 @@ from src.auth.domain.errors import (
 )
 
 _ERROR_MAP: dict[type[AuthDomainError], tuple[int, str]] = {
-    EmailAlreadyExistsError:      (409, "EMAIL_ALREADY_EXISTS"),
-    EmailAlreadyVerifiedError:    (400, "EMAIL_ALREADY_VERIFIED"),
-    InvalidCredentialsError:      (401, "INVALID_CREDENTIALS"),
-    InvalidTokenError:            (401, "INVALID_TOKEN"),
-    UserNotFoundError:            (404, "NOT_FOUND"),
-    UserInactiveError:            (403, "USER_INACTIVE"),
+    EmailAlreadyExistsError: (409, "EMAIL_ALREADY_EXISTS"),
+    EmailAlreadyVerifiedError: (400, "EMAIL_ALREADY_VERIFIED"),
+    InvalidCredentialsError: (401, "INVALID_CREDENTIALS"),
+    InvalidTokenError: (401, "INVALID_TOKEN"),
+    UserNotFoundError: (404, "NOT_FOUND"),
+    UserInactiveError: (403, "USER_INACTIVE"),
     TwoFactorAlreadyEnabledError: (409, "2FA_ALREADY_ENABLED"),
-    TwoFactorNotEnabledError:     (400, "2FA_NOT_ENABLED"),
-    InvalidTwoFactorCodeError:    (401, "INVALID_2FA_CODE"),
-    PasswordMismatchError:        (400, "PASSWORD_MISMATCH"),
-    OAuthProviderError:           (502, "OAUTH_PROVIDER_ERROR"),
+    TwoFactorNotEnabledError: (400, "2FA_NOT_ENABLED"),
+    InvalidTwoFactorCodeError: (401, "INVALID_2FA_CODE"),
+    PasswordMismatchError: (400, "PASSWORD_MISMATCH"),
+    OAuthProviderError: (502, "OAUTH_PROVIDER_ERROR"),
 }
 
 

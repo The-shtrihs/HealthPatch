@@ -1,17 +1,18 @@
 from dataclasses import dataclass
 
+
 @dataclass
 class RegisterCommand:
     name: str
     email: str
-    password: str  
+    password: str
 
 
 @dataclass
 class LoginCommand:
     email: str
     password: str
-    device_info: str | None = None  
+    device_info: str | None = None
 
 
 @dataclass
@@ -23,9 +24,9 @@ class ChangePasswordCommand:
 @dataclass
 class TokenResult:
     access_token: str
-    refresh_token: str | None   
-    token_type: str         
-    expires_in: int           
+    refresh_token: str | None
+    token_type: str
+    expires_in: int
 
 
 @dataclass

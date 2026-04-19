@@ -1,4 +1,5 @@
 from pydantic import BaseModel, ConfigDict, Field
+
 from src.user.domain.models import FitnessGoal, Gender
 
 

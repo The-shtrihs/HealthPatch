@@ -1,5 +1,5 @@
 from src.auth.domain.models import RefreshTokenDomain, UserDomain
-from src.models.user import RefreshToken, User  
+from src.models.user import RefreshToken, User
 
 
 def user_orm_to_domain(orm: User) -> UserDomain:

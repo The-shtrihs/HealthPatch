@@ -7,20 +7,40 @@ from src.auth.application.use_cases.refresh_token import RefreshTokenUseCase
 from src.auth.application.use_cases.register import RegisterUseCase
 from src.auth.application.use_cases.reset_password import ForgotPasswordUseCase, ResetPasswordUseCase
 from src.auth.application.use_cases.two_factor import (
-    Confirm2FAUseCase, Disable2FAUseCase, Enable2FAUseCase, Verify2FAAndLoginUseCase,
+    Confirm2FAUseCase,
+    Disable2FAUseCase,
+    Enable2FAUseCase,
+    Verify2FAAndLoginUseCase,
 )
 from src.auth.application.use_cases.verify_email import ResendVerificationUseCase, VerifyEmailUseCase
 from src.auth.domain.models import UserDomain
 from src.auth.presentation.dependencies import (
-    get_change_password_uc, get_confirm_2fa_uc, get_current_user,
-    get_disable_2fa_uc, get_enable_2fa_uc, get_forgot_password_uc,
-    get_login_uc, get_logout_uc, get_refresh_uc, get_register_uc,
-    get_reset_password_uc, get_resend_verification_uc, get_verify_2fa_uc,
-    get_verify_email_uc, make_rate_limiter,
+    get_change_password_uc,
+    get_confirm_2fa_uc,
+    get_current_user,
+    get_disable_2fa_uc,
+    get_enable_2fa_uc,
+    get_forgot_password_uc,
+    get_login_uc,
+    get_logout_uc,
+    get_refresh_uc,
+    get_register_uc,
+    get_resend_verification_uc,
+    get_reset_password_uc,
+    get_verify_2fa_uc,
+    get_verify_email_uc,
+    make_rate_limiter,
 )
 from src.auth.presentation.schemas import (
-    ChangePasswordRequest, LoginRequest, MessageResponse, RefreshRequest,
-    RegisterRequest, TokenResponse, TwoFactorSetupResponse, UserMeResponse, Verify2FARequest,
+    ChangePasswordRequest,
+    LoginRequest,
+    MessageResponse,
+    RefreshRequest,
+    RegisterRequest,
+    TokenResponse,
+    TwoFactorSetupResponse,
+    UserMeResponse,
+    Verify2FARequest,
 )
 from src.core.constants import DEFAULT_RATE_LIMIT
 
@@ -169,7 +189,11 @@ async def verify_2fa(
 @router.get("/me", response_model=UserMeResponse)
 async def get_me(current_user: UserDomain = Depends(get_current_user)):
     return UserMeResponse(
-        id=current_user.id, name=current_user.name, email=current_user.email,
-        avatar_url=current_user.avatar_url, is_verified=current_user.is_verified,
-        is_2fa_enabled=current_user.is_2fa_enabled, oauth_provider=current_user.oauth_provider,
+        id=current_user.id,
+        name=current_user.name,
+        email=current_user.email,
+        avatar_url=current_user.avatar_url,
+        is_verified=current_user.is_verified,
+        is_2fa_enabled=current_user.is_2fa_enabled,
+        oauth_provider=current_user.oauth_provider,
     )

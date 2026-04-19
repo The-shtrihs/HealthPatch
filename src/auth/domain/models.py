@@ -65,7 +65,8 @@ class RefreshTokenDomain:
 
     def is_expired(self, now: datetime) -> bool:
         return self.expires_at < now
-    
+
+
 @dataclass
 class OAuthStateData:
     provider: str

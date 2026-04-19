@@ -1,13 +1,11 @@
-import secrets
-from datetime import UTC, datetime, timedelta
-
 from src.auth.application.dto import TokenResult
 from src.auth.application.token_utils import PasswordUtils, TokenUtils, issue_refresh_token
 from src.auth.domain.errors import InvalidCredentialsError, UserInactiveError
 from src.auth.domain.interfaces import IRefreshTokenRepository, IUserRepository
 from src.core.config import get_settings
 from src.core.constants import (
-    REFRESH_TOKEN_BYTES, SECONDS_PER_MINUTE, TWO_FA_TOKEN_EXPIRE_SECONDS,
+    SECONDS_PER_MINUTE,
+    TWO_FA_TOKEN_EXPIRE_SECONDS,
 )
 
 

@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod
 from datetime import datetime
 from typing import Protocol
 
-from src.auth.domain.models import RefreshTokenDomain, UserDomain, OAuthStateData
+from src.auth.domain.models import OAuthStateData, RefreshTokenDomain, UserDomain
 
 
 class IUserRepository(ABC):
@@ -32,9 +32,7 @@ class IUserRepository(ABC):
 
 class IRefreshTokenRepository(ABC):
     @abstractmethod
-    async def create(
-        self, token: str, user_id: int, expires_at: datetime, device_info: str | None
-    ) -> RefreshTokenDomain: ...
+    async def create(self, token: str, user_id: int, expires_at: datetime, device_info: str | None) -> RefreshTokenDomain: ...
 
     @abstractmethod
     async def get_active_token(self, token: str) -> RefreshTokenDomain | None: ...

@@ -12,11 +12,11 @@ class UserFactory:
             raise EmailAlreadyExistsError()
 
         return UserDomain(
-            id=None, 
+            id=None,
             name=name,
             email=email,
             password_hash=password_hash,
-            is_verified=False,   
+            is_verified=False,
             is_active=True,
             oauth_provider=None,
             oauth_provider_id=None,
@@ -33,13 +33,13 @@ class UserFactory:
         provider_id: str,
         avatar_url: str | None = None,
     ) -> UserDomain:
-        
+
         return UserDomain(
             id=None,
             name=name,
             email=email,
-            password_hash=None,   
-            is_verified=True,     
+            password_hash=None,
+            is_verified=True,
             is_active=True,
             oauth_provider=provider,
             oauth_provider_id=provider_id,

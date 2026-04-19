@@ -16,14 +16,17 @@ class UserProfileUseCases:
 
     async def update_info(self, user_id: int, cmd: UpdateUserInfoCommand) -> UserProfileDomain:
         profile = await self.get_profile(user_id)
-        profile.update_info(name=cmd.name, avatar_url=cmd.avatar_url)  
+        profile.update_info(name=cmd.name, avatar_url=cmd.avatar_url)
         return await self._repo.save_user_info(user_id, profile.name, profile.avatar_url)
 
     async def update_fitness(self, user_id: int, cmd: UpdateFitnessCommand) -> FitnessProfileDomain:
         profile = await self.get_profile(user_id)
-        profile.update_fitness(  
-            weight=cmd.weight, height=cmd.height, age=cmd.age,
-            gender=cmd.gender, fitness_goal=cmd.fitness_goal,
+        profile.update_fitness(
+            weight=cmd.weight,
+            height=cmd.height,
+            age=cmd.age,
+            gender=cmd.gender,
+            fitness_goal=cmd.fitness_goal,
         )
         return await self._repo.save_fitness(user_id, profile.fitness)
 

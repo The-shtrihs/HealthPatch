@@ -1,14 +1,13 @@
-import secrets
-from datetime import UTC, datetime, timedelta
-
 from src.auth.application.dto import TokenResult, TwoFactorSetupResult
 from src.auth.application.token_utils import TokenUtils, issue_refresh_token
 from src.auth.domain.errors import (
-    InvalidTwoFactorCodeError, TwoFactorNotEnabledError, UserNotFoundError,
+    InvalidTwoFactorCodeError,
+    TwoFactorNotEnabledError,
+    UserNotFoundError,
 )
 from src.auth.domain.interfaces import IRefreshTokenRepository, ITotpService, IUserRepository
 from src.core.config import get_settings
-from src.core.constants import REFRESH_TOKEN_BYTES, SECONDS_PER_MINUTE
+from src.core.constants import SECONDS_PER_MINUTE
 
 
 class Enable2FAUseCase:
@@ -21,7 +20,7 @@ class Enable2FAUseCase:
         if not user:
             raise UserNotFoundError(user_id)
         secret = self._totp.generate_totp_secret()
-        user.initiate_2fa(secret) 
+        user.initiate_2fa(secret)
         await self._user_repo.save(user)
         uri = self._totp.get_totp_uri(secret, user_email=user.email)
         return TwoFactorSetupResult(
@@ -60,7 +59,7 @@ class Disable2FAUseCase:
             raise TwoFactorNotEnabledError()
         if not self._totp.verify_totp(code, user.totp_secret):
             raise InvalidTwoFactorCodeError()
-        user.disable_2fa()  
+        user.disable_2fa()
         await self._user_repo.save(user)
 
 
@@ -76,9 +75,7 @@ class Verify2FAAndLoginUseCase:
         self._totp = totp_service
         self._settings = get_settings()
 
-    async def execute(
-        self, temp_token: str, code: str, device_info: str | None = None
-    ) -> TokenResult:
+    async def execute(self, temp_token: str, code: str, device_info: str | None = None) -> TokenResult:
         payload = TokenUtils.decode_2fa_token(temp_token)
         user = await self._user_repo.get_by_id(int(payload["sub"]))
         if not user:

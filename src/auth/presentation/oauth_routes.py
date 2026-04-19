@@ -8,10 +8,7 @@ from src.auth.application.providers.google_provider import GoogleOAuthProvider
 from src.auth.application.use_cases.oauth import HandleOAuthUserUseCase
 from src.auth.infrastructure.oauth_state_repository import OAuthStateData, RedisOAuthStateRepository
 from src.auth.presentation.dependencies import get_handle_oauth_uc, get_oauth_state_repo
-from src.auth.presentation.schemas import TokenResponse
 from src.core.config import get_settings
-from src.core.database import get_session
-from src.core.redis import get_redis
 
 router = APIRouter(prefix="/oauth", tags=["OAuth Authentication"])
 
@@ -20,6 +17,7 @@ _PROVIDERS = {
     "github": GitHubOAuthProvider,
     "facebook": FacebookOAuthProvider,
 }
+
 
 @router.get("/{provider}")
 async def oauth_redirect(
@@ -79,9 +77,6 @@ async def oauth_callback(
     result = await handle_uc.execute(oauth_info)
 
     redirect_url = (
-        f"{frontend}/auth/callback"
-        f"?access_token={result.access_token}"
-        f"&refresh_token={result.refresh_token}"
-        f"&redirect_after={state_data.redirect_after}"
+        f"{frontend}/auth/callback?access_token={result.access_token}&refresh_token={result.refresh_token}&redirect_after={state_data.redirect_after}"
     )
     return RedirectResponse(redirect_url)

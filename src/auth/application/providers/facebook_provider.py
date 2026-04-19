@@ -34,9 +34,7 @@ class FacebookOAuthProvider:
             )
             token_data = token_resp.json()
             if "error" in token_data:
-                raise OAuthProviderError(
-                    f"Facebook error: {token_data['error'].get('message', 'Unknown error')}"
-                )
+                raise OAuthProviderError(f"Facebook error: {token_data['error'].get('message', 'Unknown error')}")
 
             user_resp = await client.get(
                 self._s.fb_user_url,

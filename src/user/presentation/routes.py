@@ -1,13 +1,15 @@
 from fastapi import APIRouter, Depends, status
 
 from src.auth.domain.models import UserDomain
-from src.auth.presentation.dependencies import get_current_user  
+from src.auth.presentation.dependencies import get_current_user
 from src.user.application.dto import UpdateFitnessCommand, UpdateUserInfoCommand
 from src.user.application.use_cases import UserProfileUseCases
 from src.user.presentation.dependencies import get_user_profile_use_cases
 from src.user.presentation.schemas import (
-    FitnessProfileResponse, FitnessProfileUpdate,
-    FullProfileResponse, UserInfoUpdate,
+    FitnessProfileResponse,
+    FitnessProfileUpdate,
+    FullProfileResponse,
+    UserInfoUpdate,
 )
 
 router = APIRouter(prefix="/profile", tags=["Profile"])
@@ -17,17 +19,25 @@ def _fitness_response(fitness) -> FitnessProfileResponse | None:
     if not fitness:
         return None
     return FitnessProfileResponse(
-        weight=fitness.weight, height=fitness.height, age=fitness.age,
-        gender=fitness.gender, fitness_goal=fitness.fitness_goal,
-        bmi=fitness.calc_bmi(),  
+        weight=fitness.weight,
+        height=fitness.height,
+        age=fitness.age,
+        gender=fitness.gender,
+        fitness_goal=fitness.fitness_goal,
+        bmi=fitness.calc_bmi(),
     )
 
 
 def _profile_response(p) -> FullProfileResponse:
     return FullProfileResponse(
-        id=p.id, name=p.name, email=p.email, avatar_url=p.avatar_url,
-        is_verified=p.is_verified, is_2fa_enabled=p.is_2fa_enabled,
-        oauth_provider=p.oauth_provider, profile=_fitness_response(p.fitness),
+        id=p.id,
+        name=p.name,
+        email=p.email,
+        avatar_url=p.avatar_url,
+        is_verified=p.is_verified,
+        is_2fa_enabled=p.is_2fa_enabled,
+        oauth_provider=p.oauth_provider,
+        profile=_fitness_response(p.fitness),
     )
 
 
@@ -59,8 +69,11 @@ async def update_fitness_profile(
     fitness = await user_profile_use_cases.update_fitness(
         current_user.id,
         UpdateFitnessCommand(
-            weight=data.weight, height=data.height, age=data.age,
-            gender=data.gender, fitness_goal=data.fitness_goal,
+            weight=data.weight,
+            height=data.height,
+            age=data.age,
+            gender=data.gender,
+            fitness_goal=data.fitness_goal,
         ),
     )
     return _fitness_response(fitness)

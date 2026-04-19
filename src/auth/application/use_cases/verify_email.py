@@ -12,7 +12,7 @@ class VerifyEmailUseCase:
         user = await self._user_repo.get_by_id(int(payload["sub"]))
         if not user:
             raise UserNotFoundError()
-        user.verify_email()  
+        user.verify_email()
         await self._user_repo.save(user)
 
 
@@ -26,5 +26,7 @@ class ResendVerificationUseCase:
         if user and not user.is_verified:
             background_tasks.add_task(
                 self._mail.send_verification_email,
-                user_id=user.id, user_email=user.email, name=user.name,
+                user_id=user.id,
+                user_email=user.email,
+                name=user.name,
             )

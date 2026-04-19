@@ -37,9 +37,7 @@ class GoogleOAuthProvider:
             )
             token_data = token_resp.json()
             if "error" in token_data:
-                raise OAuthProviderError(
-                    f"Google error: {token_data.get('error_description', 'Unknown error')}"
-                )
+                raise OAuthProviderError(f"Google error: {token_data.get('error_description', 'Unknown error')}")
 
             userinfo_resp = await client.get(
                 self._s.google_userinfo_url,

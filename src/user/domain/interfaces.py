@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+
 from src.user.domain.models import FitnessProfileDomain, UserProfileDomain
 
 
