@@ -5,13 +5,13 @@ import pytest
 
 from src.nutrition.application.dto import AddMealEntryCommand, DeleteMealEntryCommand, GetDayOverviewQuery
 from src.nutrition.application.use_cases import NutritionUseCases
+from src.nutrition.domain.calculations import calculate_daily_norm
 from src.nutrition.domain.errors import (
     IncompleteNutritionProfileError,
     InvalidMealEntryError,
     MealEntryNotFoundError,
     NutritionProfileNotFoundError,
 )
-from src.nutrition.domain.calculations import calculate_daily_norm
 from src.nutrition.domain.interfaces import INutritionRepository
 from src.nutrition.domain.models import MacroTotalsDomain, NutritionProfileDomain
 from src.user.domain.models import FitnessGoal, Gender
