@@ -11,7 +11,7 @@ from src.nutrition.domain.errors import (
     MealEntryNotFoundError,
     NutritionProfileNotFoundError,
 )
-from src.nutrition.domain.factory import calculate_daily_norm
+from src.nutrition.domain.calculations import calculate_daily_norm
 from src.nutrition.domain.interfaces import INutritionRepository
 from src.nutrition.domain.models import MacroTotalsDomain, NutritionProfileDomain
 from src.user.domain.models import FitnessGoal, Gender

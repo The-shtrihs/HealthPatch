@@ -16,7 +16,7 @@ from src.nutrition.domain.errors import (
     MealEntryNotFoundError,
     NutritionProfileNotFoundError,
 )
-from src.nutrition.domain.factory import calculate_daily_norm
+from src.nutrition.domain.calculations import calculate_daily_norm
 from src.nutrition.domain.interfaces import INutritionUnitOfWork
 from src.nutrition.domain.models import MealEntryCreateDomain, NutritionProfileDomain
 
