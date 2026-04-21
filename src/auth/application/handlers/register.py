@@ -1,11 +1,12 @@
 from fastapi import BackgroundTasks
 
+from src.auth.application.commands import RegisterCommand
 from src.auth.application.token_utils import PasswordUtils
 from src.auth.domain.factory import UserFactory
 from src.auth.domain.interfaces import IMailService, IUserRepository
 
 
-class RegisterUseCase:
+class RegisterCommandHandler:
     def __init__(
         self,
         user_repo: IUserRepository,
@@ -17,11 +18,11 @@ class RegisterUseCase:
         self._pw = password_utils
         self._factory = UserFactory(user_repo)
 
-    async def execute(self, name: str, email: str, password: str, background_tasks: BackgroundTasks) -> None:
+    async def handle(self, cmd: RegisterCommand, background_tasks: BackgroundTasks) -> None:
         user = await self._factory.create_regular(
-            name=name,
-            email=email,
-            password_hash=self._pw.hash(password),
+            name=cmd.name,
+            email=cmd.email,
+            password_hash=self._pw.hash(cmd.password),
         )
         saved = await self._user_repo.create(
             name=user.name,

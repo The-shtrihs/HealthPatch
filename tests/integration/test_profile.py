@@ -37,7 +37,7 @@ class TestGetProfile:
     async def test_contains_required_fields(self, client: AsyncClient, auth_headers: dict):
         resp = await client.get("/profile/me", headers=auth_headers)
         data = resp.json()
-        for field in ("id", "email", "name", "is_verified", "is_2fa_enabled", "profile"):
+        for field in ("id", "email", "name", "is_verified", "is_2fa_enabled", "fitness"):
             assert field in data, f"Missing field: {field}"
 
     @pytest.mark.asyncio
@@ -52,10 +52,10 @@ class TestGetProfile:
     async def test_fitness_initially_null_or_empty(self, client: AsyncClient, auth_headers: dict):
         resp = await client.get("/profile/me", headers=auth_headers)
         data = resp.json()
-        profile = data.get("profile")
-        if profile is not None:
-            assert profile.get("weight") is None
-            assert profile.get("height") is None
+        fitness = data.get("fitness")
+        if fitness is not None:
+            assert fitness.get("weight") is None
+            assert fitness.get("height") is None
 
 
 class TestUpdateUserInfo:
@@ -217,17 +217,17 @@ class TestFitnessProfile:
     @pytest.mark.asyncio
     async def test_fitness_data_visible_in_get_profile(self, client: AsyncClient, auth_headers: dict, profile_with_fitness: dict):
         resp = await client.get("/profile/me", headers=auth_headers)
-        profile = resp.json()["profile"]
-        assert profile is not None
-        assert profile["weight"] == profile_with_fitness["weight"]
-        assert profile["height"] == profile_with_fitness["height"]
+        fitness = resp.json()["fitness"]
+        assert fitness is not None
+        assert fitness["weight"] == profile_with_fitness["weight"]
+        assert fitness["height"] == profile_with_fitness["height"]
 
     @pytest.mark.asyncio
     async def test_sequential_updates_last_wins(self, client: AsyncClient, auth_headers: dict):
         await client.put("/profile/me/fitness", headers=auth_headers, json={"weight": 70.0})
         await client.put("/profile/me/fitness", headers=auth_headers, json={"weight": 85.0})
         resp = await client.get("/profile/me", headers=auth_headers)
-        assert resp.json()["profile"]["weight"] == 85.0
+        assert resp.json()["fitness"]["weight"] == 85.0
 
     @pytest.mark.asyncio
     async def test_idempotent_same_payload(self, client: AsyncClient, auth_headers: dict):
@@ -251,7 +251,7 @@ class TestFitnessProfile:
     async def test_negative_weight_does_not_mutate_profile(self, client: AsyncClient, auth_headers: dict, profile_with_fitness: dict):
         await client.put("/profile/me/fitness", headers=auth_headers, json={"weight": -5.0})
         resp = await client.get("/profile/me", headers=auth_headers)
-        assert resp.json()["profile"]["weight"] == profile_with_fitness["weight"]
+        assert resp.json()["fitness"]["weight"] == profile_with_fitness["weight"]
 
     @pytest.mark.asyncio
     async def test_zero_weight_returns_422(self, client: AsyncClient, auth_headers: dict):
@@ -262,7 +262,7 @@ class TestFitnessProfile:
     async def test_zero_weight_does_not_mutate_profile(self, client: AsyncClient, auth_headers: dict, profile_with_fitness: dict):
         await client.put("/profile/me/fitness", headers=auth_headers, json={"weight": 0.0})
         resp = await client.get("/profile/me", headers=auth_headers)
-        assert resp.json()["profile"]["weight"] == profile_with_fitness["weight"]
+        assert resp.json()["fitness"]["weight"] == profile_with_fitness["weight"]
 
     @pytest.mark.asyncio
     async def test_weight_above_max_returns_422(self, client: AsyncClient, auth_headers: dict):
@@ -278,7 +278,7 @@ class TestFitnessProfile:
     async def test_height_above_max_does_not_mutate_profile(self, client: AsyncClient, auth_headers: dict, profile_with_fitness: dict):
         await client.put("/profile/me/fitness", headers=auth_headers, json={"height": 350.0})
         resp = await client.get("/profile/me", headers=auth_headers)
-        assert resp.json()["profile"]["height"] == profile_with_fitness["height"]
+        assert resp.json()["fitness"]["height"] == profile_with_fitness["height"]
 
     @pytest.mark.asyncio
     async def test_age_above_max_returns_422(self, client: AsyncClient, auth_headers: dict):
@@ -289,7 +289,7 @@ class TestFitnessProfile:
     async def test_age_above_max_does_not_mutate_profile(self, client: AsyncClient, auth_headers: dict, profile_with_fitness: dict):
         await client.put("/profile/me/fitness", headers=auth_headers, json={"age": 200})
         resp = await client.get("/profile/me", headers=auth_headers)
-        assert resp.json()["profile"]["age"] == profile_with_fitness["age"]
+        assert resp.json()["fitness"]["age"] == profile_with_fitness["age"]
 
     @pytest.mark.asyncio
     async def test_invalid_gender_returns_422(self, client: AsyncClient, auth_headers: dict):
@@ -300,7 +300,7 @@ class TestFitnessProfile:
     async def test_invalid_gender_does_not_mutate_profile(self, client: AsyncClient, auth_headers: dict, profile_with_fitness: dict):
         await client.put("/profile/me/fitness", headers=auth_headers, json={"gender": "attack_helicopter"})
         resp = await client.get("/profile/me", headers=auth_headers)
-        assert resp.json()["profile"]["gender"] == profile_with_fitness["gender"]
+        assert resp.json()["fitness"]["gender"] == profile_with_fitness["gender"]
 
     @pytest.mark.asyncio
     async def test_invalid_fitness_goal_returns_422(self, client: AsyncClient, auth_headers: dict):
@@ -311,7 +311,7 @@ class TestFitnessProfile:
     async def test_invalid_fitness_goal_does_not_mutate_profile(self, client: AsyncClient, auth_headers: dict, profile_with_fitness: dict):
         await client.put("/profile/me/fitness", headers=auth_headers, json={"fitness_goal": "fly to moon"})
         resp = await client.get("/profile/me", headers=auth_headers)
-        assert resp.json()["profile"]["fitness_goal"] == profile_with_fitness["fitness_goal"]
+        assert resp.json()["fitness"]["fitness_goal"] == profile_with_fitness["fitness_goal"]
 
     @pytest.mark.asyncio
     async def test_invalid_token_returns_401(self, client: AsyncClient):
