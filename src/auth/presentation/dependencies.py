@@ -55,13 +55,16 @@ async def get_change_password_handler(user_repo=Depends(get_user_repo), token_re
 async def get_forgot_password_handler(user_repo=Depends(get_user_repo), mail_service=Depends(get_mail_service)) -> ForgotPasswordCommandHandler:
     return ForgotPasswordCommandHandler(user_repo, mail_service)
 
-async def get_reset_password_handler(user_repo=Depends(get_user_repo), token_repo=Depends(get_token_repo), mail_service=Depends(get_mail_service)) -> ResetPasswordCommandHandler:
+async def get_reset_password_handler(user_repo=Depends(get_user_repo), 
+                                     token_repo=Depends(get_token_repo), 
+                                     mail_service=Depends(get_mail_service)) -> ResetPasswordCommandHandler:
     return ResetPasswordCommandHandler(user_repo, token_repo, mail_service, _pw)
 
 async def get_verify_email_handler(user_repo=Depends(get_user_repo), mail_service=Depends(get_mail_service)) -> VerifyEmailCommandHandler:
     return VerifyEmailCommandHandler(user_repo, mail_service)
 
-async def get_resend_verification_handler(user_repo=Depends(get_user_repo), mail_service=Depends(get_mail_service)) -> ResendVerificationCommandHandler:
+async def get_resend_verification_handler(user_repo=Depends(get_user_repo), 
+                                          mail_service=Depends(get_mail_service)) -> ResendVerificationCommandHandler:
     return ResendVerificationCommandHandler(user_repo, mail_service)
 
 async def get_enable_2fa_handler(user_repo=Depends(get_user_repo), totp_service=Depends(get_totp_service)) -> Enable2FACommandHandler:
@@ -73,7 +76,9 @@ async def get_confirm_2fa_handler(user_repo=Depends(get_user_repo), totp_service
 async def get_disable_2fa_handler(user_repo=Depends(get_user_repo), totp_service=Depends(get_totp_service)) -> Disable2FACommandHandler:
     return Disable2FACommandHandler(user_repo, totp_service)
 
-async def get_verify_2fa_handler(user_repo=Depends(get_user_repo), token_repo=Depends(get_token_repo), totp_service=Depends(get_totp_service)) -> Verify2FAAndLoginCommandHandler:
+async def get_verify_2fa_handler(user_repo=Depends(get_user_repo), 
+                                 token_repo=Depends(get_token_repo), 
+                                 totp_service=Depends(get_totp_service)) -> Verify2FAAndLoginCommandHandler:
     return Verify2FAAndLoginCommandHandler(user_repo, token_repo, totp_service)
 
 async def get_oauth_handler(user_repo=Depends(get_user_repo), token_repo=Depends(get_token_repo)) -> HandleOAuthUserCommandHandler:
@@ -88,8 +93,10 @@ async def get_current_user(
 ) -> UserDomain:
     payload = TokenUtils.decode_access_token(credentials.credentials)
     user = await user_repo.get_by_id(int(payload["sub"]))
-    if not user: raise UserNotFoundError(int(payload["sub"]))
-    if not user.is_active: raise UserInactiveError()
+    if not user: 
+        raise UserNotFoundError(int(payload["sub"]))
+    if not user.is_active: 
+        raise UserInactiveError()
     return user
 
 def make_rate_limiter(limit: int = DEFAULT_RATE_LIMIT, window: int = DEFAULT_RATE_WINDOW_SECONDS):
