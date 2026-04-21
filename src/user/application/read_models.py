@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+
 from src.user.domain.models import FitnessGoal, Gender
 
 

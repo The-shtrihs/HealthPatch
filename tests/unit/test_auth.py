@@ -12,8 +12,8 @@ from src.auth.application.commands import (
     LoginCommand,
     RefreshTokenCommand,
     RegisterCommand,
-    VerifyEmailCommand,
     Verify2FAAndLoginCommand,
+    VerifyEmailCommand,
 )
 from src.auth.application.handlers.change_password import ChangePasswordCommandHandler
 from src.auth.application.handlers.login import LoginCommandHandler

@@ -1,34 +1,58 @@
 from fastapi import APIRouter, BackgroundTasks, Depends, Request, status
 
 from src.auth.application.commands import (
-    Confirm2FACommand, Disable2FACommand, Enable2FACommand,
-    ForgotPasswordCommand, LogoutAllCommand,
-    ResendVerificationCommand, VerifyEmailCommand,
+    Confirm2FACommand,
+    Disable2FACommand,
+    Enable2FACommand,
+    ForgotPasswordCommand,
+    LogoutAllCommand,
+    ResendVerificationCommand,
+    VerifyEmailCommand,
 )
-from src.auth.application.queries import GetMeQuery
 from src.auth.application.handlers.change_password import ChangePasswordCommandHandler
+from src.auth.application.handlers.get_me import GetMeQueryHandler
 from src.auth.application.handlers.login import LoginCommandHandler
 from src.auth.application.handlers.logout import LogoutCommandHandler
 from src.auth.application.handlers.refresh_token import RefreshTokenCommandHandler
 from src.auth.application.handlers.register import RegisterCommandHandler
 from src.auth.application.handlers.reset_password import ForgotPasswordCommandHandler, ResetPasswordCommandHandler
 from src.auth.application.handlers.two_factor import (
-    Confirm2FACommandHandler, Disable2FACommandHandler,
-    Enable2FACommandHandler, Verify2FAAndLoginCommandHandler,
+    Confirm2FACommandHandler,
+    Disable2FACommandHandler,
+    Enable2FACommandHandler,
+    Verify2FAAndLoginCommandHandler,
 )
 from src.auth.application.handlers.verify_email import ResendVerificationCommandHandler, VerifyEmailCommandHandler
-from src.auth.application.handlers.get_me import GetMeQueryHandler
+from src.auth.application.queries import GetMeQuery
 from src.auth.domain.models import UserDomain
 from src.auth.presentation.dependencies import (
-    get_change_password_handler, get_confirm_2fa_handler, get_current_user,
-    get_disable_2fa_handler, get_enable_2fa_handler, get_forgot_password_handler,
-    get_get_me_handler, get_login_handler, get_logout_handler, get_refresh_handler,
-    get_register_handler, get_resend_verification_handler, get_reset_password_handler,
-    get_verify_2fa_handler, get_verify_email_handler, make_rate_limiter,
+    get_change_password_handler,
+    get_confirm_2fa_handler,
+    get_current_user,
+    get_disable_2fa_handler,
+    get_enable_2fa_handler,
+    get_forgot_password_handler,
+    get_get_me_handler,
+    get_login_handler,
+    get_logout_handler,
+    get_refresh_handler,
+    get_register_handler,
+    get_resend_verification_handler,
+    get_reset_password_handler,
+    get_verify_2fa_handler,
+    get_verify_email_handler,
+    make_rate_limiter,
 )
 from src.auth.presentation.schemas import (
-    ChangePasswordRequest, LoginRequest, MessageResponse, RefreshRequest,
-    RegisterRequest, TokenResponse, TwoFactorSetupResponse, UserMeResponse, Verify2FARequest,
+    ChangePasswordRequest,
+    LoginRequest,
+    MessageResponse,
+    RefreshRequest,
+    RegisterRequest,
+    TokenResponse,
+    TwoFactorSetupResponse,
+    UserMeResponse,
+    Verify2FARequest,
 )
 from src.core.constants import DEFAULT_RATE_LIMIT
 

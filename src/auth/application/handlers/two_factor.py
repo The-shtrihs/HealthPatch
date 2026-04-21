@@ -1,11 +1,15 @@
 from src.auth.application.commands import (
-    Confirm2FACommand, Disable2FACommand,
-    Enable2FACommand, Verify2FAAndLoginCommand,
+    Confirm2FACommand,
+    Disable2FACommand,
+    Enable2FACommand,
+    Verify2FAAndLoginCommand,
 )
 from src.auth.application.read_models import TokenReadModel, TwoFactorSetupReadModel
 from src.auth.application.token_utils import TokenUtils, issue_refresh_token
 from src.auth.domain.errors import (
-    InvalidTwoFactorCodeError, TwoFactorNotEnabledError, UserNotFoundError,
+    InvalidTwoFactorCodeError,
+    TwoFactorNotEnabledError,
+    UserNotFoundError,
 )
 from src.auth.domain.interfaces import IRefreshTokenRepository, ITotpService, IUserRepository
 from src.core.config import get_settings

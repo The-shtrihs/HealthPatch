@@ -2,11 +2,11 @@ from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
 from fastapi.responses import RedirectResponse
 
 from src.auth.application.commands import HandleOAuthUserCommand
+from src.auth.application.handlers.oauth import HandleOAuthUserCommandHandler
 from src.auth.application.providers.dto import OAuthUserInfo
 from src.auth.application.providers.facebook_provider import FacebookOAuthProvider
 from src.auth.application.providers.github_provider import GitHubOAuthProvider
 from src.auth.application.providers.google_provider import GoogleOAuthProvider
-from src.auth.application.handlers.oauth import HandleOAuthUserCommandHandler
 from src.auth.infrastructure.oauth_state_repository import OAuthStateData, RedisOAuthStateRepository
 from src.auth.presentation.dependencies import get_oauth_handler, get_oauth_state_repo
 from src.core.config import get_settings

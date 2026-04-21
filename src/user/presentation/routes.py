@@ -3,14 +3,16 @@ from fastapi import APIRouter, Depends, status
 from src.auth.domain.models import UserDomain
 from src.auth.presentation.dependencies import get_current_user
 from src.user.application.commands import DeleteAccountCommand
-from src.user.application.queries import GetMyProfileQuery
 from src.user.application.handlers.delete_account import DeleteAccountCommandHandler
+from src.user.application.handlers.get_profile import GetMyProfileQueryHandler
 from src.user.application.handlers.update_fitness import UpdateFitnessCommandHandler
 from src.user.application.handlers.update_user_info import UpdateUserInfoCommandHandler
-from src.user.application.handlers.get_profile import GetMyProfileQueryHandler
+from src.user.application.queries import GetMyProfileQuery
 from src.user.presentation.dependencies import (
-    get_delete_account_handler, get_get_profile_handler,
-    get_update_fitness_handler, get_update_user_info_handler,
+    get_delete_account_handler,
+    get_get_profile_handler,
+    get_update_fitness_handler,
+    get_update_user_info_handler,
 )
 from src.user.presentation.schemas import FitnessProfileResponse, FitnessProfileUpdate, FullProfileResponse, UserInfoUpdate
 

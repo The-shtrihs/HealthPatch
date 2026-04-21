@@ -3,10 +3,14 @@ import re
 from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator, model_validator
 
 from src.auth.application.commands import (
-        ChangePasswordCommand, LoginCommand, RefreshTokenCommand,
-        LogoutCommand, RegisterCommand, ResetPasswordCommand,
-        Verify2FAAndLoginCommand,
-    )
+    ChangePasswordCommand,
+    LoginCommand,
+    LogoutCommand,
+    RefreshTokenCommand,
+    RegisterCommand,
+    ResetPasswordCommand,
+    Verify2FAAndLoginCommand,
+)
 
 
 class RegisterRequest(BaseModel):
@@ -36,6 +40,7 @@ class RegisterRequest(BaseModel):
 
     def to_command(self) -> RegisterCommand:
         from src.auth.application.commands import RegisterCommand
+
         return RegisterCommand(name=self.name, email=self.email, password=self.password)
 
 
@@ -45,6 +50,7 @@ class LoginRequest(BaseModel):
 
     def to_command(self, device_info: str) -> LoginCommand:
         from src.auth.application.commands import LoginCommand
+
         return LoginCommand(email=self.email, password=self.password, device_info=device_info)
 
 
@@ -53,10 +59,12 @@ class RefreshRequest(BaseModel):
 
     def to_refresh_command(self) -> RefreshTokenCommand:
         from src.auth.application.commands import RefreshTokenCommand
+
         return RefreshTokenCommand(refresh_token=self.refresh_token)
 
     def to_logout_command(self) -> LogoutCommand:
         from src.auth.application.commands import LogoutCommand
+
         return LogoutCommand(refresh_token=self.refresh_token)
 
 
@@ -73,6 +81,7 @@ class ChangePasswordRequest(BaseModel):
 
     def to_command(self, user_id: int) -> ChangePasswordCommand:
         from src.auth.application.commands import ChangePasswordCommand
+
         return ChangePasswordCommand(
             user_id=user_id,
             current_password=self.current_password,
@@ -81,6 +90,7 @@ class ChangePasswordRequest(BaseModel):
 
     def to_reset_command(self, token: str) -> ResetPasswordCommand:
         from src.auth.application.commands import ResetPasswordCommand
+
         return ResetPasswordCommand(token=token, new_password=self.new_password)
 
 
@@ -90,6 +100,7 @@ class Verify2FARequest(BaseModel):
 
     def to_command(self, device_info: str) -> Verify2FAAndLoginCommand:
         from src.auth.application.commands import Verify2FAAndLoginCommand
+
         return Verify2FAAndLoginCommand(
             temp_token=self.temp_token,
             code=self.code,

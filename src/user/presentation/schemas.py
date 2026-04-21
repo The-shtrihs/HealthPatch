@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 from typing import TYPE_CHECKING
 
 from pydantic import BaseModel, ConfigDict, Field
@@ -15,6 +16,7 @@ class UserInfoUpdate(BaseModel):
 
     def to_command(self, user_id: int) -> UpdateUserInfoCommand:
         from src.user.application.commands import UpdateUserInfoCommand
+
         return UpdateUserInfoCommand(user_id=user_id, name=self.name, avatar_url=self.avatar_url)
 
 
@@ -27,6 +29,7 @@ class FitnessProfileUpdate(BaseModel):
 
     def to_command(self, user_id: int) -> UpdateFitnessCommand:
         from src.user.application.commands import UpdateFitnessCommand
+
         return UpdateFitnessCommand(
             user_id=user_id,
             weight=self.weight,

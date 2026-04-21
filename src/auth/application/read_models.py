@@ -25,6 +25,7 @@ class TwoFactorSetupReadModel:
     secret: str
     qr_code_base64: str
 
+
 @dataclass(frozen=True)
 class MessageReadModel:
     message: str

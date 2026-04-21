@@ -27,14 +27,19 @@ class HandleOAuthUserCommandHandler:
                 user = await self._user_repo.save(user)
             else:
                 oauth_user = self._factory.create_oauth(
-                    name=cmd.name, email=cmd.email,
-                    provider=cmd.provider, provider_id=cmd.provider_id,
+                    name=cmd.name,
+                    email=cmd.email,
+                    provider=cmd.provider,
+                    provider_id=cmd.provider_id,
                     avatar_url=cmd.avatar_url,
                 )
                 user = await self._user_repo.create(
-                    name=oauth_user.name, email=oauth_user.email,
-                    password_hash=None, provider=cmd.provider,
-                    provider_id=cmd.provider_id, avatar_url=cmd.avatar_url,
+                    name=oauth_user.name,
+                    email=oauth_user.email,
+                    password_hash=None,
+                    provider=cmd.provider,
+                    provider_id=cmd.provider_id,
+                    avatar_url=cmd.avatar_url,
                 )
 
         refresh_token = await issue_refresh_token(self._token_repo, user.id, device_info=None)
