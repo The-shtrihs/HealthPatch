@@ -6,7 +6,6 @@ from src.core.constants import DEFAULT_RATE_LIMIT, DEFAULT_RATE_WINDOW_SECONDS
 from src.core.database import get_session
 from src.core.exceptions import NotFoundError, UserInactiveError
 from src.core.redis import get_redis
-from src.repositories.activity_uow import ActivityUnitOfWork
 from src.repositories.cache import CacheRepository
 from src.repositories.nutrition_uow import NutritionUnitOfWork
 from src.repositories.oauth_state import OAuthStateRepository
@@ -14,7 +13,6 @@ from src.repositories.profile import ProfileRepository
 from src.repositories.rate_limit import RateLimitRepository
 from src.repositories.refresh_token import RefreshTokenRepository
 from src.repositories.user import UserRepository
-from src.services.activity import ActivityService
 from src.services.auth import AuthService
 from src.services.nutrition import NutritionService
 from src.services.oauth import OAuthService
@@ -122,11 +120,3 @@ async def get_profile_service(
     profile_repo: ProfileRepository = Depends(get_profile_repo),
 ) -> ProfileService:
     return ProfileService(profile_repo)
-
-
-async def get_activity_uow(db: AsyncSession = Depends(get_session)) -> ActivityUnitOfWork:
-    return ActivityUnitOfWork(db)
-
-
-async def get_activity_service(uow: ActivityUnitOfWork = Depends(get_activity_uow)) -> ActivityService:
-    return ActivityService(uow)

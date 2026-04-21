@@ -1,6 +1,6 @@
 from pydantic import BaseModel, ConfigDict, Field
 
-from src.models.activity import Weekday
+from src.activity.domain.models import Weekday
 
 
 class MuscleGroupResponse(BaseModel):
