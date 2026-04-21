@@ -3,15 +3,19 @@ from unittest.mock import AsyncMock
 
 import pytest
 
-from src.nutrition.application.dto import AddMealEntryCommand, DeleteMealEntryCommand, GetDayOverviewQuery
-from src.nutrition.application.use_cases import NutritionUseCases
+from src.nutrition.application.commands import AddMealEntryCommand, DeleteMealEntryCommand
+from src.nutrition.application.handlers.add_meal_entry import AddMealEntryCommandHandler
+from src.nutrition.application.handlers.delete_meal_entry import DeleteMealEntryCommandHandler
+from src.nutrition.application.handlers.get_daily_norm import GetDailyNormQueryHandler
+from src.nutrition.application.handlers.get_day_overview import GetDayOverviewQueryHandler
+from src.nutrition.application.queries import GetDailyNormQuery, GetDayOverviewQuery
 from src.nutrition.domain.errors import (
     IncompleteNutritionProfileError,
     InvalidMealEntryError,
     MealEntryNotFoundError,
     NutritionProfileNotFoundError,
 )
-from src.nutrition.domain.factory import calculate_daily_norm
+from src.nutrition.domain.calculations import calculate_daily_norm
 from src.nutrition.domain.interfaces import INutritionRepository
 from src.nutrition.domain.models import MacroTotalsDomain, NutritionProfileDomain
 from src.user.domain.models import FitnessGoal, Gender
@@ -23,12 +27,32 @@ def repo() -> AsyncMock:
 
 
 @pytest.fixture
-def use_cases(repo: AsyncMock) -> NutritionUseCases:
+def uow(repo: AsyncMock) -> AsyncMock:
     uow = AsyncMock()
     uow.repo = repo
     uow.__aenter__.return_value = uow
     uow.__aexit__.return_value = False
-    return NutritionUseCases(uow)
+    return uow
+
+
+@pytest.fixture
+def add_meal_entry_handler(uow: AsyncMock) -> AddMealEntryCommandHandler:
+    return AddMealEntryCommandHandler(uow)
+
+
+@pytest.fixture
+def delete_meal_entry_handler(uow: AsyncMock) -> DeleteMealEntryCommandHandler:
+    return DeleteMealEntryCommandHandler(uow)
+
+
+@pytest.fixture
+def get_daily_norm_handler(uow: AsyncMock) -> GetDailyNormQueryHandler:
+    return GetDailyNormQueryHandler(uow)
+
+
+@pytest.fixture
+def get_day_overview_handler(uow: AsyncMock) -> GetDayOverviewQueryHandler:
+    return GetDayOverviewQueryHandler(uow)
 
 
 def _valid_profile():
@@ -42,7 +66,7 @@ def _valid_profile():
 
 
 @pytest.mark.asyncio
-async def test_get_day_overview_calculates_remaining_and_floors_zero(use_cases: NutritionUseCases, repo: AsyncMock):
+async def test_get_day_overview_calculates_remaining_and_floors_zero(get_day_overview_handler: GetDayOverviewQueryHandler, repo: AsyncMock):
     profile = _valid_profile()
     repo.get_profile.return_value = profile
 
@@ -54,7 +78,7 @@ async def test_get_day_overview_calculates_remaining_and_floors_zero(use_cases: 
         carbs_g=max(0.0, norm.carbs_g - 30.0),
     )
 
-    out = await use_cases.get_day_overview(GetDayOverviewQuery(user_id=1, target_date=date(2026, 4, 7)))
+    out = await get_day_overview_handler.handle(GetDayOverviewQuery(user_id=1, target_date=date(2026, 4, 7)))
 
     assert out.remaining.calories == 0.0
     assert out.remaining.protein_g == 0.0
@@ -63,9 +87,9 @@ async def test_get_day_overview_calculates_remaining_and_floors_zero(use_cases: 
 
 
 @pytest.mark.asyncio
-async def test_add_meal_entry_rejects_non_positive_weight(use_cases: NutritionUseCases):
+async def test_add_meal_entry_rejects_non_positive_weight(add_meal_entry_handler: AddMealEntryCommandHandler):
     with pytest.raises(InvalidMealEntryError) as exc:
-        await use_cases.add_meal_entry(
+        await add_meal_entry_handler.handle(
             AddMealEntryCommand(
                 user_id=1,
                 food_id=10,
@@ -77,9 +101,9 @@ async def test_add_meal_entry_rejects_non_positive_weight(use_cases: NutritionUs
 
 
 @pytest.mark.asyncio
-async def test_add_meal_entry_rejects_blank_meal_type(use_cases: NutritionUseCases):
+async def test_add_meal_entry_rejects_blank_meal_type(add_meal_entry_handler: AddMealEntryCommandHandler):
     with pytest.raises(InvalidMealEntryError) as exc:
-        await use_cases.add_meal_entry(
+        await add_meal_entry_handler.handle(
             AddMealEntryCommand(
                 user_id=1,
                 food_id=10,
@@ -91,18 +115,12 @@ async def test_add_meal_entry_rejects_blank_meal_type(use_cases: NutritionUseCas
 
 
 @pytest.mark.asyncio
-async def test_add_meal_entry_happy_path(use_cases: NutritionUseCases, repo: AsyncMock):
+async def test_add_meal_entry_happy_path(add_meal_entry_handler: AddMealEntryCommandHandler, repo: AsyncMock):
     repo.get_profile.return_value = _valid_profile()
     repo.ensure_daily_diary.return_value = 99
     repo.add_meal_entry.return_value = 123
-    repo.get_day_consumed_totals.return_value = MacroTotalsDomain(
-        calories=1200.0,
-        protein_g=70.0,
-        fat_g=30.0,
-        carbs_g=110.0,
-    )
 
-    out = await use_cases.add_meal_entry(
+    out = await add_meal_entry_handler.handle(
         AddMealEntryCommand(
             user_id=1,
             food_id=10,
@@ -112,24 +130,22 @@ async def test_add_meal_entry_happy_path(use_cases: NutritionUseCases, repo: Asy
         )
     )
 
-    assert out.meal_entry_id == 123
-    assert out.target_date == date(2026, 4, 7)
-    assert out.remaining.calories >= 0.0
+    assert out == 123
     repo.add_meal_entry.assert_awaited_once_with(diary_id=99, food_id=10, meal_type="dinner", weight_grams=150.0)
 
 
 @pytest.mark.asyncio
-async def test_delete_meal_entry_not_found(use_cases: NutritionUseCases, repo: AsyncMock):
+async def test_delete_meal_entry_not_found(delete_meal_entry_handler: DeleteMealEntryCommandHandler, repo: AsyncMock):
     repo.get_profile.return_value = _valid_profile()
     repo.get_user_meal_entry_target_date.return_value = None
 
     with pytest.raises(MealEntryNotFoundError) as exc:
-        await use_cases.delete_meal_entry(DeleteMealEntryCommand(user_id=1, meal_entry_id=404))
+        await delete_meal_entry_handler.handle(DeleteMealEntryCommand(user_id=1, meal_entry_id=404))
     assert "Meal entry" in exc.value.message
 
 
 @pytest.mark.asyncio
-async def test_get_daily_norm_missing_fields(use_cases: NutritionUseCases, repo: AsyncMock):
+async def test_get_daily_norm_missing_fields(get_daily_norm_handler: GetDailyNormQueryHandler, repo: AsyncMock):
     repo.get_profile.return_value = NutritionProfileDomain(
         age=None,
         weight=80.0,
@@ -139,13 +155,13 @@ async def test_get_daily_norm_missing_fields(use_cases: NutritionUseCases, repo:
     )
 
     with pytest.raises(IncompleteNutritionProfileError) as exc:
-        await use_cases.get_daily_norm(1)
+        await get_daily_norm_handler.handle(GetDailyNormQuery(user_id=1))
     assert "Missing: age, height, fitness_goal" in exc.value.message
 
 
 @pytest.mark.asyncio
-async def test_get_daily_norm_profile_not_found(use_cases: NutritionUseCases, repo: AsyncMock):
+async def test_get_daily_norm_profile_not_found(get_daily_norm_handler: GetDailyNormQueryHandler, repo: AsyncMock):
     repo.get_profile.return_value = None
 
     with pytest.raises(NutritionProfileNotFoundError):
-        await use_cases.get_daily_norm(1)
+        await get_daily_norm_handler.handle(GetDailyNormQuery(user_id=1))

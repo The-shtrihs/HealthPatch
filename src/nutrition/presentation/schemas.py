@@ -26,8 +26,6 @@ class AddMealEntryRequest(BaseModel):
 
 class AddMealEntryResponse(BaseModel):
     meal_entry_id: int
-    target_date: date
-    remaining: DailyNormResponse
 
 
 class UpdateDailyDiaryRequest(BaseModel):
@@ -38,13 +36,7 @@ class UpdateDailyDiaryRequest(BaseModel):
 
 class UpdateDailyDiaryResponse(BaseModel):
     id: int
-    user_id: int
-    target_date: date
-    water_ml: int
-    notes: str | None
 
 
 class DeleteMealEntryResponse(BaseModel):
     deleted_meal_entry_id: int
-    target_date: date
-    remaining: DailyNormResponse
