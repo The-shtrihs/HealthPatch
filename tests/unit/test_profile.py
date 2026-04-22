@@ -2,8 +2,16 @@ from unittest.mock import AsyncMock
 
 import pytest
 
-from src.user.application.dto import UpdateFitnessCommand, UpdateUserInfoCommand
-from src.user.application.use_cases import UserProfileUseCases
+from src.user.application.commands import (
+    DeleteAccountCommand,
+    UpdateFitnessCommand,
+    UpdateUserInfoCommand,
+)
+from src.user.application.handlers.delete_account import DeleteAccountCommandHandler
+from src.user.application.handlers.get_profile import GetMyProfileQueryHandler
+from src.user.application.handlers.update_fitness import UpdateFitnessCommandHandler
+from src.user.application.handlers.update_user_info import UpdateUserInfoCommandHandler
+from src.user.application.queries import GetMyProfileQuery
 from src.user.domain.errors import UserNotFoundError
 from src.user.domain.models import (
     FitnessGoal,
@@ -16,11 +24,6 @@ from src.user.domain.models import (
 @pytest.fixture
 def profile_repo():
     return AsyncMock()
-
-
-@pytest.fixture
-def use_cases(profile_repo):
-    return UserProfileUseCases(profile_repo)
 
 
 @pytest.fixture
@@ -112,28 +115,36 @@ class TestUserProfileDomain:
         assert profile.is_active is False
 
 
-class TestGetProfile:
+class TestGetMyProfileQueryHandler:
+    @pytest.fixture
+    def handler(self, profile_repo):
+        return GetMyProfileQueryHandler(profile_repo)
+
     @pytest.mark.asyncio
-    async def test_get_profile_success(self, use_cases, profile_repo, profile):
+    async def test_get_profile_success(self, handler, profile_repo, profile):
         profile_repo.get_full_profile.return_value = profile
 
-        result = await use_cases.get_profile(1)
+        result = await handler.handle(GetMyProfileQuery(user_id=1))
 
         assert result.id == 1
         assert result.name == "Test User"
         profile_repo.get_full_profile.assert_called_once_with(1)
 
     @pytest.mark.asyncio
-    async def test_get_profile_not_found_raises(self, use_cases, profile_repo):
+    async def test_get_profile_not_found_raises(self, handler, profile_repo):
         profile_repo.get_full_profile.return_value = None
 
         with pytest.raises(UserNotFoundError):
-            await use_cases.get_profile(999)
+            await handler.handle(GetMyProfileQuery(user_id=999))
 
 
-class TestUpdateInfo:
+class TestUpdateUserInfoCommandHandler:
+    @pytest.fixture
+    def handler(self, profile_repo):
+        return UpdateUserInfoCommandHandler(profile_repo)
+
     @pytest.mark.asyncio
-    async def test_update_info_name(self, use_cases, profile_repo, profile):
+    async def test_update_info_name(self, handler, profile_repo, profile):
         updated_profile = UserProfileDomain(
             id=profile.id,
             name="New Name",
@@ -148,54 +159,56 @@ class TestUpdateInfo:
         profile_repo.get_full_profile.return_value = profile
         profile_repo.save_user_info.return_value = updated_profile
 
-        result = await use_cases.update_info(1, UpdateUserInfoCommand(name="New Name", avatar_url=None))
+        result = await handler.handle(UpdateUserInfoCommand(user_id=1, name="New Name", avatar_url=None))
 
         profile_repo.save_user_info.assert_called_once_with(1, "New Name", None)
         assert result.name == "New Name"
 
     @pytest.mark.asyncio
-    async def test_update_info_avatar_url(self, use_cases, profile_repo, profile):
+    async def test_update_info_avatar_url(self, handler, profile_repo, profile):
         profile_repo.get_full_profile.return_value = profile
         profile_repo.save_user_info.return_value = profile
 
-        await use_cases.update_info(
-            1,
-            UpdateUserInfoCommand(name=None, avatar_url="https://example.com/avatar.png"),
-        )
+        await handler.handle(UpdateUserInfoCommand(user_id=1, name=None, avatar_url="https://example.com/avatar.png"))
 
         _, _, avatar_arg = profile_repo.save_user_info.call_args.args
         assert avatar_arg == "https://example.com/avatar.png"
 
     @pytest.mark.asyncio
-    async def test_update_info_user_not_found_raises(self, use_cases, profile_repo):
+    async def test_update_info_user_not_found_raises(self, handler, profile_repo):
         profile_repo.get_full_profile.return_value = None
 
         with pytest.raises(UserNotFoundError):
-            await use_cases.update_info(999, UpdateUserInfoCommand(name="Name", avatar_url=None))
+            await handler.handle(UpdateUserInfoCommand(user_id=999, name="Name", avatar_url=None))
 
         profile_repo.save_user_info.assert_not_called()
 
 
-class TestUpdateFitness:
+class TestUpdateFitnessCommandHandler:
+    @pytest.fixture
+    def handler(self, profile_repo):
+        return UpdateFitnessCommandHandler(profile_repo)
+
     @pytest.mark.asyncio
-    async def test_update_fitness_success(self, use_cases, profile_repo, profile):
+    async def test_update_fitness_success(self, handler, profile_repo, profile):
         profile_repo.get_full_profile.return_value = profile
         profile_repo.save_fitness.return_value = profile.fitness
 
         cmd = UpdateFitnessCommand(
+            user_id=1,
             weight=80.0,
             height=180.0,
             age=30,
             gender=Gender.MALE,
             fitness_goal=FitnessGoal.STRENGTH_BUILDING,
         )
-        result = await use_cases.update_fitness(1, cmd)
+        result = await handler.handle(cmd)
 
         profile_repo.save_fitness.assert_called_once()
-        assert result is profile.fitness
+        assert result.weight == profile.fitness.weight
 
     @pytest.mark.asyncio
-    async def test_update_fitness_creates_profile_when_none(self, use_cases, profile_repo, profile_without_fitness):
+    async def test_update_fitness_creates_profile_when_none(self, handler, profile_repo, profile_without_fitness):
         new_fitness = FitnessProfileDomain(
             weight=70.0,
             height=175.0,
@@ -207,31 +220,36 @@ class TestUpdateFitness:
         profile_repo.save_fitness.return_value = new_fitness
 
         cmd = UpdateFitnessCommand(
+            user_id=1,
             weight=70.0,
             height=175.0,
             age=25,
             gender=Gender.FEMALE,
             fitness_goal=FitnessGoal.ENDURANCE,
         )
-        result = await use_cases.update_fitness(1, cmd)
+        result = await handler.handle(cmd)
 
         profile_repo.save_fitness.assert_called_once()
         assert result is not None
 
     @pytest.mark.asyncio
-    async def test_update_fitness_user_not_found_raises(self, use_cases, profile_repo):
+    async def test_update_fitness_user_not_found_raises(self, handler, profile_repo):
         profile_repo.get_full_profile.return_value = None
 
-        cmd = UpdateFitnessCommand(weight=70.0, height=175.0, age=25, gender=None, fitness_goal=None)
+        cmd = UpdateFitnessCommand(user_id=999, weight=70.0, height=175.0, age=25, gender=None, fitness_goal=None)
         with pytest.raises(UserNotFoundError):
-            await use_cases.update_fitness(999, cmd)
+            await handler.handle(cmd)
 
         profile_repo.save_fitness.assert_not_called()
 
 
-class TestDeleteAccount:
+class TestDeleteAccountCommandHandler:
+    @pytest.fixture
+    def handler(self, profile_repo):
+        return DeleteAccountCommandHandler(profile_repo)
+
     @pytest.mark.asyncio
-    async def test_delete_account_calls_deactivate(self, use_cases, profile_repo):
-        await use_cases.delete_account(1)
+    async def test_delete_account_calls_deactivate(self, handler, profile_repo):
+        await handler.handle(DeleteAccountCommand(user_id=1))
 
         profile_repo.deactivate.assert_called_once_with(1)

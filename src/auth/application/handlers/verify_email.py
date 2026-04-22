@@ -1,14 +1,15 @@
+from src.auth.application.commands import ResendVerificationCommand, VerifyEmailCommand
 from src.auth.domain.errors import UserNotFoundError
 from src.auth.domain.interfaces import IMailService, IUserRepository
 
 
-class VerifyEmailUseCase:
+class VerifyEmailCommandHandler:
     def __init__(self, user_repo: IUserRepository, mail_service: IMailService):
         self._user_repo = user_repo
         self._mail = mail_service
 
-    async def execute(self, token: str) -> None:
-        payload = self._mail.decode_email_token(token, expected_purpose="email_verify")
+    async def handle(self, cmd: VerifyEmailCommand) -> None:
+        payload = self._mail.decode_email_token(cmd.token, expected_purpose="email_verify")
         user = await self._user_repo.get_by_id(int(payload["sub"]))
         if not user:
             raise UserNotFoundError()
@@ -16,13 +17,13 @@ class VerifyEmailUseCase:
         await self._user_repo.save(user)
 
 
-class ResendVerificationUseCase:
+class ResendVerificationCommandHandler:
     def __init__(self, user_repo: IUserRepository, mail_service: IMailService):
         self._user_repo = user_repo
         self._mail = mail_service
 
-    async def execute(self, email: str, background_tasks) -> None:
-        user = await self._user_repo.get_by_email(email)
+    async def handle(self, cmd: ResendVerificationCommand, background_tasks) -> None:
+        user = await self._user_repo.get_by_email(cmd.email)
         if user and not user.is_verified:
             background_tasks.add_task(
                 self._mail.send_verification_email,
