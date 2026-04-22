@@ -52,7 +52,7 @@ async def test_get_daily_norm_requires_profile(client: AsyncClient, auth_headers
     assert resp.status_code == 404
     body = resp.json()
     assert body["error_code"] == "NOT_FOUND"
-    assert "User profile" in body["message"]
+    assert "Nutrition profile" in body["message"]
 
 
 @pytest.mark.asyncio
