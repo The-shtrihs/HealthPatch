@@ -4,6 +4,8 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 
 import src.core.redis as redis_module
+from src.activity.presentation.error_mapper import setup_activity_error_handlers
+from src.activity.presentation.routes import router as activity_router
 from src.auth.presentation.error_mapper import setup_auth_error_handlers
 from src.auth.presentation.oauth_routes import router as oauth_router
 from src.auth.presentation.routes import router as auth_router
@@ -12,7 +14,6 @@ from src.core.exceptions import setup_exception_handlers
 from src.core.tasks.scheduler import scheduler, setup_scheduler
 from src.nutrition.presentation.error_mapper import setup_nutrition_error_handlers
 from src.nutrition.presentation.routers import router as nutrition_router
-from src.routes.activity import router as activity_router
 from src.user.presentation.routes import router as profile_router
 
 logging.basicConfig(level=logging.INFO)
@@ -46,6 +47,7 @@ app = FastAPI(lifespan=lifespan)
 
 setup_exception_handlers(app=app)
 setup_auth_error_handlers(app=app)
+setup_activity_error_handlers(app=app)
 setup_nutrition_error_handlers(app=app)
 
 app.include_router(auth_router)
