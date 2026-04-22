@@ -69,6 +69,7 @@ class ITotpService(Protocol):
     def generate_qr_code_base64(self, uri: str) -> str: ...
     def verify_totp(self, code: str, secret: str) -> bool: ...
 
+
 class ITokenCleaner(Protocol):
     async def clear_expired_tokens(self) -> int:
         """

@@ -91,8 +91,8 @@ from src.activity.domain.models import (
     WorkoutSetDomain,
 )
 
-class FakeActivityRepository(IActivityRepository):
 
+class FakeActivityRepository(IActivityRepository):
     def __init__(self) -> None:
         self._muscle_groups: dict[int, MuscleGroupDomain] = {}
         self._exercises: dict[int, ExerciseDomain] = {}
@@ -136,7 +136,7 @@ class FakeActivityRepository(IActivityRepository):
         ex = ExerciseDomain(id=self._pop_id(), name=name, primary_muscle_group=primary, secondary_muscle_groups=secondary)
         self._exercises[ex.id] = ex
         return ex
-    
+
     async def get_plan_by_id(self, plan_id):
         return self._plans.get(plan_id)
 
@@ -366,6 +366,7 @@ class TestValueObjects:
         tr = TimeRange(started_at=start, ended_at=start + timedelta(minutes=30))
         assert tr.duration_minutes() == 30
 
+
 class TestWorkoutPlanDomain:
     def test_requires_non_empty_title(self):
         with pytest.raises(InvalidPlanTitleError):
@@ -422,7 +423,6 @@ class TestWorkoutSessionDomain:
             s.ensure_can_be_modified()
 
 
-
 class TestWorkoutPlanFactory:
     def test_creates_valid_plan(self):
         f = WorkoutPlanFactory()
@@ -476,7 +476,6 @@ class TestWorkoutSessionFactory:
 
         with pytest.raises(PlanTrainingNotFoundError):
             await f.start(user_id=1, plan_training_id=999, at=datetime.now(UTC))
-
 
 
 async def _seed_user_and_exercise(repo: FakeActivityRepository):

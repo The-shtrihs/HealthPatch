@@ -1,5 +1,6 @@
 from pydantic import BaseModel
 
+
 class RateLimitResponse(BaseModel):
     allowed: bool
     limit: int
