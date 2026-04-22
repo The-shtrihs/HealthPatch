@@ -9,7 +9,7 @@ from src.models.user import UserProfile
 from src.nutrition.domain.interfaces import INutritionRepository, INutritionUnitOfWork
 from src.nutrition.domain.models import MacroTotalsDomain, NutritionProfileDomain
 from src.nutrition.infrastructure.mapper import diary_to_dict, orm_to_nutrition_profile, to_macro_totals
-from src.repositories.base_uow import BaseUnitOfWork
+from src.shared.infrastructure.base_uow import BaseUnitOfWork
 
 
 class SqlAlchemyNutritionRepository(INutritionRepository):

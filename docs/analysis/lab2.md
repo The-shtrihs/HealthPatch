@@ -6,15 +6,13 @@ Lab 2 asked the team to move HealthPatch from a flat, "by-kind" package layout (
 
 Current state of the project:
 
-| Domain               | Layered (Lab 2 shape) | Location                             |
-| -------------------- | --------------------- | ------------------------------------ |
-| Auth / Identity      | Yes                   | [src/auth/](../../src/auth/)         |
-| User / Profile       | Yes                   | [src/user/](../../src/user/)         |
-| Activity & Workouts  | Yes (this lab)        | [src/activity/](../../src/activity/) |
-| Nutrition            | No (still flat)       | `src/routes/nutrition.py`, `src/services/nutrition.py`, `src/repositories/nutrition.py` |
-| Social, Gamification | Not started           | —                                    |
-
-The remaining flat code (nutrition + helpers under `src/routes/`, `src/services/`, `src/repositories/`, `src/schemas/`) is acknowledged as Lab-1-style and is out of Lab 2 scope.
+| Domain               | Layered (Lab 2 shape) | Location                               |
+| -------------------- | --------------------- | ------------------------------------   |
+| Auth / Identity      | Yes                   | [src/auth/](../../src/auth/)           |
+| User / Profile       | Yes                   | [src/user/](../../src/user/)           |
+| Activity & Workouts  | Yes                   | [src/activity/](../../src/activity/)   |
+| Nutrition            | Yes                   | [src/nutrition/](../../src/nutrition/) |
+| Social, Gamification | Not started           | —                                      |
 
 ## 2. What changed from Lab 1
 

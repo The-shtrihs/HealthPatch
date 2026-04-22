@@ -27,7 +27,7 @@ from src.auth.infrastructure.repositories import (
 from src.core.constants import DEFAULT_RATE_LIMIT, DEFAULT_RATE_WINDOW_SECONDS
 from src.core.database import get_session
 from src.core.redis import get_redis
-from src.repositories.rate_limit import RateLimitRepository
+from src.shared.infrastructure.rate_limit import RateLimitRepository
 from src.shared.infrastructure.mail import MailService
 from src.shared.infrastructure.totp import TotpService
 

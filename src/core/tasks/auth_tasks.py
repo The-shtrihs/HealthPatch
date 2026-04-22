@@ -1,10 +1,11 @@
+from src.auth.infrastructure.token_cleaner import SqlAlchemyTokenCleaner
 from src.core.database import get_session
-from src.repositories.refresh_token import RefreshTokenRepository
+
 
 
 async def clear_expired_tokens():
     print("Starting expired token cleanup...")
     async with get_session() as session:
-        await RefreshTokenRepository.delete_expired_tokens(session)
-        await session.commit()
-    print("Expired token cleanup completed successfully!")
+        cleaner = SqlAlchemyTokenCleaner(session)
+        deleted_count = await cleaner.clear_expired_tokens()
+    print(f"Expired token cleanup completed successfully! Deleted {deleted_count} tokens.")
