@@ -80,7 +80,6 @@ Dependencies are wired per handler in [src/activity/presentation/dependencies.py
 - **Read models duplicate Pydantic schemas.** `PlanDetailResponse` (Pydantic) and `WorkoutPlanDetailReadModel` (dataclass) carry the same fields. Merging them would pull Pydantic into the application layer — rejected, same reasoning as Lab 2's DTO/schema duplication.
 - **Read repository is separate from write repository.** Two SQL surfaces over the same tables. Acceptable: the read surface is SELECT-only and can be tuned (projections, joins) without risk of mutating the write contract.
 - **DI surface grew.** `dependencies.py` went from ~20 to ~35 factories. FastAPI absorbs the cost, but the file is longer.
-- **Inconsistency across the codebase.** Nutrition still uses Lab 1 service classes; auth/user already had flat-handlers per Lab 2; only activity is full CQS. A new hire now sees three conventions.
 
 ## 7. Answers to the Lab 3 prompt questions
 
