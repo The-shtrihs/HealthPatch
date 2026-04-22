@@ -156,7 +156,10 @@ class FakeActivityRepository(IActivityRepository):
         p = self._plans.get(plan_id)
         if p is None:
             return None
-        p.trainings = [t for t in self._trainings.values() if t.plan_id == plan_id]
+        trainings = [t for t in self._trainings.values() if t.plan_id == plan_id]
+        for t in trainings:
+            t.exercises = [pte for pte in self._ptes.values() if pte.plan_training_id == t.id]
+        p.trainings = trainings
         return p
 
     async def list_public_plans(self, offset, limit):

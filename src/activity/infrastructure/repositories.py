@@ -304,7 +304,12 @@ class SqlAlchemyActivityRepository(IActivityRepository):
     # ---------- Exercise sessions ----------
 
     async def get_exercise_session_by_id(self, exercise_session_id: int) -> ExerciseSessionDomain | None:
-        orm = await self._db.get(ExerciseSession, exercise_session_id)
+        result = await self._db.scalars(
+            select(ExerciseSession)
+            .options(selectinload(ExerciseSession.exercise))
+            .where(ExerciseSession.id == exercise_session_id)
+        )
+        orm = result.first()
         return exercise_session_to_domain(orm, include_sets=False) if orm else None
 
     async def add_exercise_to_session(

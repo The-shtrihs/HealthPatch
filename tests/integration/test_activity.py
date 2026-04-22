@@ -228,7 +228,7 @@ async def test_get_workouts_exercise_by_id_missing_returns_404(client: AsyncClie
     response = await client.get("/workouts/exercises/999999")
 
     assert response.status_code == 404
-    assert response.json()["error_code"] == "NOT_FOUND"
+    assert response.json()["error_code"] == "EXERCISE_NOT_FOUND"
 
 
 async def test_post_workouts_exercises_returns_201_with_relationships(
@@ -268,7 +268,7 @@ async def test_post_workouts_exercises_with_unknown_muscle_group_returns_404(cli
     )
 
     assert response.status_code == 404
-    assert response.json()["error_code"] == "NOT_FOUND"
+    assert response.json()["error_code"] == "MUSCLE_GROUP_NOT_FOUND"
 
 
 async def test_get_workouts_plans_public_returns_only_public_plans(client: AsyncClient, auth_headers: dict[str, str]):
@@ -361,7 +361,7 @@ async def test_post_workouts_plans_with_missing_exercise_returns_404(client: Asy
     )
 
     assert response.status_code == 404
-    assert response.json()["error_code"] == "NOT_FOUND"
+    assert response.json()["error_code"] == "EXERCISE_NOT_FOUND"
 
 
 async def test_get_workouts_plan_by_id_returns_owner_private_plan(
@@ -381,7 +381,7 @@ async def test_get_workouts_plan_by_id_missing_returns_404(client: AsyncClient, 
     response = await client.get("/workouts/plans/999999", headers=auth_headers)
 
     assert response.status_code == 404
-    assert response.json()["error_code"] == "NOT_FOUND"
+    assert response.json()["error_code"] == "WORKOUT_PLAN_NOT_FOUND"
 
 
 async def test_get_workouts_plan_by_id_private_other_user_returns_403(
@@ -393,7 +393,7 @@ async def test_get_workouts_plan_by_id_private_other_user_returns_403(
     response = await client.get(f"/workouts/plans/{private_plan['id']}", headers=other_auth_headers)
 
     assert response.status_code == 403
-    assert response.json()["error_code"] == "FORBIDDEN"
+    assert response.json()["error_code"] == "PRIVATE_PLAN_ACCESS"
 
 
 async def test_put_workouts_plan_by_id_updates_plan_and_returns_body(
@@ -418,7 +418,7 @@ async def test_put_workouts_plan_by_id_missing_returns_404(client: AsyncClient, 
     response = await client.put("/workouts/plans/999999", json={"title": "Missing"}, headers=auth_headers)
 
     assert response.status_code == 404
-    assert response.json()["error_code"] == "NOT_FOUND"
+    assert response.json()["error_code"] == "WORKOUT_PLAN_NOT_FOUND"
 
 
 async def test_put_workouts_plan_by_id_other_owner_returns_403(
@@ -430,7 +430,7 @@ async def test_put_workouts_plan_by_id_other_owner_returns_403(
     response = await client.put(f"/workouts/plans/{plan['id']}", json={"title": "Hack"}, headers=other_auth_headers)
 
     assert response.status_code == 403
-    assert response.json()["error_code"] == "FORBIDDEN"
+    assert response.json()["error_code"] == "NOT_RESOURCE_OWNER"
 
 
 async def test_delete_workouts_plan_by_id_returns_204(client: AsyncClient, auth_headers: dict[str, str]):
@@ -446,7 +446,7 @@ async def test_delete_workouts_plan_by_id_missing_returns_404(client: AsyncClien
     response = await client.delete("/workouts/plans/999999", headers=auth_headers)
 
     assert response.status_code == 404
-    assert response.json()["error_code"] == "NOT_FOUND"
+    assert response.json()["error_code"] == "WORKOUT_PLAN_NOT_FOUND"
 
 
 async def test_delete_workouts_plan_by_id_other_owner_returns_403(
@@ -458,7 +458,7 @@ async def test_delete_workouts_plan_by_id_other_owner_returns_403(
     response = await client.delete(f"/workouts/plans/{plan['id']}", headers=other_auth_headers)
 
     assert response.status_code == 403
-    assert response.json()["error_code"] == "FORBIDDEN"
+    assert response.json()["error_code"] == "NOT_RESOURCE_OWNER"
 
 
 async def test_post_workouts_plan_trainings_returns_201_and_training_shape(
@@ -486,7 +486,7 @@ async def test_post_workouts_plan_trainings_missing_plan_returns_404(client: Asy
     )
 
     assert response.status_code == 404
-    assert response.json()["error_code"] == "NOT_FOUND"
+    assert response.json()["error_code"] == "WORKOUT_PLAN_NOT_FOUND"
 
 
 async def test_post_workouts_plan_trainings_other_owner_returns_403(
@@ -502,7 +502,7 @@ async def test_post_workouts_plan_trainings_other_owner_returns_403(
     )
 
     assert response.status_code == 403
-    assert response.json()["error_code"] == "FORBIDDEN"
+    assert response.json()["error_code"] == "NOT_RESOURCE_OWNER"
 
 
 async def test_delete_workouts_plan_training_returns_204(
@@ -529,7 +529,7 @@ async def test_delete_workouts_plan_training_missing_returns_404(
     response = await client.delete(f"/workouts/plans/{workout_plan['id']}/trainings/999999", headers=auth_headers)
 
     assert response.status_code == 404
-    assert response.json()["error_code"] == "NOT_FOUND"
+    assert response.json()["error_code"] == "PLAN_TRAINING_NOT_FOUND"
 
 
 async def test_delete_workouts_plan_training_other_owner_returns_403(
@@ -546,7 +546,7 @@ async def test_delete_workouts_plan_training_other_owner_returns_403(
     )
 
     assert response.status_code == 403
-    assert response.json()["error_code"] == "FORBIDDEN"
+    assert response.json()["error_code"] == "NOT_RESOURCE_OWNER"
 
 
 async def test_post_workouts_training_exercises_returns_201(
@@ -594,7 +594,7 @@ async def test_post_workouts_training_exercises_missing_training_returns_404(
     )
 
     assert response.status_code == 404
-    assert response.json()["error_code"] == "NOT_FOUND"
+    assert response.json()["error_code"] == "PLAN_TRAINING_NOT_FOUND"
 
 
 async def test_post_workouts_training_exercises_other_owner_returns_403(
@@ -619,7 +619,7 @@ async def test_post_workouts_training_exercises_other_owner_returns_403(
     )
 
     assert response.status_code == 403
-    assert response.json()["error_code"] == "FORBIDDEN"
+    assert response.json()["error_code"] == "NOT_RESOURCE_OWNER"
 
 
 async def test_delete_workouts_training_exercise_returns_204(
@@ -653,7 +653,7 @@ async def test_delete_workouts_training_exercise_missing_returns_404(
     )
 
     assert response.status_code == 404
-    assert response.json()["error_code"] == "NOT_FOUND"
+    assert response.json()["error_code"] == "PLAN_TRAINING_EXERCISE_NOT_FOUND"
 
 
 async def test_delete_workouts_training_exercise_other_owner_returns_403(
@@ -672,7 +672,7 @@ async def test_delete_workouts_training_exercise_other_owner_returns_403(
     )
 
     assert response.status_code == 403
-    assert response.json()["error_code"] == "FORBIDDEN"
+    assert response.json()["error_code"] == "NOT_RESOURCE_OWNER"
 
 
 async def test_post_workouts_sessions_returns_201_for_free_session(client: AsyncClient, auth_headers: dict[str, str]):
@@ -688,7 +688,7 @@ async def test_post_workouts_sessions_with_missing_training_returns_404(client: 
     response = await client.post("/workouts/sessions", json={"plan_training_id": 999999}, headers=auth_headers)
 
     assert response.status_code == 404
-    assert response.json()["error_code"] == "NOT_FOUND"
+    assert response.json()["error_code"] == "PLAN_TRAINING_NOT_FOUND"
 
 
 async def test_post_workouts_sessions_private_training_of_other_user_returns_403(
@@ -706,7 +706,7 @@ async def test_post_workouts_sessions_private_training_of_other_user_returns_403
     )
 
     assert response.status_code == 403
-    assert response.json()["error_code"] == "FORBIDDEN"
+    assert response.json()["error_code"] == "PRIVATE_PLAN_ACCESS"
 
 
 async def test_get_workouts_sessions_returns_current_user_sessions(
@@ -742,7 +742,7 @@ async def test_get_workouts_session_by_id_missing_returns_404(client: AsyncClien
     response = await client.get("/workouts/sessions/999999", headers=auth_headers)
 
     assert response.status_code == 404
-    assert response.json()["error_code"] == "NOT_FOUND"
+    assert response.json()["error_code"] == "WORKOUT_SESSION_NOT_FOUND"
 
 
 async def test_get_workouts_session_by_id_other_user_returns_403(
@@ -774,7 +774,7 @@ async def test_patch_workouts_session_end_missing_returns_404(client: AsyncClien
     response = await client.patch("/workouts/sessions/999999/end", headers=auth_headers)
 
     assert response.status_code == 404
-    assert response.json()["error_code"] == "NOT_FOUND"
+    assert response.json()["error_code"] == "WORKOUT_SESSION_NOT_FOUND"
 
 
 async def test_patch_workouts_session_end_other_user_returns_403(
@@ -819,7 +819,7 @@ async def test_post_workouts_session_exercises_missing_session_returns_404(
     )
 
     assert response.status_code == 404
-    assert response.json()["error_code"] == "NOT_FOUND"
+    assert response.json()["error_code"] == "WORKOUT_SESSION_NOT_FOUND"
 
 
 async def test_post_workouts_session_exercises_other_user_returns_403(
@@ -889,7 +889,7 @@ async def test_post_workouts_session_sets_missing_exercise_session_returns_404(
     )
 
     assert response.status_code == 404
-    assert response.json()["error_code"] == "NOT_FOUND"
+    assert response.json()["error_code"] == "EXERCISE_SESSION_NOT_FOUND"
 
 
 async def test_post_workouts_session_sets_other_user_returns_403(
@@ -976,7 +976,7 @@ async def test_post_workouts_personal_records_missing_exercise_returns_404(clien
     )
 
     assert response.status_code == 404
-    assert response.json()["error_code"] == "NOT_FOUND"
+    assert response.json()["error_code"] == "EXERCISE_NOT_FOUND"
 
 
 async def test_post_workouts_personal_records_lower_weight_than_existing_returns_400(
@@ -998,7 +998,7 @@ async def test_post_workouts_personal_records_lower_weight_than_existing_returns
     )
 
     assert response.status_code == 400
-    assert response.json()["error_code"] == "BAD_REQUEST"
+    assert response.json()["error_code"] == "PR_DOWNGRADE"
 
 
 async def test_delete_workouts_personal_records_returns_deleted_id(
@@ -1025,7 +1025,7 @@ async def test_delete_workouts_personal_records_missing_returns_404(client: Asyn
     response = await client.delete("/workouts/personal-records/999999", headers=auth_headers)
 
     assert response.status_code == 404
-    assert response.json()["error_code"] == "NOT_FOUND"
+    assert response.json()["error_code"] == "PERSONAL_RECORD_NOT_FOUND"
 
 
 async def test_delete_workouts_personal_records_other_owner_returns_403(

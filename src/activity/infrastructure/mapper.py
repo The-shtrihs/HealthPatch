@@ -108,7 +108,10 @@ def workout_set_to_domain(orm: WorkoutSet) -> WorkoutSetDomain:
 
 
 def exercise_session_to_domain(orm: ExerciseSession, include_sets: bool = True) -> ExerciseSessionDomain:
-    exercise_name = orm.exercise.name if orm.exercise is not None else None
+    try:
+        exercise_name = orm.exercise.name if orm.exercise is not None else None
+    except Exception:
+        exercise_name = None
     sets: list[WorkoutSetDomain] = []
     if include_sets:
         try:
