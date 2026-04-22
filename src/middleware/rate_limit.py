@@ -3,10 +3,10 @@ from collections.abc import Callable
 
 from fastapi import Request, status
 from fastapi.responses import JSONResponse
+from src.repositories.rate_limit import RateLimitRepository
 from starlette.middleware.base import BaseHTTPMiddleware
 
 from src.core.constants import DEFAULT_RATE_LIMIT, DEFAULT_RATE_WINDOW_SECONDS
-from src.repositories.rate_limit import RateLimitRepository
 
 
 class RateLimitMiddleware(BaseHTTPMiddleware):

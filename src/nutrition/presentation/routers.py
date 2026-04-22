@@ -24,13 +24,13 @@ from src.nutrition.presentation.dependencies import (
 	get_update_daily_diary_handler,
 )
 from src.nutrition.presentation.schemas import (
-	AddMealEntryRequest,
-	AddMealEntryResponse,
-	DailyNormResponse,
-	DayOverviewResponse,
-	DeleteMealEntryResponse,
-	UpdateDailyDiaryRequest,
-	UpdateDailyDiaryResponse,
+    AddMealEntryRequest,
+    AddMealEntryResponse,
+    DailyNormResponse,
+    DayOverviewResponse,
+    DeleteMealEntryResponse,
+    UpdateDailyDiaryRequest,
+    UpdateDailyDiaryResponse,
 )
 
 router = APIRouter(prefix="/nutrition", tags=["Nutrition"])
