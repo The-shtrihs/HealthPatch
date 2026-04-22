@@ -9,13 +9,13 @@ from src.nutrition.application.handlers.delete_meal_entry import DeleteMealEntry
 from src.nutrition.application.handlers.get_daily_norm import GetDailyNormQueryHandler
 from src.nutrition.application.handlers.get_day_overview import GetDayOverviewQueryHandler
 from src.nutrition.application.queries import GetDailyNormQuery, GetDayOverviewQuery
+from src.nutrition.domain.calculations import calculate_daily_norm
 from src.nutrition.domain.errors import (
     IncompleteNutritionProfileError,
     InvalidMealEntryError,
     MealEntryNotFoundError,
     NutritionProfileNotFoundError,
 )
-from src.nutrition.domain.calculations import calculate_daily_norm
 from src.nutrition.domain.interfaces import INutritionRepository
 from src.nutrition.domain.models import MacroTotalsDomain, NutritionProfileDomain
 from src.user.domain.models import FitnessGoal, Gender
