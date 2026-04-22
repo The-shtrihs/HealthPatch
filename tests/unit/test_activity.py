@@ -471,6 +471,7 @@ async def _seed_user_and_exercise(repo: FakeActivityRepository):
     ex = await repo.create_exercise("bench", mg.id, [])
     return mg, ex
 
+
 @pytest.mark.asyncio
 class TestExerciseCatalogCommands:
     async def test_create_muscle_group_returns_id(self, uow):
@@ -487,7 +488,6 @@ class TestExerciseCatalogCommands:
 
 
 @pytest.mark.asyncio
-
 class TestWorkoutPlanCommands:
     async def test_create_plan_with_training_returns_id(self, uow, repo):
         _, ex = await _seed_user_and_exercise(repo)
@@ -558,6 +558,7 @@ class TestWorkoutPlanCommands:
         training_id = await AddTrainingCommandHandler(uow).handle(AddTrainingCommand(plan_id=plan.id, user_id=1, name="D", weekday=None, order_num=1))
         assert isinstance(training_id, int)
 
+
 @pytest.mark.asyncio
 class TestWorkoutSessionCommands:
     async def test_start_session_no_training_returns_id(self, uow):
@@ -613,6 +614,7 @@ class TestWorkoutSessionCommands:
             await AddExerciseToSessionCommandHandler(uow).handle(
                 AddExerciseToSessionCommand(session_id=sess.id, user_id=1, exercise_id=ex.id, order_num=1)
             )
+
 
 @pytest.mark.asyncio
 class TestPersonalRecordCommands:
