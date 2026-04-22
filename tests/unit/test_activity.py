@@ -1,15 +1,15 @@
 """Unit tests for the activity domain.
 
-These tests cover pure domain behavior + application use cases using in-memory fakes.
-They do NOT boot a database, a FastAPI app, or a Redis pool — which demonstrates
-the layering rules required by Lab 2.
+Covers pure domain behavior + CQS command handlers using in-memory fakes.
+No database / FastAPI / Redis — demonstrates layering rules and isolation of write side.
+Query handlers are covered by integration tests (they read SQL directly).
 """
 
 from datetime import UTC, datetime, timedelta
 
 import pytest
 
-from src.activity.application.dto import (
+from src.activity.application.commands import (
     AddExerciseToSessionCommand,
     AddTrainingCommand,
     CreateExerciseCommand,
@@ -18,7 +18,6 @@ from src.activity.application.dto import (
     DeletePersonalRecordCommand,
     DeleteWorkoutPlanCommand,
     EndSessionCommand,
-    ListExercisesQuery,
     LogSetCommand,
     PlanTrainingExerciseInput,
     PlanTrainingInput,
@@ -26,31 +25,18 @@ from src.activity.application.dto import (
     UpdateWorkoutPlanCommand,
     UpsertPersonalRecordCommand,
 )
-from src.activity.application.use_cases.exercise_catalog import (
-    CreateExerciseUseCase,
-    CreateMuscleGroupUseCase,
-    GetExerciseUseCase,
-    ListExercisesUseCase,
-    ListMuscleGroupsUseCase,
-)
-from src.activity.application.use_cases.personal_record import (
-    DeletePersonalRecordUseCase,
-    ListPersonalRecordsUseCase,
-    UpsertPersonalRecordUseCase,
-)
-from src.activity.application.use_cases.workout_plan import (
-    AddTrainingUseCase,
-    CreatePlanUseCase,
-    DeletePlanUseCase,
-    GetPlanUseCase,
-    UpdatePlanUseCase,
-)
-from src.activity.application.use_cases.workout_session import (
-    AddExerciseToSessionUseCase,
-    EndSessionUseCase,
-    LogSetUseCase,
-    StartSessionUseCase,
-)
+from src.activity.application.handlers.add_exercise_to_session import AddExerciseToSessionCommandHandler
+from src.activity.application.handlers.add_training import AddTrainingCommandHandler
+from src.activity.application.handlers.create_exercise import CreateExerciseCommandHandler
+from src.activity.application.handlers.create_muscle_group import CreateMuscleGroupCommandHandler
+from src.activity.application.handlers.create_workout_plan import CreateWorkoutPlanCommandHandler
+from src.activity.application.handlers.delete_personal_record import DeletePersonalRecordCommandHandler
+from src.activity.application.handlers.delete_workout_plan import DeleteWorkoutPlanCommandHandler
+from src.activity.application.handlers.end_session import EndSessionCommandHandler
+from src.activity.application.handlers.log_set import LogSetCommandHandler
+from src.activity.application.handlers.start_session import StartSessionCommandHandler
+from src.activity.application.handlers.update_workout_plan import UpdateWorkoutPlanCommandHandler
+from src.activity.application.handlers.upsert_personal_record import UpsertPersonalRecordCommandHandler
 from src.activity.domain.errors import (
     ExerciseNotFoundError,
     InvalidPlanTitleError,
@@ -62,7 +48,6 @@ from src.activity.domain.errors import (
     NotResourceOwnerError,
     PersonalRecordDowngradeError,
     PersonalRecordNotFoundError,
-    PrivatePlanAccessError,
     SessionAlreadyEndedError,
     WorkoutPlanNotFoundError,
     WorkoutSessionNotFoundError,
@@ -271,7 +256,6 @@ class FakeActivityRepository(IActivityRepository):
         self._exercise_sessions[es.id] = es
         return es
 
-    # sets
     async def add_set(self, exercise_session_id, set_number, reps, weight):
         ws = WorkoutSetDomain(
             id=self._pop_id(),
@@ -283,7 +267,6 @@ class FakeActivityRepository(IActivityRepository):
         self._sets[ws.id] = ws
         return ws
 
-    # PRs
     async def get_personal_record(self, user_id, exercise_id):
         for pr in self._prs.values():
             if pr.user_id == user_id and pr.exercise_id == exercise_id:
@@ -478,6 +461,11 @@ class TestWorkoutSessionFactory:
             await f.start(user_id=1, plan_training_id=999, at=datetime.now(UTC))
 
 
+# ---------------------------------------------------------------------------
+# Command handlers
+# ---------------------------------------------------------------------------
+
+
 async def _seed_user_and_exercise(repo: FakeActivityRepository):
     mg = await repo.create_muscle_group("chest")
     ex = await repo.create_exercise("bench", mg.id, [])
@@ -485,36 +473,23 @@ async def _seed_user_and_exercise(repo: FakeActivityRepository):
 
 
 @pytest.mark.asyncio
-class TestExerciseCatalog:
-    async def test_list_muscle_groups_empty(self, uow):
-        result = await ListMuscleGroupsUseCase(uow).execute()
-        assert result == []
-
-    async def test_create_muscle_group(self, uow):
-        mg = await CreateMuscleGroupUseCase(uow).execute(CreateMuscleGroupCommand(name="  Back  "))
-        assert mg.name == "Back"
-        assert mg.id is not None
+class TestExerciseCatalogCommands:
+    async def test_create_muscle_group_returns_id(self, uow):
+        new_id = await CreateMuscleGroupCommandHandler(uow).handle(CreateMuscleGroupCommand(name="  Back  "))
+        assert isinstance(new_id, int)
+        groups = await uow.repo.list_muscle_groups()
+        assert any(g.id == new_id and g.name == "Back" for g in groups)
 
     async def test_create_exercise_rejects_missing_mg(self, uow):
         with pytest.raises(MuscleGroupNotFoundError):
-            await CreateExerciseUseCase(uow).execute(CreateExerciseCommand(name="Squat", primary_muscle_group_id=999, secondary_muscle_group_ids=[]))
-
-    async def test_get_exercise_404(self, uow):
-        with pytest.raises(ExerciseNotFoundError):
-            await GetExerciseUseCase(uow).execute(exercise_id=999)
-
-    async def test_list_exercises_pagination(self, uow, repo):
-        mg = await repo.create_muscle_group("chest")
-        for i in range(5):
-            await repo.create_exercise(f"ex{i}", mg.id, [])
-        page = await ListExercisesUseCase(uow).execute(ListExercisesQuery(search=None, page=1, size=2))
-        assert page.total == 5
-        assert len(page.items) == 2
+            await CreateExerciseCommandHandler(uow).handle(
+                CreateExerciseCommand(name="Squat", primary_muscle_group_id=999, secondary_muscle_group_ids=[])
+            )
 
 
 @pytest.mark.asyncio
-class TestWorkoutPlan:
-    async def test_create_plan_with_training(self, uow, repo):
+class TestWorkoutPlanCommands:
+    async def test_create_plan_with_training_returns_id(self, uow, repo):
         _, ex = await _seed_user_and_exercise(repo)
         cmd = CreateWorkoutPlanCommand(
             author_id=1,
@@ -530,10 +505,12 @@ class TestWorkoutPlan:
                 )
             ],
         )
-        plan = await CreatePlanUseCase(uow).execute(cmd)
-        assert plan.title == "My Plan"
-        assert len(plan.trainings) == 1
-        assert plan.trainings[0].exercises[0].exercise_id == ex.id
+        plan_id = await CreateWorkoutPlanCommandHandler(uow).handle(cmd)
+        assert isinstance(plan_id, int)
+        stored = await repo.get_plan_with_trainings(plan_id)
+        assert stored.title == "My Plan"
+        assert len(stored.trainings) == 1
+        assert stored.trainings[0].exercises[0].exercise_id == ex.id
 
     async def test_create_plan_rejects_unknown_exercise(self, uow):
         cmd = CreateWorkoutPlanCommand(
@@ -551,40 +528,48 @@ class TestWorkoutPlan:
             ],
         )
         with pytest.raises(ExerciseNotFoundError):
-            await CreatePlanUseCase(uow).execute(cmd)
+            await CreateWorkoutPlanCommandHandler(uow).handle(cmd)
 
     async def test_update_plan_checks_ownership(self, uow, repo):
         plan = await repo.create_plan(author_id=1, title="P", description=None, is_public=False)
         with pytest.raises(NotResourceOwnerError):
-            await UpdatePlanUseCase(uow).execute(UpdateWorkoutPlanCommand(plan_id=plan.id, user_id=2, title="X", description=None, is_public=None))
+            await UpdateWorkoutPlanCommandHandler(uow).handle(
+                UpdateWorkoutPlanCommand(plan_id=plan.id, user_id=2, title="X", description=None, is_public=None)
+            )
+
+    async def test_update_plan_returns_none(self, uow, repo):
+        plan = await repo.create_plan(author_id=1, title="P", description=None, is_public=False)
+        result = await UpdateWorkoutPlanCommandHandler(uow).handle(
+            UpdateWorkoutPlanCommand(plan_id=plan.id, user_id=1, title="New", description=None, is_public=None)
+        )
+        assert result is None
 
     async def test_delete_plan_404(self, uow):
         with pytest.raises(WorkoutPlanNotFoundError):
-            await DeletePlanUseCase(uow).execute(DeleteWorkoutPlanCommand(plan_id=999, user_id=1))
-
-    async def test_get_plan_private_forbidden(self, uow, repo):
-        plan = await repo.create_plan(author_id=1, title="P", description=None, is_public=False)
-        with pytest.raises(PrivatePlanAccessError):
-            await GetPlanUseCase(uow).execute(plan_id=plan.id, requesting_user_id=2)
+            await DeleteWorkoutPlanCommandHandler(uow).handle(DeleteWorkoutPlanCommand(plan_id=999, user_id=1))
 
     async def test_add_training_ownership(self, uow, repo):
         plan = await repo.create_plan(author_id=1, title="P", description=None, is_public=False)
         with pytest.raises(NotResourceOwnerError):
-            await AddTrainingUseCase(uow).execute(AddTrainingCommand(plan_id=plan.id, user_id=2, name="D", weekday=None, order_num=1))
+            await AddTrainingCommandHandler(uow).handle(AddTrainingCommand(plan_id=plan.id, user_id=2, name="D", weekday=None, order_num=1))
+
+    async def test_add_training_returns_id(self, uow, repo):
+        plan = await repo.create_plan(author_id=1, title="P", description=None, is_public=False)
+        training_id = await AddTrainingCommandHandler(uow).handle(AddTrainingCommand(plan_id=plan.id, user_id=1, name="D", weekday=None, order_num=1))
+        assert isinstance(training_id, int)
 
 
 @pytest.mark.asyncio
-class TestWorkoutSession:
-    async def test_start_session_no_training(self, uow):
-        s = await StartSessionUseCase(uow).execute(StartSessionCommand(user_id=1, plan_training_id=None))
-        assert s.user_id == 1
-        assert not s.is_ended
+class TestWorkoutSessionCommands:
+    async def test_start_session_no_training_returns_id(self, uow):
+        session_id = await StartSessionCommandHandler(uow).handle(StartSessionCommand(user_id=1, plan_training_id=None))
+        assert isinstance(session_id, int)
 
     async def test_end_session_ownership(self, uow, repo):
         start = datetime.now(UTC)
         s = await repo.create_session(user_id=1, plan_training_id=None, started_at=start)
         with pytest.raises(NotResourceOwnerError):
-            await EndSessionUseCase(uow).execute(EndSessionCommand(session_id=s.id, user_id=2))
+            await EndSessionCommandHandler(uow).handle(EndSessionCommand(session_id=s.id, user_id=2))
 
     async def test_end_session_conflict_when_already_ended(self, uow, repo):
         start = datetime.now(UTC)
@@ -592,14 +577,20 @@ class TestWorkoutSession:
         s.end(at=start + timedelta(minutes=1))
         await repo.save_session(s)
         with pytest.raises(SessionAlreadyEndedError):
-            await EndSessionUseCase(uow).execute(EndSessionCommand(session_id=s.id, user_id=1))
+            await EndSessionCommandHandler(uow).handle(EndSessionCommand(session_id=s.id, user_id=1))
+
+    async def test_end_session_returns_none(self, uow, repo):
+        start = datetime.now(UTC)
+        s = await repo.create_session(user_id=1, plan_training_id=None, started_at=start)
+        result = await EndSessionCommandHandler(uow).handle(EndSessionCommand(session_id=s.id, user_id=1))
+        assert result is None
 
     async def test_log_set_updates_personal_record(self, uow, repo):
         _, ex = await _seed_user_and_exercise(repo)
         start = datetime.now(UTC)
         sess = await repo.create_session(user_id=1, plan_training_id=None, started_at=start)
         es = await repo.add_exercise_to_session(workout_session_id=sess.id, exercise_id=ex.id, order_num=1, is_from_template=False)
-        await LogSetUseCase(uow).execute(
+        await LogSetCommandHandler(uow).handle(
             LogSetCommand(
                 session_id=sess.id,
                 exercise_session_id=es.id,
@@ -620,31 +611,34 @@ class TestWorkoutSession:
         sess.end(at=start + timedelta(minutes=1))
         await repo.save_session(sess)
         with pytest.raises(SessionAlreadyEndedError):
-            await AddExerciseToSessionUseCase(uow).execute(AddExerciseToSessionCommand(session_id=sess.id, user_id=1, exercise_id=ex.id, order_num=1))
+            await AddExerciseToSessionCommandHandler(uow).handle(
+                AddExerciseToSessionCommand(session_id=sess.id, user_id=1, exercise_id=ex.id, order_num=1)
+            )
 
 
 @pytest.mark.asyncio
-class TestPersonalRecord:
+class TestPersonalRecordCommands:
     async def test_upsert_rejects_downgrade(self, uow, repo):
         _, ex = await _seed_user_and_exercise(repo)
         await repo.upsert_personal_record(user_id=1, exercise_id=ex.id, weight=100, recorded_at=datetime.now(UTC))
         with pytest.raises(PersonalRecordDowngradeError):
-            await UpsertPersonalRecordUseCase(uow).execute(UpsertPersonalRecordCommand(user_id=1, exercise_id=ex.id, weight=90))
+            await UpsertPersonalRecordCommandHandler(uow).handle(UpsertPersonalRecordCommand(user_id=1, exercise_id=ex.id, weight=90))
 
-    async def test_upsert_creates_new_record(self, uow, repo):
+    async def test_upsert_creates_new_record_and_returns_id(self, uow, repo):
         _, ex = await _seed_user_and_exercise(repo)
-        pr = await UpsertPersonalRecordUseCase(uow).execute(UpsertPersonalRecordCommand(user_id=1, exercise_id=ex.id, weight=75))
-        assert pr.weight.value == 75
+        pr_id = await UpsertPersonalRecordCommandHandler(uow).handle(UpsertPersonalRecordCommand(user_id=1, exercise_id=ex.id, weight=75))
+        assert isinstance(pr_id, int)
+        stored = await repo.get_personal_record_by_id(pr_id)
+        assert stored.weight.value == 75
 
     async def test_delete_pr_ownership(self, uow, repo):
         _, ex = await _seed_user_and_exercise(repo)
         pr = await repo.upsert_personal_record(user_id=1, exercise_id=ex.id, weight=80, recorded_at=datetime.now(UTC))
         with pytest.raises(NotResourceOwnerError):
-            await DeletePersonalRecordUseCase(uow).execute(DeletePersonalRecordCommand(pr_id=pr.id, user_id=2))
+            await DeletePersonalRecordCommandHandler(uow).handle(DeletePersonalRecordCommand(pr_id=pr.id, user_id=2))
 
-    async def test_list_prs_scopes_to_user(self, uow, repo):
+    async def test_delete_pr_returns_none(self, uow, repo):
         _, ex = await _seed_user_and_exercise(repo)
-        await repo.upsert_personal_record(user_id=1, exercise_id=ex.id, weight=80, recorded_at=datetime.now(UTC))
-        await repo.upsert_personal_record(user_id=2, exercise_id=ex.id, weight=70, recorded_at=datetime.now(UTC))
-        mine = await ListPersonalRecordsUseCase(uow).execute(user_id=1)
-        assert len(mine) == 1
+        pr = await repo.upsert_personal_record(user_id=1, exercise_id=ex.id, weight=80, recorded_at=datetime.now(UTC))
+        result = await DeletePersonalRecordCommandHandler(uow).handle(DeletePersonalRecordCommand(pr_id=pr.id, user_id=1))
+        assert result is None

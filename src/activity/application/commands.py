@@ -2,8 +2,6 @@ from dataclasses import dataclass, field
 
 from src.activity.domain.models import Weekday
 
-# ---------- Commands ----------
-
 
 @dataclass
 class CreateMuscleGroupCommand:
@@ -15,13 +13,6 @@ class CreateExerciseCommand:
     name: str
     primary_muscle_group_id: int | None
     secondary_muscle_group_ids: list[int]
-
-
-@dataclass
-class ListExercisesQuery:
-    search: str | None
-    page: int
-    size: int
 
 
 @dataclass
@@ -142,14 +133,3 @@ class UpsertPersonalRecordCommand:
 class DeletePersonalRecordCommand:
     pr_id: int
     user_id: int
-
-
-# ---------- Results ----------
-
-
-@dataclass
-class Page[T]:
-    items: list[T]
-    total: int
-    page: int
-    size: int
