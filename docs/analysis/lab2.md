@@ -65,7 +65,6 @@ Same check passes for [src/auth/domain/](../../src/auth/domain/) and [src/user/d
 - **More files per feature.** Each write path passes through a Pydantic schema, a Command dataclass, a use case, a mapper, a repository, an ORM row — six shapes of roughly the same data.
 - **Mapper boilerplate.** [src/activity/infrastructure/mapper.py](../../src/activity/infrastructure/mapper.py) is pure translation code. It exists only because we chose to isolate the ORM; a small domain would not earn it back.
 - **Duplication at the boundary.** Pydantic `schemas.py` + dataclass Commands in `dto.py` carry overlapping fields. Accepted cost — merging them would drag Pydantic into the domain.
-- **Inconsistency across the codebase.** Nutrition still follows the Lab 1 layout. A new hire has to learn two conventions until that domain is migrated.
 - **Learning curve.** Junior teammates needed a walkthrough to understand why a "simple CRUD" endpoint traverses four layers.
 
 ## 5. How easy is it now to swap a framework or the database?
@@ -76,7 +75,7 @@ Same check passes for [src/auth/domain/](../../src/auth/domain/) and [src/user/d
 
 **Swapping Pydantic for another validator** — only `presentation/schemas.py` per domain. Commands in `application/dto.py` are plain `@dataclass` and survive.
 
-**Swapping Redis (OAuth state, rate limit)** — affects only the Redis-backed adapters in `src/repositories/`; again, no domain change.
+**Swapping Redis (OAuth state, rate limit)** — affects only the Redis-backed adapters in `src/shared/infrastracture`; again, no domain change.
 
 This ease is not accidental: it is what the dependency rule *buys*. It was not achievable in Lab 1, where services imported SQLAlchemy directly and routes reached into ORM rows.
 
@@ -103,4 +102,4 @@ Boilerplate (mappers, duplicated DTO/schemas), more files per feature, inconsist
 Very easy, and we have a concrete proof: [tests/unit/test_activity.py](../../tests/unit/test_activity.py) substitutes the entire storage layer with dict-backed fakes and all use cases run unchanged. Framework swap is similarly bounded to `presentation/`. See §5.
 
 **(5) Rich or Anemic — why?**
-Per domain, not globally. Activity is Rich because its invariants are numerous and enforcement-critical; User profile is Anemic because it is CRUD with almost no rules; Auth sits closer to Rich. Full reasoning in [ADR 0002](../adr/0002-activity-rich-domain-model.md) and §6.
+Per domain, not globally. Activity is Rich because its invariants are numerous and enforcement-critical; User profile is Anemic because it is CRUD with almost no rules; Auth sits closer to Rich. 
