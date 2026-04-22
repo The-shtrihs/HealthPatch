@@ -5,7 +5,6 @@ from fastapi import FastAPI
 
 import src.core.redis as redis_module
 from src.activity.presentation.error_mapper import setup_activity_error_handlers
-from src.activity.presentation.routes import router as activity_router
 from src.auth.presentation.error_mapper import setup_auth_error_handlers
 from src.auth.presentation.oauth_routes import router as oauth_router
 from src.auth.presentation.routes import router as auth_router
