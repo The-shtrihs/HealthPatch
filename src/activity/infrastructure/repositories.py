@@ -305,9 +305,7 @@ class SqlAlchemyActivityRepository(IActivityRepository):
 
     async def get_exercise_session_by_id(self, exercise_session_id: int) -> ExerciseSessionDomain | None:
         result = await self._db.scalars(
-            select(ExerciseSession)
-            .options(selectinload(ExerciseSession.exercise))
-            .where(ExerciseSession.id == exercise_session_id)
+            select(ExerciseSession).options(selectinload(ExerciseSession.exercise)).where(ExerciseSession.id == exercise_session_id)
         )
         orm = result.first()
         return exercise_session_to_domain(orm, include_sets=False) if orm else None
