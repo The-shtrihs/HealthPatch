@@ -2,7 +2,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.activity.domain.interfaces import IActivityUnitOfWork
 from src.activity.infrastructure.repositories import SqlAlchemyActivityRepository
-from src.repositories.base_uow import BaseUnitOfWork
+from src.shared.infrastructure.base_uow import BaseUnitOfWork
 
 
 class SqlAlchemyActivityUnitOfWork(BaseUnitOfWork, IActivityUnitOfWork):
