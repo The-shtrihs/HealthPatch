@@ -1,6 +1,12 @@
+from datetime import datetime
+
 from pydantic import BaseModel, ConfigDict, Field
 
 from src.activity.domain.models import Weekday
+
+
+class IdResponse(BaseModel):
+    id: int
 
 
 class MuscleGroupResponse(BaseModel):
@@ -157,8 +163,8 @@ class WorkoutSessionResponse(BaseModel):
     id: int
     user_id: int
     plan_training_id: int | None
-    started_at: str
-    ended_at: str | None
+    started_at: datetime
+    ended_at: datetime | None
     duration_minutes: float | None
 
     model_config = ConfigDict(from_attributes=True)
@@ -168,8 +174,8 @@ class SessionDetailResponse(BaseModel):
     id: int
     user_id: int
     plan_training_id: int | None
-    started_at: str
-    ended_at: str | None
+    started_at: datetime
+    ended_at: datetime | None
     duration_minutes: float | None
     exercise_sessions: list[ExerciseSessionResponse]
 
@@ -205,10 +211,6 @@ class PersonalRecordResponse(BaseModel):
     exercise_id: int
     exercise_name: str
     weight: float
-    recorded_at: str
+    recorded_at: datetime
 
     model_config = ConfigDict(from_attributes=True)
-
-
-class DeletePersonalRecordResponse(BaseModel):
-    deleted_pr_id: int

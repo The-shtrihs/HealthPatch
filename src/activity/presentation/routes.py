@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, Query, status
 
-from src.activity.application.dto import (
+from src.activity.application.commands import (
     AddExerciseToSessionCommand,
     AddExerciseToTrainingCommand,
     AddTrainingCommand,
@@ -12,7 +12,6 @@ from src.activity.application.dto import (
     DeleteTrainingExerciseCommand,
     DeleteWorkoutPlanCommand,
     EndSessionCommand,
-    ListExercisesQuery,
     LogSetCommand,
     PlanTrainingExerciseInput,
     PlanTrainingInput,
@@ -20,80 +19,66 @@ from src.activity.application.dto import (
     UpdateWorkoutPlanCommand,
     UpsertPersonalRecordCommand,
 )
-from src.activity.application.use_cases.exercise_catalog import (
-    CreateExerciseUseCase,
-    CreateMuscleGroupUseCase,
-    GetExerciseUseCase,
-    ListExercisesUseCase,
-    ListMuscleGroupsUseCase,
-)
-from src.activity.application.use_cases.personal_record import (
-    DeletePersonalRecordUseCase,
-    ListPersonalRecordsUseCase,
-    UpsertPersonalRecordUseCase,
-)
-from src.activity.application.use_cases.workout_plan import (
-    AddExerciseToTrainingUseCase,
-    AddTrainingUseCase,
-    CreatePlanUseCase,
-    DeletePlanUseCase,
-    DeleteTrainingExerciseUseCase,
-    DeleteTrainingUseCase,
-    GetPlanUseCase,
-    ListPublicPlansUseCase,
-    ListUserPlansUseCase,
-    UpdatePlanUseCase,
-)
-from src.activity.application.use_cases.workout_session import (
-    AddExerciseToSessionUseCase,
-    EndSessionUseCase,
-    GetSessionDetailUseCase,
-    ListUserSessionsUseCase,
-    LogSetUseCase,
-    StartSessionUseCase,
+from src.activity.application.handlers.add_exercise_to_session import AddExerciseToSessionCommandHandler
+from src.activity.application.handlers.add_exercise_to_training import AddExerciseToTrainingCommandHandler
+from src.activity.application.handlers.add_training import AddTrainingCommandHandler
+from src.activity.application.handlers.create_exercise import CreateExerciseCommandHandler
+from src.activity.application.handlers.create_muscle_group import CreateMuscleGroupCommandHandler
+from src.activity.application.handlers.create_workout_plan import CreateWorkoutPlanCommandHandler
+from src.activity.application.handlers.delete_personal_record import DeletePersonalRecordCommandHandler
+from src.activity.application.handlers.delete_training import DeleteTrainingCommandHandler
+from src.activity.application.handlers.delete_training_exercise import DeleteTrainingExerciseCommandHandler
+from src.activity.application.handlers.delete_workout_plan import DeleteWorkoutPlanCommandHandler
+from src.activity.application.handlers.end_session import EndSessionCommandHandler
+from src.activity.application.handlers.get_exercise import GetExerciseQueryHandler
+from src.activity.application.handlers.get_plan_detail import GetPlanDetailQueryHandler
+from src.activity.application.handlers.get_session_detail import GetSessionDetailQueryHandler
+from src.activity.application.handlers.list_exercises import ListExercisesQueryHandler
+from src.activity.application.handlers.list_muscle_groups import ListMuscleGroupsQueryHandler
+from src.activity.application.handlers.list_my_plans import ListMyPlansQueryHandler
+from src.activity.application.handlers.list_personal_records import ListPersonalRecordsQueryHandler
+from src.activity.application.handlers.list_public_plans import ListPublicPlansQueryHandler
+from src.activity.application.handlers.list_user_sessions import ListUserSessionsQueryHandler
+from src.activity.application.handlers.log_set import LogSetCommandHandler
+from src.activity.application.handlers.start_session import StartSessionCommandHandler
+from src.activity.application.handlers.update_workout_plan import UpdateWorkoutPlanCommandHandler
+from src.activity.application.handlers.upsert_personal_record import UpsertPersonalRecordCommandHandler
+from src.activity.application.queries import (
+    GetExerciseQuery,
+    GetPlanDetailQuery,
+    GetSessionDetailQuery,
+    ListExercisesQuery,
+    ListMuscleGroupsQuery,
+    ListMyPlansQuery,
+    ListPersonalRecordsQuery,
+    ListPublicPlansQuery,
+    ListUserSessionsQuery,
 )
 from src.activity.presentation.dependencies import (
-    get_add_exercise_to_session_uc,
-    get_add_exercise_to_training_uc,
-    get_add_training_uc,
-    get_create_exercise_uc,
-    get_create_muscle_group_uc,
-    get_create_plan_uc,
-    get_delete_personal_record_uc,
-    get_delete_plan_uc,
-    get_delete_training_exercise_uc,
-    get_delete_training_uc,
-    get_end_session_uc,
-    get_get_exercise_uc,
-    get_get_plan_uc,
-    get_list_exercises_uc,
-    get_list_muscle_groups_uc,
-    get_list_personal_records_uc,
-    get_list_public_plans_uc,
-    get_list_user_plans_uc,
-    get_list_user_sessions_uc,
-    get_log_set_uc,
-    get_session_detail_uc,
-    get_start_session_uc,
-    get_update_plan_uc,
-    get_upsert_personal_record_uc,
-)
-from src.activity.presentation.response_builders import (
-    delete_personal_record_to_response,
-    exercise_page_to_response,
-    exercise_session_to_response,
-    exercise_to_response,
-    muscle_group_to_response,
-    personal_record_to_response,
-    plan_detail_to_response,
-    plan_training_exercise_to_response,
-    plan_training_to_response,
-    session_detail_to_response,
-    session_page_to_response,
-    workout_plan_page_to_response,
-    workout_plan_to_response,
-    workout_session_to_response,
-    workout_set_to_response,
+    get_add_exercise_to_session_handler,
+    get_add_exercise_to_training_handler,
+    get_add_training_handler,
+    get_create_exercise_handler,
+    get_create_muscle_group_handler,
+    get_create_workout_plan_handler,
+    get_delete_personal_record_handler,
+    get_delete_training_exercise_handler,
+    get_delete_training_handler,
+    get_delete_workout_plan_handler,
+    get_end_session_handler,
+    get_get_exercise_handler,
+    get_get_plan_detail_handler,
+    get_get_session_detail_handler,
+    get_list_exercises_handler,
+    get_list_muscle_groups_handler,
+    get_list_my_plans_handler,
+    get_list_personal_records_handler,
+    get_list_public_plans_handler,
+    get_list_user_sessions_handler,
+    get_log_set_handler,
+    get_start_session_handler,
+    get_update_workout_plan_handler,
+    get_upsert_personal_record_handler,
 )
 from src.activity.presentation.schemas import (
     AddExerciseToSessionRequest,
@@ -102,25 +87,19 @@ from src.activity.presentation.schemas import (
     CreateMuscleGroupRequest,
     CreatePlanTrainingRequest,
     CreateWorkoutPlanRequest,
-    DeletePersonalRecordResponse,
     ExerciseListResponse,
     ExerciseResponse,
-    ExerciseSessionResponse,
+    IdResponse,
     LogSetRequest,
     MuscleGroupResponse,
     PersonalRecordResponse,
     PlanDetailResponse,
-    PlanTrainingExerciseResponse,
-    PlanTrainingResponse,
     SessionDetailResponse,
     SessionListResponse,
     StartSessionRequest,
     UpdateWorkoutPlanRequest,
     UpsertPersonalRecordRequest,
     WorkoutPlanListResponse,
-    WorkoutPlanResponse,
-    WorkoutSessionResponse,
-    WorkoutSetResponse,
 )
 from src.core.constants import DEFAULT_PAGE, DEFAULT_PAGE_SIZE, MAX_PAGE_SIZE, MIN_PAGE, MIN_PAGE_SIZE
 from src.models.user import User
@@ -133,19 +112,18 @@ router = APIRouter(prefix="/workouts", tags=["Workouts"])
 
 
 @router.get("/muscle-groups", response_model=list[MuscleGroupResponse])
-async def list_muscle_groups(uc: ListMuscleGroupsUseCase = Depends(get_list_muscle_groups_uc)):
-    groups = await uc.execute()
-    return [muscle_group_to_response(g) for g in groups]
+async def list_muscle_groups(handler: ListMuscleGroupsQueryHandler = Depends(get_list_muscle_groups_handler)):
+    return await handler.handle(ListMuscleGroupsQuery())
 
 
-@router.post("/muscle-groups", response_model=MuscleGroupResponse, status_code=status.HTTP_201_CREATED)
+@router.post("/muscle-groups", response_model=IdResponse, status_code=status.HTTP_201_CREATED)
 async def create_muscle_group(
     payload: CreateMuscleGroupRequest,
-    uc: CreateMuscleGroupUseCase = Depends(get_create_muscle_group_uc),
+    handler: CreateMuscleGroupCommandHandler = Depends(get_create_muscle_group_handler),
     _: User = Depends(get_current_user),
 ):
-    mg = await uc.execute(CreateMuscleGroupCommand(name=payload.name))
-    return muscle_group_to_response(mg)
+    new_id = await handler.handle(CreateMuscleGroupCommand(name=payload.name))
+    return IdResponse(id=new_id)
 
 
 # ---------- Exercises ----------
@@ -156,35 +134,33 @@ async def list_exercises(
     search: str | None = None,
     page: int = Query(default=DEFAULT_PAGE, ge=MIN_PAGE),
     size: int = Query(default=DEFAULT_PAGE_SIZE, ge=MIN_PAGE_SIZE, le=MAX_PAGE_SIZE),
-    uc: ListExercisesUseCase = Depends(get_list_exercises_uc),
+    handler: ListExercisesQueryHandler = Depends(get_list_exercises_handler),
 ):
-    result = await uc.execute(ListExercisesQuery(search=search, page=page, size=size))
-    return exercise_page_to_response(result)
+    return await handler.handle(ListExercisesQuery(search=search, page=page, size=size))
 
 
 @router.get("/exercises/{exercise_id}", response_model=ExerciseResponse)
 async def get_exercise(
     exercise_id: int,
-    uc: GetExerciseUseCase = Depends(get_get_exercise_uc),
+    handler: GetExerciseQueryHandler = Depends(get_get_exercise_handler),
 ):
-    exercise = await uc.execute(exercise_id)
-    return exercise_to_response(exercise)
+    return await handler.handle(GetExerciseQuery(exercise_id=exercise_id))
 
 
-@router.post("/exercises", response_model=ExerciseResponse, status_code=status.HTTP_201_CREATED)
+@router.post("/exercises", response_model=IdResponse, status_code=status.HTTP_201_CREATED)
 async def create_exercise(
     payload: CreateExerciseRequest,
-    uc: CreateExerciseUseCase = Depends(get_create_exercise_uc),
+    handler: CreateExerciseCommandHandler = Depends(get_create_exercise_handler),
     _: User = Depends(get_current_user),
 ):
-    exercise = await uc.execute(
+    new_id = await handler.handle(
         CreateExerciseCommand(
             name=payload.name,
             primary_muscle_group_id=payload.primary_muscle_group_id,
             secondary_muscle_group_ids=payload.secondary_muscle_group_ids,
         )
     )
-    return exercise_to_response(exercise)
+    return IdResponse(id=new_id)
 
 
 # ---------- Plans ----------
@@ -194,27 +170,25 @@ async def create_exercise(
 async def list_public_plans(
     page: int = Query(default=DEFAULT_PAGE, ge=MIN_PAGE),
     size: int = Query(default=DEFAULT_PAGE_SIZE, ge=MIN_PAGE_SIZE, le=MAX_PAGE_SIZE),
-    uc: ListPublicPlansUseCase = Depends(get_list_public_plans_uc),
+    handler: ListPublicPlansQueryHandler = Depends(get_list_public_plans_handler),
 ):
-    result = await uc.execute(page=page, size=size)
-    return workout_plan_page_to_response(result)
+    return await handler.handle(ListPublicPlansQuery(page=page, size=size))
 
 
 @router.get("/plans", response_model=WorkoutPlanListResponse)
 async def list_my_plans(
     page: int = Query(default=DEFAULT_PAGE, ge=MIN_PAGE),
     size: int = Query(default=DEFAULT_PAGE_SIZE, ge=MIN_PAGE_SIZE, le=MAX_PAGE_SIZE),
-    uc: ListUserPlansUseCase = Depends(get_list_user_plans_uc),
+    handler: ListMyPlansQueryHandler = Depends(get_list_my_plans_handler),
     current_user: User = Depends(get_current_user),
 ):
-    result = await uc.execute(user_id=current_user.id, page=page, size=size)
-    return workout_plan_page_to_response(result)
+    return await handler.handle(ListMyPlansQuery(user_id=current_user.id, page=page, size=size))
 
 
-@router.post("/plans", response_model=PlanDetailResponse, status_code=status.HTTP_201_CREATED)
+@router.post("/plans", response_model=IdResponse, status_code=status.HTTP_201_CREATED)
 async def create_plan(
     payload: CreateWorkoutPlanRequest,
-    uc: CreatePlanUseCase = Depends(get_create_plan_uc),
+    handler: CreateWorkoutPlanCommandHandler = Depends(get_create_workout_plan_handler),
     current_user: User = Depends(get_current_user),
 ):
     cmd = CreateWorkoutPlanCommand(
@@ -241,28 +215,27 @@ async def create_plan(
             for t in payload.trainings
         ],
     )
-    plan = await uc.execute(cmd)
-    return plan_detail_to_response(plan)
+    new_id = await handler.handle(cmd)
+    return IdResponse(id=new_id)
 
 
 @router.get("/plans/{plan_id}", response_model=PlanDetailResponse)
 async def get_plan(
     plan_id: int,
-    uc: GetPlanUseCase = Depends(get_get_plan_uc),
+    handler: GetPlanDetailQueryHandler = Depends(get_get_plan_detail_handler),
     current_user: User = Depends(get_current_user),
 ):
-    plan = await uc.execute(plan_id=plan_id, requesting_user_id=current_user.id)
-    return plan_detail_to_response(plan)
+    return await handler.handle(GetPlanDetailQuery(plan_id=plan_id, viewer_id=current_user.id))
 
 
-@router.put("/plans/{plan_id}", response_model=WorkoutPlanResponse)
+@router.put("/plans/{plan_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def update_plan(
     plan_id: int,
     payload: UpdateWorkoutPlanRequest,
-    uc: UpdatePlanUseCase = Depends(get_update_plan_uc),
+    handler: UpdateWorkoutPlanCommandHandler = Depends(get_update_workout_plan_handler),
     current_user: User = Depends(get_current_user),
 ):
-    plan = await uc.execute(
+    await handler.handle(
         UpdateWorkoutPlanCommand(
             plan_id=plan_id,
             user_id=current_user.id,
@@ -271,26 +244,25 @@ async def update_plan(
             is_public=payload.is_public,
         )
     )
-    return workout_plan_to_response(plan)
 
 
 @router.delete("/plans/{plan_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_plan(
     plan_id: int,
-    uc: DeletePlanUseCase = Depends(get_delete_plan_uc),
+    handler: DeleteWorkoutPlanCommandHandler = Depends(get_delete_workout_plan_handler),
     current_user: User = Depends(get_current_user),
 ):
-    await uc.execute(DeleteWorkoutPlanCommand(plan_id=plan_id, user_id=current_user.id))
+    await handler.handle(DeleteWorkoutPlanCommand(plan_id=plan_id, user_id=current_user.id))
 
 
-@router.post("/plans/{plan_id}/trainings", response_model=PlanTrainingResponse, status_code=status.HTTP_201_CREATED)
+@router.post("/plans/{plan_id}/trainings", response_model=IdResponse, status_code=status.HTTP_201_CREATED)
 async def add_training(
     plan_id: int,
     payload: CreatePlanTrainingRequest,
-    uc: AddTrainingUseCase = Depends(get_add_training_uc),
+    handler: AddTrainingCommandHandler = Depends(get_add_training_handler),
     current_user: User = Depends(get_current_user),
 ):
-    training = await uc.execute(
+    new_id = await handler.handle(
         AddTrainingCommand(
             plan_id=plan_id,
             user_id=current_user.id,
@@ -299,17 +271,17 @@ async def add_training(
             order_num=payload.order_num,
         )
     )
-    return plan_training_to_response(training)
+    return IdResponse(id=new_id)
 
 
 @router.delete("/plans/{plan_id}/trainings/{training_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_training(
     plan_id: int,
     training_id: int,
-    uc: DeleteTrainingUseCase = Depends(get_delete_training_uc),
+    handler: DeleteTrainingCommandHandler = Depends(get_delete_training_handler),
     current_user: User = Depends(get_current_user),
 ):
-    await uc.execute(
+    await handler.handle(
         DeleteTrainingCommand(
             plan_id=plan_id,
             training_id=training_id,
@@ -320,17 +292,17 @@ async def delete_training(
 
 @router.post(
     "/plans/{plan_id}/trainings/{training_id}/exercises",
-    response_model=PlanTrainingExerciseResponse,
+    response_model=IdResponse,
     status_code=status.HTTP_201_CREATED,
 )
 async def add_exercise_to_training(
     plan_id: int,
     training_id: int,
     payload: AddExerciseToTrainingRequest,
-    uc: AddExerciseToTrainingUseCase = Depends(get_add_exercise_to_training_uc),
+    handler: AddExerciseToTrainingCommandHandler = Depends(get_add_exercise_to_training_handler),
     current_user: User = Depends(get_current_user),
 ):
-    pte = await uc.execute(
+    new_id = await handler.handle(
         AddExerciseToTrainingCommand(
             plan_id=plan_id,
             training_id=training_id,
@@ -342,7 +314,7 @@ async def add_exercise_to_training(
             target_weight_pct=payload.target_weight_pct,
         )
     )
-    return plan_training_exercise_to_response(pte)
+    return IdResponse(id=new_id)
 
 
 @router.delete(
@@ -353,10 +325,10 @@ async def delete_training_exercise(
     plan_id: int,
     training_id: int,
     pte_id: int,
-    uc: DeleteTrainingExerciseUseCase = Depends(get_delete_training_exercise_uc),
+    handler: DeleteTrainingExerciseCommandHandler = Depends(get_delete_training_exercise_handler),
     current_user: User = Depends(get_current_user),
 ):
-    await uc.execute(
+    await handler.handle(
         DeleteTrainingExerciseCommand(
             plan_id=plan_id,
             training_id=training_id,
@@ -369,59 +341,56 @@ async def delete_training_exercise(
 # ---------- Sessions ----------
 
 
-@router.post("/sessions", response_model=WorkoutSessionResponse, status_code=status.HTTP_201_CREATED)
+@router.post("/sessions", response_model=IdResponse, status_code=status.HTTP_201_CREATED)
 async def start_session(
     payload: StartSessionRequest,
-    uc: StartSessionUseCase = Depends(get_start_session_uc),
+    handler: StartSessionCommandHandler = Depends(get_start_session_handler),
     current_user: User = Depends(get_current_user),
 ):
-    session = await uc.execute(StartSessionCommand(user_id=current_user.id, plan_training_id=payload.plan_training_id))
-    return workout_session_to_response(session)
+    new_id = await handler.handle(StartSessionCommand(user_id=current_user.id, plan_training_id=payload.plan_training_id))
+    return IdResponse(id=new_id)
 
 
 @router.get("/sessions", response_model=SessionListResponse)
 async def list_sessions(
     page: int = Query(default=DEFAULT_PAGE, ge=MIN_PAGE),
     size: int = Query(default=DEFAULT_PAGE_SIZE, ge=MIN_PAGE_SIZE, le=MAX_PAGE_SIZE),
-    uc: ListUserSessionsUseCase = Depends(get_list_user_sessions_uc),
+    handler: ListUserSessionsQueryHandler = Depends(get_list_user_sessions_handler),
     current_user: User = Depends(get_current_user),
 ):
-    result = await uc.execute(user_id=current_user.id, page=page, size=size)
-    return session_page_to_response(result)
+    return await handler.handle(ListUserSessionsQuery(user_id=current_user.id, page=page, size=size))
 
 
 @router.get("/sessions/{session_id}", response_model=SessionDetailResponse)
 async def get_session(
     session_id: int,
-    uc: GetSessionDetailUseCase = Depends(get_session_detail_uc),
+    handler: GetSessionDetailQueryHandler = Depends(get_get_session_detail_handler),
     current_user: User = Depends(get_current_user),
 ):
-    session = await uc.execute(session_id=session_id, user_id=current_user.id)
-    return session_detail_to_response(session)
+    return await handler.handle(GetSessionDetailQuery(session_id=session_id, user_id=current_user.id))
 
 
-@router.patch("/sessions/{session_id}/end", response_model=WorkoutSessionResponse)
+@router.patch("/sessions/{session_id}/end", status_code=status.HTTP_204_NO_CONTENT)
 async def end_session(
     session_id: int,
-    uc: EndSessionUseCase = Depends(get_end_session_uc),
+    handler: EndSessionCommandHandler = Depends(get_end_session_handler),
     current_user: User = Depends(get_current_user),
 ):
-    session = await uc.execute(EndSessionCommand(session_id=session_id, user_id=current_user.id))
-    return workout_session_to_response(session)
+    await handler.handle(EndSessionCommand(session_id=session_id, user_id=current_user.id))
 
 
 @router.post(
     "/sessions/{session_id}/exercises",
-    response_model=ExerciseSessionResponse,
+    response_model=IdResponse,
     status_code=status.HTTP_201_CREATED,
 )
 async def add_exercise_to_session(
     session_id: int,
     payload: AddExerciseToSessionRequest,
-    uc: AddExerciseToSessionUseCase = Depends(get_add_exercise_to_session_uc),
+    handler: AddExerciseToSessionCommandHandler = Depends(get_add_exercise_to_session_handler),
     current_user: User = Depends(get_current_user),
 ):
-    es = await uc.execute(
+    new_id = await handler.handle(
         AddExerciseToSessionCommand(
             session_id=session_id,
             user_id=current_user.id,
@@ -429,22 +398,22 @@ async def add_exercise_to_session(
             order_num=payload.order_num,
         )
     )
-    return exercise_session_to_response(es)
+    return IdResponse(id=new_id)
 
 
 @router.post(
     "/sessions/{session_id}/exercises/{exercise_session_id}/sets",
-    response_model=WorkoutSetResponse,
+    response_model=IdResponse,
     status_code=status.HTTP_201_CREATED,
 )
 async def add_set(
     session_id: int,
     exercise_session_id: int,
     payload: LogSetRequest,
-    uc: LogSetUseCase = Depends(get_log_set_uc),
+    handler: LogSetCommandHandler = Depends(get_log_set_handler),
     current_user: User = Depends(get_current_user),
 ):
-    ws = await uc.execute(
+    new_id = await handler.handle(
         LogSetCommand(
             session_id=session_id,
             exercise_session_id=exercise_session_id,
@@ -454,7 +423,7 @@ async def add_set(
             weight=payload.weight,
         )
     )
-    return workout_set_to_response(ws)
+    return IdResponse(id=new_id)
 
 
 # ---------- Personal records ----------
@@ -462,34 +431,32 @@ async def add_set(
 
 @router.get("/personal-records", response_model=list[PersonalRecordResponse])
 async def list_personal_records(
-    uc: ListPersonalRecordsUseCase = Depends(get_list_personal_records_uc),
+    handler: ListPersonalRecordsQueryHandler = Depends(get_list_personal_records_handler),
     current_user: User = Depends(get_current_user),
 ):
-    records = await uc.execute(current_user.id)
-    return [personal_record_to_response(pr) for pr in records]
+    return await handler.handle(ListPersonalRecordsQuery(user_id=current_user.id))
 
 
-@router.post("/personal-records", response_model=PersonalRecordResponse, status_code=status.HTTP_201_CREATED)
+@router.post("/personal-records", response_model=IdResponse, status_code=status.HTTP_201_CREATED)
 async def upsert_personal_record(
     payload: UpsertPersonalRecordRequest,
-    uc: UpsertPersonalRecordUseCase = Depends(get_upsert_personal_record_uc),
+    handler: UpsertPersonalRecordCommandHandler = Depends(get_upsert_personal_record_handler),
     current_user: User = Depends(get_current_user),
 ):
-    pr = await uc.execute(
+    new_id = await handler.handle(
         UpsertPersonalRecordCommand(
             user_id=current_user.id,
             exercise_id=payload.exercise_id,
             weight=payload.weight,
         )
     )
-    return personal_record_to_response(pr)
+    return IdResponse(id=new_id)
 
 
-@router.delete("/personal-records/{pr_id}", response_model=DeletePersonalRecordResponse)
+@router.delete("/personal-records/{pr_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_personal_record(
     pr_id: int,
-    uc: DeletePersonalRecordUseCase = Depends(get_delete_personal_record_uc),
+    handler: DeletePersonalRecordCommandHandler = Depends(get_delete_personal_record_handler),
     current_user: User = Depends(get_current_user),
 ):
-    deleted_id = await uc.execute(DeletePersonalRecordCommand(pr_id=pr_id, user_id=current_user.id))
-    return delete_personal_record_to_response(deleted_id)
+    await handler.handle(DeletePersonalRecordCommand(pr_id=pr_id, user_id=current_user.id))
