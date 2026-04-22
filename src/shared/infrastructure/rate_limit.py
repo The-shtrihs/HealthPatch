@@ -2,8 +2,8 @@
 import time
 import uuid
 
-from src.repositories.redis_base import BaseRedisRepository
-from src.schemas.auth import RateLimitResponse
+from src.shared.infrastructure.redis_base import BaseRedisRepository
+from src.shared.schemas.rate_limit import RateLimitResponse
 
 
 class RateLimitRepository(BaseRedisRepository):

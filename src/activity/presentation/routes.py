@@ -101,9 +101,9 @@ from src.activity.presentation.schemas import (
     UpsertPersonalRecordRequest,
     WorkoutPlanListResponse,
 )
+from src.auth.presentation.dependencies import get_current_user
 from src.core.constants import DEFAULT_PAGE, DEFAULT_PAGE_SIZE, MAX_PAGE_SIZE, MIN_PAGE, MIN_PAGE_SIZE
 from src.models.user import User
-from src.routes.dependencies import get_current_user
 
 router = APIRouter(prefix="/workouts", tags=["Workouts"])
 

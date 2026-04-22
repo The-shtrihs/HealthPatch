@@ -76,17 +76,8 @@ from src.activity.domain.models import (
     WorkoutSetDomain,
 )
 
-pytestmark = pytest.mark.asyncio
-
-
-# ---------------------------------------------------------------------------
-# Fakes
-# ---------------------------------------------------------------------------
-
 
 class FakeActivityRepository(IActivityRepository):
-    """In-memory implementation of IActivityRepository for domain-only testing."""
-
     def __init__(self) -> None:
         self._muscle_groups: dict[int, MuscleGroupDomain] = {}
         self._exercises: dict[int, ExerciseDomain] = {}
@@ -332,11 +323,6 @@ def uow(repo) -> FakeUnitOfWork:
     return FakeUnitOfWork(repo)
 
 
-# ---------------------------------------------------------------------------
-# Value Objects
-# ---------------------------------------------------------------------------
-
-
 class TestValueObjects:
     def test_weight_rejects_negative(self):
         with pytest.raises(InvalidWeightError):
@@ -362,11 +348,6 @@ class TestValueObjects:
         start = datetime.now(UTC)
         tr = TimeRange(started_at=start, ended_at=start + timedelta(minutes=30))
         assert tr.duration_minutes() == 30
-
-
-# ---------------------------------------------------------------------------
-# Domain model invariants
-# ---------------------------------------------------------------------------
 
 
 class TestWorkoutPlanDomain:
@@ -425,11 +406,6 @@ class TestWorkoutSessionDomain:
             s.ensure_can_be_modified()
 
 
-# ---------------------------------------------------------------------------
-# Factories
-# ---------------------------------------------------------------------------
-
-
 class TestWorkoutPlanFactory:
     def test_creates_valid_plan(self):
         f = WorkoutPlanFactory()
@@ -443,6 +419,7 @@ class TestWorkoutPlanFactory:
             f.create(author_id=1, title=" ", description=None, is_public=False)
 
 
+@pytest.mark.asyncio
 class TestPersonalRecordFactory:
     async def test_rejects_downgrade(self, repo: FakeActivityRepository):
         mg = await repo.create_muscle_group("chest")
@@ -459,6 +436,7 @@ class TestPersonalRecordFactory:
             await f.upsert(user_id=1, exercise_id=999, weight=50, at=datetime.now(UTC))
 
 
+@pytest.mark.asyncio
 class TestWorkoutSetFactory:
     async def test_rejects_when_session_ended(self, repo: FakeActivityRepository):
         mg = await repo.create_muscle_group("chest")
@@ -473,6 +451,7 @@ class TestWorkoutSetFactory:
             await f.log(exercise_session_id=es.id, set_number=1, reps=5, weight=50)
 
 
+@pytest.mark.asyncio
 class TestWorkoutSessionFactory:
     async def test_rejects_unknown_training(self, repo: FakeActivityRepository):
         f = WorkoutSessionFactory(repo)
@@ -492,7 +471,7 @@ async def _seed_user_and_exercise(repo: FakeActivityRepository):
     ex = await repo.create_exercise("bench", mg.id, [])
     return mg, ex
 
-
+@pytest.mark.asyncio
 class TestExerciseCatalogCommands:
     async def test_create_muscle_group_returns_id(self, uow):
         new_id = await CreateMuscleGroupCommandHandler(uow).handle(CreateMuscleGroupCommand(name="  Back  "))
@@ -506,6 +485,8 @@ class TestExerciseCatalogCommands:
                 CreateExerciseCommand(name="Squat", primary_muscle_group_id=999, secondary_muscle_group_ids=[])
             )
 
+
+@pytest.mark.asyncio
 
 class TestWorkoutPlanCommands:
     async def test_create_plan_with_training_returns_id(self, uow, repo):
@@ -577,7 +558,7 @@ class TestWorkoutPlanCommands:
         training_id = await AddTrainingCommandHandler(uow).handle(AddTrainingCommand(plan_id=plan.id, user_id=1, name="D", weekday=None, order_num=1))
         assert isinstance(training_id, int)
 
-
+@pytest.mark.asyncio
 class TestWorkoutSessionCommands:
     async def test_start_session_no_training_returns_id(self, uow):
         session_id = await StartSessionCommandHandler(uow).handle(StartSessionCommand(user_id=1, plan_training_id=None))
@@ -633,7 +614,7 @@ class TestWorkoutSessionCommands:
                 AddExerciseToSessionCommand(session_id=sess.id, user_id=1, exercise_id=ex.id, order_num=1)
             )
 
-
+@pytest.mark.asyncio
 class TestPersonalRecordCommands:
     async def test_upsert_rejects_downgrade(self, uow, repo):
         _, ex = await _seed_user_and_exercise(repo)
