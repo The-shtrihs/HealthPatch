@@ -2,86 +2,55 @@ from fastapi import APIRouter, Depends, status
 
 from src.auth.domain.models import UserDomain
 from src.auth.presentation.dependencies import get_current_user
-from src.user.application.dto import UpdateFitnessCommand, UpdateUserInfoCommand
-from src.user.application.use_cases import UserProfileUseCases
-from src.user.presentation.dependencies import get_user_profile_use_cases
-from src.user.presentation.schemas import (
-    FitnessProfileResponse,
-    FitnessProfileUpdate,
-    FullProfileResponse,
-    UserInfoUpdate,
+from src.user.application.commands import DeleteAccountCommand
+from src.user.application.handlers.delete_account import DeleteAccountCommandHandler
+from src.user.application.handlers.get_profile import GetMyProfileQueryHandler
+from src.user.application.handlers.update_fitness import UpdateFitnessCommandHandler
+from src.user.application.handlers.update_user_info import UpdateUserInfoCommandHandler
+from src.user.application.queries import GetMyProfileQuery
+from src.user.presentation.dependencies import (
+    get_delete_account_handler,
+    get_get_profile_handler,
+    get_update_fitness_handler,
+    get_update_user_info_handler,
 )
+from src.user.presentation.schemas import FitnessProfileResponse, FitnessProfileUpdate, FullProfileResponse, UserInfoUpdate
 
 router = APIRouter(prefix="/profile", tags=["Profile"])
-
-
-def _fitness_response(fitness) -> FitnessProfileResponse | None:
-    if not fitness:
-        return None
-    return FitnessProfileResponse(
-        weight=fitness.weight,
-        height=fitness.height,
-        age=fitness.age,
-        gender=fitness.gender,
-        fitness_goal=fitness.fitness_goal,
-        bmi=fitness.calc_bmi(),
-    )
-
-
-def _profile_response(p) -> FullProfileResponse:
-    return FullProfileResponse(
-        id=p.id,
-        name=p.name,
-        email=p.email,
-        avatar_url=p.avatar_url,
-        is_verified=p.is_verified,
-        is_2fa_enabled=p.is_2fa_enabled,
-        oauth_provider=p.oauth_provider,
-        profile=_fitness_response(p.fitness),
-    )
 
 
 @router.get("/me", response_model=FullProfileResponse)
 async def get_my_profile(
     current_user: UserDomain = Depends(get_current_user),
-    user_profile_use_cases: UserProfileUseCases = Depends(get_user_profile_use_cases),
+    handler: GetMyProfileQueryHandler = Depends(get_get_profile_handler),
 ):
-    return _profile_response(await user_profile_use_cases.get_profile(current_user.id))
+    result = await handler.handle(GetMyProfileQuery(user_id=current_user.id))
+    return FullProfileResponse.model_validate(result)
 
 
 @router.patch("/me", response_model=FullProfileResponse)
 async def update_my_info(
     data: UserInfoUpdate,
     current_user: UserDomain = Depends(get_current_user),
-    user_profile_use_cases: UserProfileUseCases = Depends(get_user_profile_use_cases),
+    handler: UpdateUserInfoCommandHandler = Depends(get_update_user_info_handler),
 ):
-    return _profile_response(
-        await user_profile_use_cases.update_info(current_user.id, UpdateUserInfoCommand(name=data.name, avatar_url=data.avatar_url))
-    )
+    result = await handler.handle(data.to_command(user_id=current_user.id))
+    return FullProfileResponse.model_validate(result)
 
 
 @router.put("/me/fitness", response_model=FitnessProfileResponse)
 async def update_fitness_profile(
     data: FitnessProfileUpdate,
     current_user: UserDomain = Depends(get_current_user),
-    user_profile_use_cases: UserProfileUseCases = Depends(get_user_profile_use_cases),
+    handler: UpdateFitnessCommandHandler = Depends(get_update_fitness_handler),
 ):
-    fitness = await user_profile_use_cases.update_fitness(
-        current_user.id,
-        UpdateFitnessCommand(
-            weight=data.weight,
-            height=data.height,
-            age=data.age,
-            gender=data.gender,
-            fitness_goal=data.fitness_goal,
-        ),
-    )
-    return _fitness_response(fitness)
+    result = await handler.handle(data.to_command(user_id=current_user.id))
+    return FitnessProfileResponse.model_validate(result)
 
 
 @router.delete("/me", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_my_account(
     current_user: UserDomain = Depends(get_current_user),
-    user_profile_use_cases: UserProfileUseCases = Depends(get_user_profile_use_cases),
+    handler: DeleteAccountCommandHandler = Depends(get_delete_account_handler),
 ):
-    await user_profile_use_cases.delete_account(current_user.id)
+    await handler.handle(DeleteAccountCommand(user_id=current_user.id))

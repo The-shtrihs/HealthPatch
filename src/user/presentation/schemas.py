@@ -1,11 +1,23 @@
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
 from pydantic import BaseModel, ConfigDict, Field
 
 from src.user.domain.models import FitnessGoal, Gender
+
+if TYPE_CHECKING:
+    from src.user.application.commands import UpdateFitnessCommand, UpdateUserInfoCommand
 
 
 class UserInfoUpdate(BaseModel):
     name: str | None = Field(None, min_length=2, max_length=50)
     avatar_url: str | None = Field(None, max_length=500)
+
+    def to_command(self, user_id: int) -> UpdateUserInfoCommand:
+        from src.user.application.commands import UpdateUserInfoCommand
+
+        return UpdateUserInfoCommand(user_id=user_id, name=self.name, avatar_url=self.avatar_url)
 
 
 class FitnessProfileUpdate(BaseModel):
@@ -15,6 +27,18 @@ class FitnessProfileUpdate(BaseModel):
     gender: Gender | None = None
     fitness_goal: FitnessGoal | None = None
 
+    def to_command(self, user_id: int) -> UpdateFitnessCommand:
+        from src.user.application.commands import UpdateFitnessCommand
+
+        return UpdateFitnessCommand(
+            user_id=user_id,
+            weight=self.weight,
+            height=self.height,
+            age=self.age,
+            gender=self.gender,
+            fitness_goal=self.fitness_goal,
+        )
+
 
 class FitnessProfileResponse(BaseModel):
     weight: float | None
@@ -23,6 +47,7 @@ class FitnessProfileResponse(BaseModel):
     gender: Gender | None
     fitness_goal: FitnessGoal | None
     bmi: float | None = None
+
     model_config = ConfigDict(from_attributes=True)
 
 
@@ -34,5 +59,6 @@ class FullProfileResponse(BaseModel):
     is_verified: bool
     is_2fa_enabled: bool
     oauth_provider: str | None
-    profile: FitnessProfileResponse | None
+    fitness: FitnessProfileResponse | None
+
     model_config = ConfigDict(from_attributes=True)
