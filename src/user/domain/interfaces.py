@@ -18,18 +18,7 @@ class IUserProfileRepository(ABC):
     async def deactivate(self, user_id: int) -> None: ...
 
 
-class IUserProfileRepository(ABC):
+class IUserProfileReadRepository(ABC):
  
     @abstractmethod
-    async def get_by_id(self, user_id: int) -> UserProfileDomain | None: ...
- 
-    @abstractmethod
-    async def save_user_info(self, user_id: int, name: str, avatar_url: str | None) -> UserProfileDomain: ...
- 
-    @abstractmethod
-    async def save_fitness(self, user_id: int, fitness: FitnessProfileDomain) -> FitnessProfileDomain: ...
- 
-    @abstractmethod
-    async def deactivate(self, user_id: int) -> None: ...
- 
-
+    async def get_full_profile(self, user_id: int) -> FullProfileReadModel | None: ...
