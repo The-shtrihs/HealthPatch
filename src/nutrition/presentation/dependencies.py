@@ -7,6 +7,7 @@ from src.nutrition.application.handlers.delete_meal_entry import DeleteMealEntry
 from src.nutrition.application.handlers.get_daily_norm import GetDailyNormQueryHandler
 from src.nutrition.application.handlers.get_day_overview import GetDayOverviewQueryHandler
 from src.nutrition.application.handlers.update_daily_diary import UpdateDailyDiaryCommandHandler
+from src.nutrition.infrastructure.read_repository import SqlAlchemyNutritionReadRepository
 from src.nutrition.infrastructure.repositories import SqlAlchemyNutritionUnitOfWork
 
 
@@ -14,16 +15,20 @@ async def get_nutrition_uow(db: AsyncSession = Depends(get_session)) -> SqlAlche
     return SqlAlchemyNutritionUnitOfWork(db)
 
 
+async def get_nutrition_read_repo(db: AsyncSession = Depends(get_session)) -> SqlAlchemyNutritionReadRepository:
+    return SqlAlchemyNutritionReadRepository(db)
+
+
 async def get_get_daily_norm_handler(
-    uow: SqlAlchemyNutritionUnitOfWork = Depends(get_nutrition_uow),
+    read_repo: SqlAlchemyNutritionReadRepository = Depends(get_nutrition_read_repo),
 ) -> GetDailyNormQueryHandler:
-    return GetDailyNormQueryHandler(uow)
+    return GetDailyNormQueryHandler(read_repo)
 
 
 async def get_get_day_overview_handler(
-    uow: SqlAlchemyNutritionUnitOfWork = Depends(get_nutrition_uow),
+    read_repo: SqlAlchemyNutritionReadRepository = Depends(get_nutrition_read_repo),
 ) -> GetDayOverviewQueryHandler:
-    return GetDayOverviewQueryHandler(uow)
+    return GetDayOverviewQueryHandler(read_repo)
 
 
 async def get_add_meal_entry_handler(

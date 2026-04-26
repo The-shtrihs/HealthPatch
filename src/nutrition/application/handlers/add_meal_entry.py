@@ -25,7 +25,7 @@ class AddMealEntryCommandHandler:
         day = create.target_date or datetime.now(UTC).date()
 
         async with self._uow:
-            await require_profile(self._uow, command.user_id)
+            await require_profile(self._uow.repo, command.user_id)
 
             diary_id = await self._uow.repo.ensure_daily_diary(command.user_id, day)
             meal_entry_id = await self._uow.repo.add_meal_entry(
