@@ -6,8 +6,9 @@ from src.models.user import User, UserProfile
 from src.user.application.read_models import FitnessReadModel, FullProfileReadModel
 from src.user.domain.models import FitnessGoal, Gender
 from src.user.infrastructure.mapper import _orm_to_fitness_rm,  _orm_to_full_profile_rm
+from src.user.domain.interfaces import IUserProfileReadRepository
 
-class SqlAlchemyUserProfileReadRepository:
+class SqlAlchemyUserProfileReadRepository(IUserProfileReadRepository):
     def __init__(self, db: AsyncSession) -> None:
         self._db = db
 
