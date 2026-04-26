@@ -1,6 +1,6 @@
 from src.models.user import User, UserProfile
-from src.user.domain.models import FitnessGoal, FitnessProfileDomain, Gender, UserProfileDomain
 from src.user.application.read_models import FitnessReadModel, FullProfileReadModel
+from src.user.domain.models import FitnessGoal, FitnessProfileDomain, Gender, UserProfileDomain
 
 
 def _orm_to_fitness(p: UserProfile | None) -> FitnessProfileDomain | None:
@@ -28,6 +28,7 @@ def _orm_to_profile(u: User) -> UserProfileDomain:
         fitness=_orm_to_fitness(getattr(u, "profile", None)),
     )
 
+
 def _orm_to_fitness_rm(profile: UserProfile | None) -> FitnessReadModel | None:
     if not profile:
         return None
@@ -44,6 +45,8 @@ def _orm_to_fitness_rm(profile: UserProfile | None) -> FitnessReadModel | None:
         fitness_goal=FitnessGoal(profile.fitness_goal) if profile.fitness_goal else None,
         bmi=bmi,
     )
+
+
 def _orm_to_full_profile_rm(user: User) -> FullProfileReadModel:
     fitness_orm = getattr(user, "profile", None)
     return FullProfileReadModel(

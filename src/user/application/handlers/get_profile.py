@@ -12,4 +12,4 @@ class GetMyProfileQueryHandler:
         profile = await self._read_repo.get_full_profile(query.user_id)
         if not profile:
             raise UserNotFoundError(query.user_id)
-        return profile  
+        return profile

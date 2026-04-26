@@ -219,10 +219,16 @@ class TestUpdateFitnessCommandHandler:
         profile_repo.get_by_id.return_value = profile
         profile_repo.save_fitness.return_value = None
 
-        result = await handler.handle(UpdateFitnessCommand(
-            user_id=1, weight=80.0, height=180.0, age=30,
-            gender=Gender.MALE, fitness_goal=FitnessGoal.STRENGTH_BUILDING,
-        ))
+        result = await handler.handle(
+            UpdateFitnessCommand(
+                user_id=1,
+                weight=80.0,
+                height=180.0,
+                age=30,
+                gender=Gender.MALE,
+                fitness_goal=FitnessGoal.STRENGTH_BUILDING,
+            )
+        )
 
         assert result is None
 
@@ -231,9 +237,16 @@ class TestUpdateFitnessCommandHandler:
         profile_repo.get_by_id.return_value = profile
         profile_repo.save_fitness.return_value = None
 
-        await handler.handle(UpdateFitnessCommand(
-            user_id=1, weight=99.0, height=None, age=None, gender=None, fitness_goal=None,
-        ))
+        await handler.handle(
+            UpdateFitnessCommand(
+                user_id=1,
+                weight=99.0,
+                height=None,
+                age=None,
+                gender=None,
+                fitness_goal=None,
+            )
+        )
 
         saved_fitness: FitnessProfileDomain = profile_repo.save_fitness.call_args.args[1]
         assert saved_fitness.weight == 99.0
@@ -244,10 +257,16 @@ class TestUpdateFitnessCommandHandler:
         profile_repo.get_by_id.return_value = profile_without_fitness
         profile_repo.save_fitness.return_value = None
 
-        await handler.handle(UpdateFitnessCommand(
-            user_id=1, weight=70.0, height=175.0, age=25,
-            gender=Gender.FEMALE, fitness_goal=FitnessGoal.ENDURANCE,
-        ))
+        await handler.handle(
+            UpdateFitnessCommand(
+                user_id=1,
+                weight=70.0,
+                height=175.0,
+                age=25,
+                gender=Gender.FEMALE,
+                fitness_goal=FitnessGoal.ENDURANCE,
+            )
+        )
 
         profile_repo.save_fitness.assert_called_once()
         saved_fitness: FitnessProfileDomain = profile_repo.save_fitness.call_args.args[1]
@@ -258,9 +277,16 @@ class TestUpdateFitnessCommandHandler:
         profile_repo.get_by_id.return_value = None
 
         with pytest.raises(UserNotFoundError):
-            await handler.handle(UpdateFitnessCommand(
-                user_id=999, weight=70.0, height=175.0, age=25, gender=None, fitness_goal=None,
-            ))
+            await handler.handle(
+                UpdateFitnessCommand(
+                    user_id=999,
+                    weight=70.0,
+                    height=175.0,
+                    age=25,
+                    gender=None,
+                    fitness_goal=None,
+                )
+            )
 
         profile_repo.save_fitness.assert_not_called()
 
