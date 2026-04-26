@@ -17,8 +17,3 @@ class IUserProfileRepository(ABC):
     @abstractmethod
     async def deactivate(self, user_id: int) -> None: ...
 
-
-class IUserProfileReadRepository(ABC):
- 
-    @abstractmethod
-    async def get_full_profile(self, user_id: int) -> FullProfileReadModel | None: ...
