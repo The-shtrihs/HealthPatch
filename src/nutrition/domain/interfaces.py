@@ -13,7 +13,6 @@ class INutritionReadRepository(ABC):
 
 
 class INutritionRepository(INutritionReadRepository, ABC):
-
     @abstractmethod
     async def ensure_daily_diary(self, user_id: int, target_date: date) -> int: ...
 
