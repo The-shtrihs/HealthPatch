@@ -4,13 +4,15 @@ from datetime import date
 from src.nutrition.domain.models import MacroTotalsDomain, NutritionProfileDomain
 
 
-class INutritionRepository(ABC):
+class INutritionReadRepository(ABC):
     @abstractmethod
     async def get_profile(self, user_id: int) -> NutritionProfileDomain | None: ...
 
     @abstractmethod
     async def get_day_consumed_totals(self, user_id: int, target_date: date) -> MacroTotalsDomain: ...
 
+
+class INutritionRepository(INutritionReadRepository, ABC):
     @abstractmethod
     async def ensure_daily_diary(self, user_id: int, target_date: date) -> int: ...
 

@@ -1,11 +1,11 @@
 from src.nutrition.application.read_models import MacroTotalsReadModel
 from src.nutrition.domain.errors import NutritionProfileNotFoundError
-from src.nutrition.domain.interfaces import INutritionUnitOfWork
+from src.nutrition.domain.interfaces import INutritionReadRepository
 from src.nutrition.domain.models import NutritionProfileDomain
 
 
-async def require_profile(uow: INutritionUnitOfWork, user_id: int) -> NutritionProfileDomain:
-    profile = await uow.repo.get_profile(user_id)
+async def require_profile(repo: INutritionReadRepository, user_id: int) -> NutritionProfileDomain:
+    profile = await repo.get_profile(user_id)
     if profile is None:
         raise NutritionProfileNotFoundError(user_id)
     return profile

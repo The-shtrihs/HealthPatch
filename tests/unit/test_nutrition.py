@@ -16,7 +16,7 @@ from src.nutrition.domain.errors import (
     MealEntryNotFoundError,
     NutritionProfileNotFoundError,
 )
-from src.nutrition.domain.interfaces import INutritionRepository
+from src.nutrition.domain.interfaces import INutritionReadRepository, INutritionRepository
 from src.nutrition.domain.models import MacroTotalsDomain, NutritionProfileDomain
 from src.user.domain.models import FitnessGoal, Gender
 
@@ -24,6 +24,11 @@ from src.user.domain.models import FitnessGoal, Gender
 @pytest.fixture
 def repo() -> AsyncMock:
     return AsyncMock(spec=INutritionRepository)
+
+
+@pytest.fixture
+def read_repo() -> AsyncMock:
+    return AsyncMock(spec=INutritionReadRepository)
 
 
 @pytest.fixture
@@ -46,13 +51,13 @@ def delete_meal_entry_handler(uow: AsyncMock) -> DeleteMealEntryCommandHandler:
 
 
 @pytest.fixture
-def get_daily_norm_handler(uow: AsyncMock) -> GetDailyNormQueryHandler:
-    return GetDailyNormQueryHandler(uow)
+def get_daily_norm_handler(read_repo: AsyncMock) -> GetDailyNormQueryHandler:
+    return GetDailyNormQueryHandler(read_repo)
 
 
 @pytest.fixture
-def get_day_overview_handler(uow: AsyncMock) -> GetDayOverviewQueryHandler:
-    return GetDayOverviewQueryHandler(uow)
+def get_day_overview_handler(read_repo: AsyncMock) -> GetDayOverviewQueryHandler:
+    return GetDayOverviewQueryHandler(read_repo)
 
 
 def _valid_profile():
@@ -66,12 +71,12 @@ def _valid_profile():
 
 
 @pytest.mark.asyncio
-async def test_get_day_overview_calculates_remaining_and_floors_zero(get_day_overview_handler: GetDayOverviewQueryHandler, repo: AsyncMock):
+async def test_get_day_overview_calculates_remaining_and_floors_zero(get_day_overview_handler: GetDayOverviewQueryHandler, read_repo: AsyncMock):
     profile = _valid_profile()
-    repo.get_profile.return_value = profile
+    read_repo.get_profile.return_value = profile
 
     norm = calculate_daily_norm(profile)
-    repo.get_day_consumed_totals.return_value = MacroTotalsDomain(
+    read_repo.get_day_consumed_totals.return_value = MacroTotalsDomain(
         calories=norm.calories + 50.0,
         protein_g=norm.protein_g + 10.0,
         fat_g=max(0.0, norm.fat_g - 20.0),
@@ -145,8 +150,8 @@ async def test_delete_meal_entry_not_found(delete_meal_entry_handler: DeleteMeal
 
 
 @pytest.mark.asyncio
-async def test_get_daily_norm_missing_fields(get_daily_norm_handler: GetDailyNormQueryHandler, repo: AsyncMock):
-    repo.get_profile.return_value = NutritionProfileDomain(
+async def test_get_daily_norm_missing_fields(get_daily_norm_handler: GetDailyNormQueryHandler, read_repo: AsyncMock):
+    read_repo.get_profile.return_value = NutritionProfileDomain(
         age=None,
         weight=80.0,
         height=None,
@@ -160,8 +165,8 @@ async def test_get_daily_norm_missing_fields(get_daily_norm_handler: GetDailyNor
 
 
 @pytest.mark.asyncio
-async def test_get_daily_norm_profile_not_found(get_daily_norm_handler: GetDailyNormQueryHandler, repo: AsyncMock):
-    repo.get_profile.return_value = None
+async def test_get_daily_norm_profile_not_found(get_daily_norm_handler: GetDailyNormQueryHandler, read_repo: AsyncMock):
+    read_repo.get_profile.return_value = None
 
     with pytest.raises(NutritionProfileNotFoundError):
         await get_daily_norm_handler.handle(GetDailyNormQuery(user_id=1))
