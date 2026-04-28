@@ -32,9 +32,11 @@ async def get_my_profile(
 async def update_my_info(
     data: UserInfoUpdate,
     current_user: UserDomain = Depends(get_current_user),
-    handler: UpdateUserInfoCommandHandler = Depends(get_update_user_info_handler),
+    cmd_handler: UpdateUserInfoCommandHandler = Depends(get_update_user_info_handler),
+    query_handler: GetMyProfileQueryHandler = Depends(get_get_profile_handler),
 ):
-    result = await handler.handle(data.to_command(user_id=current_user.id))
+    await cmd_handler.handle(data.to_command(user_id=current_user.id))
+    result = await query_handler.handle(GetMyProfileQuery(user_id=current_user.id))
     return FullProfileResponse.model_validate(result)
 
 
@@ -42,10 +44,12 @@ async def update_my_info(
 async def update_fitness_profile(
     data: FitnessProfileUpdate,
     current_user: UserDomain = Depends(get_current_user),
-    handler: UpdateFitnessCommandHandler = Depends(get_update_fitness_handler),
+    cmd_handler: UpdateFitnessCommandHandler = Depends(get_update_fitness_handler),
+    query_handler: GetMyProfileQueryHandler = Depends(get_get_profile_handler),
 ):
-    result = await handler.handle(data.to_command(user_id=current_user.id))
-    return FitnessProfileResponse.model_validate(result)
+    await cmd_handler.handle(data.to_command(user_id=current_user.id))
+    result = await query_handler.handle(GetMyProfileQuery(user_id=current_user.id))
+    return FitnessProfileResponse.model_validate(result.fitness)
 
 
 @router.delete("/me", status_code=status.HTTP_204_NO_CONTENT)
