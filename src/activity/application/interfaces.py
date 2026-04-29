@@ -1,11 +1,19 @@
 from abc import ABC, abstractmethod
 
-from src.activity.application.read_models import MuscleGroupReadModel, ExerciseReadModel, WorkoutPlanSummaryReadModel, WorkoutPlanDetailReadModel, WorkoutSessionSummaryReadModel, WorkoutSessionDetailReadModel, PersonalRecordReadModel, PageReadModel
-
+from src.activity.application.read_models import (
+    ExerciseReadModel,
+    MuscleGroupReadModel,
+    PageReadModel,
+    PersonalRecordReadModel,
+    WorkoutPlanDetailReadModel,
+    WorkoutPlanSummaryReadModel,
+    WorkoutSessionDetailReadModel,
+    WorkoutSessionSummaryReadModel,
+)
 
 
 class IActivityReadRepository(ABC):
-    """Abstract interface for the read-side repository. 
+    """Abstract interface for the read-side repository.
     Bypasses the domain layer; returns Read Models directly.
     """
 
@@ -35,13 +43,7 @@ class IActivityReadRepository(ABC):
     # ---------- Workout plans ----------
 
     @abstractmethod
-    async def list_public_plans(
-        self, 
-        offset: int, 
-        limit: int, 
-        page: int, 
-        size: int
-    ) -> PageReadModel[WorkoutPlanSummaryReadModel]:
+    async def list_public_plans(self, offset: int, limit: int, page: int, size: int) -> PageReadModel[WorkoutPlanSummaryReadModel]:
         pass
 
     @abstractmethod
