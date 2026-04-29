@@ -2,6 +2,7 @@ from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
+from src.activity.application.interfaces import IActivityReadRepository
 from src.activity.application.read_models import (
     ExerciseReadModel,
     ExerciseSessionReadModel,
@@ -152,7 +153,7 @@ def _pr_to_rm(orm: PersonalRecord) -> PersonalRecordReadModel:
     )
 
 
-class SqlAlchemyActivityReadRepository:
+class SqlAlchemyActivityReadRepository(IActivityReadRepository):
     """Read-side repository. Bypasses the domain layer; returns Read Models directly."""
 
     def __init__(self, session: AsyncSession):
