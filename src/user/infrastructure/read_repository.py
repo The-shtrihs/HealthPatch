@@ -3,11 +3,12 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from src.models.user import User
+from src.user.application.interfaces import IUserProfileReadRepository
 from src.user.application.read_models import FullProfileReadModel
 from src.user.infrastructure.mapper import _orm_to_full_profile_rm
 
 
-class SqlAlchemyUserProfileReadRepository:
+class SqlAlchemyUserProfileReadRepository(IUserProfileReadRepository):
     def __init__(self, db: AsyncSession) -> None:
         self._db = db
 
