@@ -6,6 +6,7 @@ from src.activity.domain.errors import (
     NotResourceOwnerError,
     WorkoutSessionNotFoundError,
 )
+from src.activity.domain.events import PersonalRecordBeaten, SetLogged
 from src.activity.domain.factory import WorkoutSetFactory
 from src.activity.domain.interfaces import IActivityUnitOfWork
 from src.activity.domain.models import WeightKg
@@ -42,16 +43,38 @@ class LogSetCommandHandler:
                 reps=cmd.reps,
                 weight=cmd.weight,
             )
+            self._uow.events.append(
+                SetLogged(
+                    set_id=ws.id,
+                    session_id=cmd.session_id,
+                    exercise_session_id=cmd.exercise_session_id,
+                    exercise_id=es.exercise_id,
+                    user_id=cmd.user_id,
+                    set_number=cmd.set_number,
+                    reps=cmd.reps,
+                    weight_kg=cmd.weight,
+                )
+            )
 
             weight_vo = WeightKg(cmd.weight)
             if weight_vo.value > 0:
                 existing = await self._uow.repo.get_personal_record(cmd.user_id, es.exercise_id)
                 if existing is None or weight_vo.is_greater_than(existing.weight):
+                    previous_weight = existing.weight.value if existing is not None else None
                     await self._uow.repo.upsert_personal_record(
                         user_id=cmd.user_id,
                         exercise_id=es.exercise_id,
                         weight=cmd.weight,
                         recorded_at=datetime.now(UTC),
+                    )
+                    self._uow.events.append(
+                        PersonalRecordBeaten(
+                            user_id=cmd.user_id,
+                            exercise_id=es.exercise_id,
+                            new_weight_kg=cmd.weight,
+                            previous_weight_kg=previous_weight,
+                            recorded_at=datetime.now(UTC),
+                        )
                     )
 
         return ws.id
