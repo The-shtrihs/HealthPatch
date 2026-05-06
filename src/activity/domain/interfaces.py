@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
 
+from src.activity.domain.events import ActivityEvent
 from src.activity.domain.models import (
     ExerciseDomain,
     ExerciseSessionDomain,
@@ -151,6 +152,7 @@ class IActivityRepository(ABC):
 
 class IActivityUnitOfWork(ABC):
     repo: IActivityRepository
+    events: list[ActivityEvent]
 
     @abstractmethod
     async def __aenter__(self) -> "IActivityUnitOfWork": ...

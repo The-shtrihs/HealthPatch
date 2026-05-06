@@ -1,6 +1,7 @@
 from datetime import UTC, datetime
 
 from src.activity.application.commands import UpsertPersonalRecordCommand
+from src.activity.domain.events import PersonalRecordUpserted
 from src.activity.domain.factory import PersonalRecordFactory
 from src.activity.domain.interfaces import IActivityUnitOfWork
 
@@ -18,10 +19,20 @@ class UpsertPersonalRecordCommandHandler:
                 weight=cmd.weight,
                 at=datetime.now(UTC),
             )
+            recorded_at = datetime.now(UTC)
             pr = await self._uow.repo.upsert_personal_record(
                 user_id=cmd.user_id,
                 exercise_id=cmd.exercise_id,
                 weight=cmd.weight,
-                recorded_at=datetime.now(UTC),
+                recorded_at=recorded_at,
+            )
+            self._uow.events.append(
+                PersonalRecordUpserted(
+                    pr_id=pr.id,
+                    user_id=cmd.user_id,
+                    exercise_id=cmd.exercise_id,
+                    weight_kg=cmd.weight,
+                    recorded_at=recorded_at,
+                )
             )
         return pr.id

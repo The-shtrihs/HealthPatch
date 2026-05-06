@@ -1,5 +1,6 @@
 from src.activity.application.commands import AddExerciseToSessionCommand
 from src.activity.domain.errors import NotResourceOwnerError, WorkoutSessionNotFoundError
+from src.activity.domain.events import ExerciseSessionAdded
 from src.activity.domain.factory import ExerciseSessionFactory
 from src.activity.domain.interfaces import IActivityUnitOfWork
 
@@ -30,5 +31,14 @@ class AddExerciseToSessionCommandHandler:
                 exercise_id=cmd.exercise_id,
                 order_num=cmd.order_num,
                 is_from_template=False,
+            )
+            self._uow.events.append(
+                ExerciseSessionAdded(
+                    exercise_session_id=es.id,
+                    session_id=cmd.session_id,
+                    user_id=cmd.user_id,
+                    exercise_id=cmd.exercise_id,
+                    is_from_template=False,
+                )
             )
         return es.id

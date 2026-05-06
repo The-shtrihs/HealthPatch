@@ -52,6 +52,7 @@ from src.activity.domain.errors import (
     WorkoutPlanNotFoundError,
     WorkoutSessionNotFoundError,
 )
+from src.activity.domain.events import ActivityEvent
 from src.activity.domain.factory import (
     PersonalRecordFactory,
     WorkoutPlanFactory,
@@ -305,6 +306,7 @@ class FakeActivityRepository(IActivityRepository):
 class FakeUnitOfWork(IActivityUnitOfWork):
     def __init__(self, repo: FakeActivityRepository):
         self.repo = repo
+        self.events: list[ActivityEvent] = []
 
     async def __aenter__(self):
         return self

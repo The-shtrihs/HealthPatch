@@ -6,6 +6,7 @@ from src.activity.domain.errors import (
     PrivatePlanAccessError,
     WorkoutPlanNotFoundError,
 )
+from src.activity.domain.events import WorkoutSessionStarted
 from src.activity.domain.factory import WorkoutSessionFactory
 from src.activity.domain.interfaces import IActivityUnitOfWork
 
@@ -50,5 +51,14 @@ class StartSessionCommandHandler:
                         order_num=pte.order_num,
                         is_from_template=True,
                     )
+
+            self._uow.events.append(
+                WorkoutSessionStarted(
+                    session_id=session.id,
+                    user_id=session.user_id,
+                    plan_training_id=session.plan_training_id,
+                    started_at=session.started_at,
+                )
+            )
 
         return session.id

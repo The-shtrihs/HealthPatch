@@ -1,5 +1,6 @@
 from src.activity.application.commands import DeleteWorkoutPlanCommand
 from src.activity.domain.errors import NotResourceOwnerError, WorkoutPlanNotFoundError
+from src.activity.domain.events import WorkoutPlanDeleted
 from src.activity.domain.interfaces import IActivityUnitOfWork
 
 
@@ -15,3 +16,9 @@ class DeleteWorkoutPlanCommandHandler:
             if not plan.is_owned_by(cmd.user_id):
                 raise NotResourceOwnerError("You do not own this workout plan")
             await self._uow.repo.delete_plan(cmd.plan_id)
+            self._uow.events.append(
+                WorkoutPlanDeleted(
+                    plan_id=plan.id,
+                    author_id=plan.author_id,
+                )
+            )

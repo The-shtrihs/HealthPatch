@@ -1,5 +1,6 @@
 from src.activity.application.commands import CreateWorkoutPlanCommand
 from src.activity.domain.errors import ExerciseNotFoundError
+from src.activity.domain.events import WorkoutPlanCreated
 from src.activity.domain.factory import PlanTrainingExerciseFactory, WorkoutPlanFactory
 from src.activity.domain.interfaces import IActivityUnitOfWork
 
@@ -54,5 +55,14 @@ class CreateWorkoutPlanCommandHandler:
                         target_reps=ex.target_reps,
                         target_weight_pct=ex.target_weight_pct,
                     )
+
+            self._uow.events.append(
+                WorkoutPlanCreated(
+                    plan_id=plan.id,
+                    author_id=plan.author_id,
+                    title=plan.title,
+                    is_public=plan.is_public,
+                )
+            )
 
         return plan.id
