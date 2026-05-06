@@ -1,6 +1,6 @@
 from src.nutrition.application.commands import DeleteMealEntryCommand
-from src.nutrition.domain.events import MealEntryDeletedEvent
 from src.nutrition.domain.errors import MealEntryNotFoundError
+from src.nutrition.domain.events import MealEntryDeletedEvent
 from src.nutrition.domain.interfaces import INutritionUnitOfWork
 
 from ._shared import require_profile

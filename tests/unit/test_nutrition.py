@@ -3,24 +3,23 @@ from unittest.mock import AsyncMock
 
 import pytest
 
-from src.nutrition.application.commands import AddMealEntryCommand, DeleteMealEntryCommand
+from src.nutrition.application.commands import AddMealEntryCommand, DeleteMealEntryCommand, UpdateDailyDiaryCommand
 from src.nutrition.application.handlers.add_meal_entry import AddMealEntryCommandHandler
 from src.nutrition.application.handlers.delete_meal_entry import DeleteMealEntryCommandHandler
-from src.nutrition.application.handlers.update_daily_diary import UpdateDailyDiaryCommandHandler
 from src.nutrition.application.handlers.get_daily_norm import GetDailyNormQueryHandler
 from src.nutrition.application.handlers.get_day_overview import GetDayOverviewQueryHandler
+from src.nutrition.application.handlers.update_daily_diary import UpdateDailyDiaryCommandHandler
 from src.nutrition.application.queries import GetDailyNormQuery, GetDayOverviewQuery
 from src.nutrition.domain.calculations import calculate_daily_norm
-from src.nutrition.domain.events import DailyDiaryUpdatedEvent, MealEntryAddedEvent, MealEntryDeletedEvent
 from src.nutrition.domain.errors import (
     IncompleteNutritionProfileError,
     InvalidMealEntryError,
     MealEntryNotFoundError,
     NutritionProfileNotFoundError,
 )
+from src.nutrition.domain.events import DailyDiaryUpdatedEvent, MealEntryAddedEvent, MealEntryDeletedEvent
 from src.nutrition.domain.interfaces import INutritionReadRepository, INutritionRepository
 from src.nutrition.domain.models import MacroTotalsDomain, NutritionProfileDomain
-from src.nutrition.application.commands import UpdateDailyDiaryCommand
 from src.user.domain.models import FitnessGoal, Gender
 
 
@@ -177,9 +176,7 @@ async def test_delete_meal_entry_happy_path(delete_meal_entry_handler: DeleteMea
     out = await delete_meal_entry_handler.handle(DeleteMealEntryCommand(user_id=1, meal_entry_id=404))
 
     assert out == 404
-    assert delete_meal_entry_handler._uow.events == [
-        MealEntryDeletedEvent(user_id=1, meal_entry_id=404, target_date=date(2026, 4, 7))
-    ]
+    assert delete_meal_entry_handler._uow.events == [MealEntryDeletedEvent(user_id=1, meal_entry_id=404, target_date=date(2026, 4, 7))]
 
 
 @pytest.mark.asyncio
