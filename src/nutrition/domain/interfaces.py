@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
 from datetime import date
 
+from src.nutrition.domain.events import NutritionEvent
 from src.nutrition.domain.models import MacroTotalsDomain, NutritionProfileDomain
 
 
@@ -31,6 +32,7 @@ class INutritionRepository(INutritionReadRepository, ABC):
 
 class INutritionUnitOfWork(ABC):
     repo: INutritionRepository
+    events: list[NutritionEvent]
 
     @abstractmethod
     async def __aenter__(self): ...

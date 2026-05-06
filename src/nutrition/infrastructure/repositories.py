@@ -6,6 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.models.nutrition import DailyDiary, Food, MealEntry
 from src.models.user import UserProfile
+from src.nutrition.domain.events import NutritionEvent
 from src.nutrition.domain.interfaces import INutritionRepository, INutritionUnitOfWork
 from src.nutrition.domain.models import MacroTotalsDomain, NutritionProfileDomain
 from src.nutrition.infrastructure.mapper import diary_to_dict, orm_to_nutrition_profile, to_macro_totals
@@ -99,3 +100,4 @@ class SqlAlchemyNutritionUnitOfWork(BaseUnitOfWork, INutritionUnitOfWork):
     def __init__(self, session: AsyncSession):
         super().__init__(session)
         self.repo = SqlAlchemyNutritionRepository(session)
+        self.events: list[NutritionEvent] = []
