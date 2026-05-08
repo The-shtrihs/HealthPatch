@@ -1,6 +1,7 @@
 from datetime import UTC, datetime
 
 from src.nutrition.application.commands import AddMealEntryCommand
+from src.nutrition.domain.events import MealEntryAddedEvent
 from src.nutrition.domain.interfaces import INutritionUnitOfWork
 from src.nutrition.domain.models import MealEntryCreateDomain
 
@@ -33,5 +34,16 @@ class AddMealEntryCommandHandler:
                 food_id=create.food_id,
                 meal_type=meal_type,
                 weight_grams=create.weight_grams,
+            )
+            self._uow.events.append(
+                MealEntryAddedEvent(
+                    user_id=command.user_id,
+                    diary_id=diary_id,
+                    meal_entry_id=meal_entry_id,
+                    food_id=create.food_id,
+                    meal_type=meal_type,
+                    weight_grams=create.weight_grams,
+                    target_date=day,
+                )
             )
             return meal_entry_id

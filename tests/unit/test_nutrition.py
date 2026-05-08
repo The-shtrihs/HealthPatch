@@ -3,11 +3,12 @@ from unittest.mock import AsyncMock
 
 import pytest
 
-from src.nutrition.application.commands import AddMealEntryCommand, DeleteMealEntryCommand
+from src.nutrition.application.commands import AddMealEntryCommand, DeleteMealEntryCommand, UpdateDailyDiaryCommand
 from src.nutrition.application.handlers.add_meal_entry import AddMealEntryCommandHandler
 from src.nutrition.application.handlers.delete_meal_entry import DeleteMealEntryCommandHandler
 from src.nutrition.application.handlers.get_daily_norm import GetDailyNormQueryHandler
 from src.nutrition.application.handlers.get_day_overview import GetDayOverviewQueryHandler
+from src.nutrition.application.handlers.update_daily_diary import UpdateDailyDiaryCommandHandler
 from src.nutrition.application.queries import GetDailyNormQuery, GetDayOverviewQuery
 from src.nutrition.domain.calculations import calculate_daily_norm
 from src.nutrition.domain.errors import (
@@ -16,6 +17,7 @@ from src.nutrition.domain.errors import (
     MealEntryNotFoundError,
     NutritionProfileNotFoundError,
 )
+from src.nutrition.domain.events import DailyDiaryUpdatedEvent, MealEntryAddedEvent, MealEntryDeletedEvent
 from src.nutrition.domain.interfaces import INutritionReadRepository, INutritionRepository
 from src.nutrition.domain.models import MacroTotalsDomain, NutritionProfileDomain
 from src.user.domain.models import FitnessGoal, Gender
@@ -35,6 +37,7 @@ def read_repo() -> AsyncMock:
 def uow(repo: AsyncMock) -> AsyncMock:
     uow = AsyncMock()
     uow.repo = repo
+    uow.events = []
     uow.__aenter__.return_value = uow
     uow.__aexit__.return_value = False
     return uow
@@ -48,6 +51,11 @@ def add_meal_entry_handler(uow: AsyncMock) -> AddMealEntryCommandHandler:
 @pytest.fixture
 def delete_meal_entry_handler(uow: AsyncMock) -> DeleteMealEntryCommandHandler:
     return DeleteMealEntryCommandHandler(uow)
+
+
+@pytest.fixture
+def update_daily_diary_handler(uow: AsyncMock) -> UpdateDailyDiaryCommandHandler:
+    return UpdateDailyDiaryCommandHandler(uow)
 
 
 @pytest.fixture
@@ -137,6 +145,17 @@ async def test_add_meal_entry_happy_path(add_meal_entry_handler: AddMealEntryCom
 
     assert out == 123
     repo.add_meal_entry.assert_awaited_once_with(diary_id=99, food_id=10, meal_type="dinner", weight_grams=150.0)
+    assert add_meal_entry_handler._uow.events == [
+        MealEntryAddedEvent(
+            user_id=1,
+            diary_id=99,
+            meal_entry_id=123,
+            food_id=10,
+            meal_type="dinner",
+            weight_grams=150.0,
+            target_date=date(2026, 4, 7),
+        )
+    ]
 
 
 @pytest.mark.asyncio
@@ -147,6 +166,42 @@ async def test_delete_meal_entry_not_found(delete_meal_entry_handler: DeleteMeal
     with pytest.raises(MealEntryNotFoundError) as exc:
         await delete_meal_entry_handler.handle(DeleteMealEntryCommand(user_id=1, meal_entry_id=404))
     assert "Meal entry" in exc.value.message
+
+
+@pytest.mark.asyncio
+async def test_delete_meal_entry_happy_path(delete_meal_entry_handler: DeleteMealEntryCommandHandler, repo: AsyncMock):
+    repo.get_profile.return_value = _valid_profile()
+    repo.get_user_meal_entry_target_date.return_value = date(2026, 4, 7)
+
+    out = await delete_meal_entry_handler.handle(DeleteMealEntryCommand(user_id=1, meal_entry_id=404))
+
+    assert out == 404
+    assert delete_meal_entry_handler._uow.events == [MealEntryDeletedEvent(user_id=1, meal_entry_id=404, target_date=date(2026, 4, 7))]
+
+
+@pytest.mark.asyncio
+async def test_update_daily_diary_happy_path(update_daily_diary_handler: UpdateDailyDiaryCommandHandler, repo: AsyncMock):
+    repo.update_daily_diary.return_value = {"id": 77}
+
+    out = await update_daily_diary_handler.handle(
+        UpdateDailyDiaryCommand(
+            user_id=1,
+            target_date=date(2026, 4, 7),
+            water_ml=500,
+            notes="good day",
+        )
+    )
+
+    assert out == 77
+    assert update_daily_diary_handler._uow.events == [
+        DailyDiaryUpdatedEvent(
+            user_id=1,
+            diary_id=77,
+            target_date=date(2026, 4, 7),
+            water_ml=500,
+            notes="good day",
+        )
+    ]
 
 
 @pytest.mark.asyncio

@@ -1,5 +1,6 @@
 from src.nutrition.application.commands import DeleteMealEntryCommand
 from src.nutrition.domain.errors import MealEntryNotFoundError
+from src.nutrition.domain.events import MealEntryDeletedEvent
 from src.nutrition.domain.interfaces import INutritionUnitOfWork
 
 from ._shared import require_profile
@@ -18,4 +19,11 @@ class DeleteMealEntryCommandHandler:
                 raise MealEntryNotFoundError(command.meal_entry_id)
 
             await self._uow.repo.delete_meal_entry(command.meal_entry_id)
+            self._uow.events.append(
+                MealEntryDeletedEvent(
+                    user_id=command.user_id,
+                    meal_entry_id=command.meal_entry_id,
+                    target_date=target_date,
+                )
+            )
             return command.meal_entry_id

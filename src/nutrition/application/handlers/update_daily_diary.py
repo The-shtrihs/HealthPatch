@@ -1,4 +1,5 @@
 from src.nutrition.application.commands import UpdateDailyDiaryCommand
+from src.nutrition.domain.events import DailyDiaryUpdatedEvent
 from src.nutrition.domain.interfaces import INutritionUnitOfWork
 
 
@@ -14,6 +15,14 @@ class UpdateDailyDiaryCommandHandler:
                 water_ml=command.water_ml,
                 notes=command.notes,
             )
-        if isinstance(updated, dict):
-            return int(updated["id"])
-        return int(updated.id)
+            diary_id = int(updated["id"] if isinstance(updated, dict) else updated.id)
+            self._uow.events.append(
+                DailyDiaryUpdatedEvent(
+                    user_id=command.user_id,
+                    diary_id=diary_id,
+                    target_date=command.target_date,
+                    water_ml=command.water_ml,
+                    notes=command.notes,
+                )
+            )
+        return diary_id
