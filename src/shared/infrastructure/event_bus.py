@@ -6,7 +6,7 @@ from typing import Any
 from arq import create_pool
 from arq.connections import ArqRedis, RedisSettings
 
-from src.shared.infrastructure.event_bus_interface import IEventBus, EventHandler
+from src.shared.infrastructure.event_bus_interface import EventHandler, IEventBus
 
 logger = logging.getLogger(__name__)
 
@@ -17,9 +17,7 @@ class EventBus(IEventBus):
         self.arq_pool: ArqRedis | None = None
 
     async def start_arq(self, redis_url: str) -> None:
-        self.arq_pool = await create_pool(
-            RedisSettings.from_dsn(redis_url)
-        )
+        self.arq_pool = await create_pool(RedisSettings.from_dsn(redis_url))
         logger.info("ARQ pool initialized successfully.")
 
     async def stop_arq(self) -> None:
@@ -32,12 +30,13 @@ class EventBus(IEventBus):
             self._local_subscribers.setdefault(event_type, []).append(handler)
             logger.debug("Registered local handler %s for %s", handler.__name__, event_type.__name__)
             return handler
+
         return decorator
 
     async def publish(self, event: Any) -> None:
         event_type = type(event)
         local_handlers = self._local_subscribers.get(event_type, [])
-        
+
         if not local_handlers:
             return
 

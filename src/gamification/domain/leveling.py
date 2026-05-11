@@ -1,34 +1,36 @@
 from typing import Final
+
 from src.gamification.domain.value_objects import LevelInfo
 
 
 def _generate_xp_thresholds() -> list[int]:
-    thresholds = [0, 0]  
+    thresholds = [0, 0]
     for lvl in range(2, 101):
-        xp_required = int(150 * (lvl ** 2.1))
+        xp_required = int(150 * (lvl**2.1))
         thresholds.append(xp_required)
     return thresholds
 
+
 _XP_THRESHOLDS: Final[list[int]] = _generate_xp_thresholds()
-_MAX_LEVEL: Final[int] = len(_XP_THRESHOLDS) - 1  
+_MAX_LEVEL: Final[int] = len(_XP_THRESHOLDS) - 1
 
 
 def _rank_for_level(level: int) -> tuple[str, str]:
     match level:
         case lvl if 1 <= lvl <= 5:
-            return "Novice", "Piglet"      
+            return "Novice", "Piglet"
         case lvl if 6 <= lvl <= 15:
-            return "Apprentice", "Boar"    
+            return "Apprentice", "Boar"
         case lvl if 16 <= lvl <= 30:
-            return "Wild", "Boar"         
+            return "Wild", "Boar"
         case lvl if 31 <= lvl <= 50:
-            return "Fierce", "Tusker"     
+            return "Fierce", "Tusker"
         case lvl if 51 <= lvl <= 80:
-            return "Berserker", "Boar"   
+            return "Berserker", "Boar"
         case lvl if 81 <= lvl <= 99:
-            return "Crimson", "Boar"       
+            return "Crimson", "Boar"
         case _:
-            return "Elder", "Boar"        
+            return "Elder", "Boar"
 
 
 def calculate_level(total_xp: int) -> LevelInfo:

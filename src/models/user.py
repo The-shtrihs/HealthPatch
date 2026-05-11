@@ -54,9 +54,9 @@ class User(Base, TimestampMixin, IsActiveMixin):
     refresh_tokens: Mapped[list["RefreshToken"]] = relationship(back_populates="user", cascade="all, delete-orphan")
     gamification_profile: Mapped["GamificationProfile"] = relationship(
         back_populates="user",
-        uselist=False,          
+        uselist=False,
         cascade="all, delete-orphan",
-        lazy="noload",           
+        lazy="noload",
     )
 
 

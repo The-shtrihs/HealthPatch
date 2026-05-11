@@ -2,7 +2,7 @@ from src.auth.application.commands import RegisterCommand
 from src.auth.application.token_utils import PasswordUtils
 from src.auth.domain.events import UserRegisteredEvent
 from src.auth.domain.factory import UserFactory
-from src.auth.domain.interfaces import IMailService, IUserRepository
+from src.auth.domain.interfaces import IUserRepository
 from src.shared.infrastructure.event_bus_interface import IEventBus
 
 
@@ -11,7 +11,7 @@ class RegisterCommandHandler:
         self,
         user_repo: IUserRepository,
         password_utils: PasswordUtils,
-        event_bus: IEventBus, 
+        event_bus: IEventBus,
     ):
         self._user_repo = user_repo
         self._pw = password_utils
@@ -29,6 +29,4 @@ class RegisterCommandHandler:
             email=user.email,
             password_hash=user.password_hash,
         )
-        await self._event_bus.publish(
-            UserRegisteredEvent(user_id=saved.id, email=saved.email, name=saved.name)
-        )
+        await self._event_bus.publish(UserRegisteredEvent(user_id=saved.id, email=saved.email, name=saved.name))

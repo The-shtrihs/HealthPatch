@@ -10,9 +10,7 @@ class GamificationRepository(IGamificationRepository):
         self._session = session
 
     async def get_by_user_id(self, user_id: int) -> GamificationProfile | None:
-        stmt = select(GamificationProfile).where(
-            GamificationProfile.user_id == user_id
-        )
+        stmt = select(GamificationProfile).where(GamificationProfile.user_id == user_id)
         result = await self._session.execute(stmt)
         return result.scalar_one_or_none()
 

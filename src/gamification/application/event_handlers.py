@@ -22,13 +22,14 @@ def register_gamification_handlers(
     async def on_workout_completed(event: WorkoutCompletedEvent) -> None:
         logger.info(
             "Gamification ▸ WorkoutCompleted user_id=%d (%s, %d min, %.1f kg)",
-            event.user_id, event.activity_type,
-            event.duration_minutes, event.volume_kg,
+            event.user_id,
+            event.activity_type,
+            event.duration_minutes,
+            event.volume_kg,
         )
 
         async with session_factory() as session:
             async with GamificationUnitOfWork(session) as uow:
-
                 profile = await uow.profiles.get_by_user_id(event.user_id)
                 if profile is None:
                     profile = GamificationProfile(user_id=event.user_id)
@@ -45,5 +46,7 @@ def register_gamification_handlers(
 
             logger.info(
                 "Gamification ▸ user_id=%d +%d XP → total %d XP",
-                event.user_id, rewards.total_xp, profile.total_xp,
+                event.user_id,
+                rewards.total_xp,
+                profile.total_xp,
             )

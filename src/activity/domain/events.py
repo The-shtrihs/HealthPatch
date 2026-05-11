@@ -77,6 +77,7 @@ class WorkoutPlanDeleted:
     plan_id: int
     author_id: int
 
+
 @dataclass(frozen=True)
 class WorkoutCompletedEvent:
     user_id: int

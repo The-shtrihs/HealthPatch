@@ -206,7 +206,7 @@ class WorkoutSessionDomain:
     def ensure_can_be_modified(self, message: str | None = None) -> None:
         if self.is_ended:
             raise SessionAlreadyEndedError(message or "Workout session has already ended")
-    
+
     def calculate_total_volume_kg(self) -> float:
         total_volume = 0.0
         for ex_session in self.exercise_sessions:

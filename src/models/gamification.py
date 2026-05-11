@@ -10,6 +10,7 @@ from src.core.base import Base, TimestampMixin
 if TYPE_CHECKING:
     from src.models.user import User
 
+
 class GamificationProfile(Base, TimestampMixin):
     __tablename__ = "gamification_profile"
 

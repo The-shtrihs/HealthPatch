@@ -1,11 +1,13 @@
-from collections.abc import Callable
-import logging
-from typing import Any
-from src.shared.infrastructure.event_bus_interface import EventHandler, IEventBus
 import asyncio
+import logging
+from collections.abc import Callable
+from typing import Any
 
+from src.shared.infrastructure.event_bus_interface import EventHandler, IEventBus
 
 logger = logging.getLogger(__name__)
+
+
 class InMemoryEventBus(IEventBus):
     def __init__(self) -> None:
         self._subscribers: dict[type, list[EventHandler]] = {}
@@ -15,6 +17,7 @@ class InMemoryEventBus(IEventBus):
             self._subscribers.setdefault(event_type, []).append(handler)
             logger.debug("Registered handler %s for %s", handler.__name__, event_type.__name__)
             return handler
+
         return decorator
 
     async def publish(self, event: Any) -> None:

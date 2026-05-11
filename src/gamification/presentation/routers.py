@@ -24,9 +24,7 @@ async def get_my_gamification_profile(
     current_user: Annotated[User, Depends(get_current_user)],
     query_handler: ProfileQueryHandlerDep,
 ) -> GamificationProfileResponse:
-    profile = await query_handler.handle(
-        GetGamificationProfileQuery(user_id=current_user.id)
-    )
+    profile = await query_handler.handle(GetGamificationProfileQuery(user_id=current_user.id))
 
     total_xp = profile.total_xp if profile is not None else 0
 

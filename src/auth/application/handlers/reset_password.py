@@ -9,14 +9,14 @@ from src.shared.infrastructure.event_bus_interface import IEventBus
 class ForgotPasswordCommandHandler:
     def __init__(self, user_repo: IUserRepository, event_bus: IEventBus):
         self._user_repo = user_repo
-        self._event_bus = event_bus 
+        self._event_bus = event_bus
 
     async def handle(self, cmd: ForgotPasswordCommand) -> None:
         user = await self._user_repo.get_by_email(cmd.email)
         if user:
-            await self._event_bus.publish(
-                PasswordResetRequestedEvent(user_id=user.id, email=user.email, name=user.name)
-            )
+            await self._event_bus.publish(PasswordResetRequestedEvent(user_id=user.id, email=user.email, name=user.name))
+
+
 class ResetPasswordCommandHandler:
     def __init__(
         self,

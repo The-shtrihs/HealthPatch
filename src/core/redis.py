@@ -31,11 +31,12 @@ async def close_pool() -> None:
         await _pool.disconnect()
         logger.info("Redis pool disconnected")
 
+
 async def register_redis(settings) -> None:
     global _pool
     _pool = create_pool(
-    url=settings.redis_url,
-    max_connections=settings.redis_max_connections,
+        url=settings.redis_url,
+        max_connections=settings.redis_max_connections,
     )
     redis = get_redis()
     try:

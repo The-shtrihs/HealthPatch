@@ -19,7 +19,7 @@ class HybridEventBus(IEventBus):
         self._redis = redis_client
         self._local_subscribers: dict[type, list[EventHandler]] = {}
         self._redis_subscribers: dict[str, list[EventHandler]] = {}
-        
+
         self._pubsub = self._redis.pubsub()
         self._listener_task: asyncio.Task | None = None
 
@@ -33,6 +33,7 @@ class HybridEventBus(IEventBus):
                 self._redis_subscribers.setdefault(channel_name, []).append(handler)
                 logger.debug("Registered REDIS handler %s for %s", handler.__name__, channel_name)
             return handler
+
         return decorator
 
     async def publish(self, event: Any) -> None:
@@ -54,7 +55,7 @@ class HybridEventBus(IEventBus):
             return
         channels = list(self._redis_subscribers.keys())
         await self._pubsub.subscribe(*channels)
-        
+
         self._listener_task = asyncio.create_task(self._listen())
         logger.info("HybridEventBus Redis listener started for channels: %s", channels)
 
@@ -64,26 +65,26 @@ class HybridEventBus(IEventBus):
             try:
                 await self._listener_task
             except asyncio.CancelledError:
-                pass 
+                pass
         try:
             await self._pubsub.unsubscribe()
             await self._pubsub.close()
         except Exception as e:
             logger.error("Error closing Redis pubsub: %s", e)
-            
+
         logger.info("HybridEventBus listener stopped.")
 
     async def _listen(self) -> None:
         try:
             async for message in self._pubsub.listen():
                 if message["type"] == "message":
-                    channel_name = message["channel"].decode("utf-8")    
+                    channel_name = message["channel"].decode("utf-8")
                     try:
                         event = pickle.loads(message["data"])
                     except Exception as e:
                         logger.error("Failed to unpickle event from channel %s: %s", channel_name, e)
                         continue
-                    
+
                     handlers = self._redis_subscribers.get(channel_name, [])
                     if not handlers:
                         continue

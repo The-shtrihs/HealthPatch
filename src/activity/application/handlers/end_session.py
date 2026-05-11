@@ -1,6 +1,5 @@
-from datetime import UTC, datetime
-
 import logging
+from datetime import UTC, datetime
 
 from src.activity.application.commands import EndSessionCommand
 from src.activity.domain.errors import NotResourceOwnerError, WorkoutSessionNotFoundError
@@ -10,6 +9,8 @@ from src.shared.application.dispatcher import dispatch_domain_events
 from src.shared.infrastructure.event_bus_interface import IEventBus
 
 logger = logging.getLogger(__name__)
+
+
 class EndSessionCommandHandler:
     def __init__(self, uow: IActivityUnitOfWork, bus: IEventBus) -> None:
         self._uow = uow

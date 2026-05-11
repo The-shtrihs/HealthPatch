@@ -1,9 +1,9 @@
-from src.gamification.domain.value_objects import WorkoutRewards
 from typing import Final
 
-_XP_PER_MINUTE: Final[float] = 2.0
-_XP_PER_50KG_VOLUME: Final[float] = 1.0  
+from src.gamification.domain.value_objects import WorkoutRewards
 
+_XP_PER_MINUTE: Final[float] = 2.0
+_XP_PER_50KG_VOLUME: Final[float] = 1.0
 
 
 def calculate_workout_rewards(

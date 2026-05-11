@@ -1,5 +1,5 @@
 from datetime import UTC, datetime, timedelta
-from unittest.mock import AsyncMock, MagicMock, call
+from unittest.mock import AsyncMock, MagicMock
 
 import jwt
 import pytest
@@ -19,13 +19,13 @@ from src.auth.application.commands import (
     VerifyEmailCommand,
 )
 from src.auth.application.handlers.change_password import ChangePasswordCommandHandler
+from src.auth.application.handlers.login import LoginCommandHandler
+from src.auth.application.handlers.refresh_token import RefreshTokenCommandHandler
+from src.auth.application.handlers.register import RegisterCommandHandler
 from src.auth.application.handlers.reset_password import (
     ForgotPasswordCommandHandler,
     ResetPasswordCommandHandler,
 )
-from src.auth.application.handlers.login import LoginCommandHandler
-from src.auth.application.handlers.refresh_token import RefreshTokenCommandHandler
-from src.auth.application.handlers.register import RegisterCommandHandler
 from src.auth.application.handlers.two_factor import (
     Confirm2FACommandHandler,
     Disable2FACommandHandler,
@@ -164,6 +164,7 @@ class TestPasswordUtils:
         h2 = _pw.hash("Secret123!")
         assert h1 != h2
 
+
 class TestTokenUtils:
     def test_create_and_decode_access_token(self, active_user):
         token = TokenUtils.create_access_token(active_user.id, active_user.email)
@@ -247,9 +248,7 @@ class TestRegisterCommandHandler:
         user_repo.get_by_email.return_value = active_user
 
         with pytest.raises(EmailAlreadyExistsError):
-            await handler.handle(
-                RegisterCommand(name="Name", email="dupe@example.com", password="Secret123!")
-            )
+            await handler.handle(RegisterCommand(name="Name", email="dupe@example.com", password="Secret123!"))
 
         user_repo.create.assert_not_called()
 
@@ -285,9 +284,7 @@ class TestRegisterCommandHandler:
         user_repo.get_by_email.return_value = active_user
 
         with pytest.raises(EmailAlreadyExistsError):
-            await handler.handle(
-                RegisterCommand(name="Name", email=active_user.email, password="Secret123!")
-            )
+            await handler.handle(RegisterCommand(name="Name", email=active_user.email, password="Secret123!"))
 
         event_bus.publish.assert_not_called()
 
@@ -379,6 +376,7 @@ class TestLoginCommandHandler:
         call_args = token_repo.create.call_args
         assert "Chrome/iPhone" in str(call_args)
 
+
 class TestRefreshTokenCommandHandler:
     @pytest.fixture
     def handler(self, user_repo, token_repo):
@@ -450,6 +448,7 @@ class TestRefreshTokenCommandHandler:
             await handler.handle(RefreshTokenCommand(refresh_token="valid_token"))
 
         token_repo.create.assert_not_called()
+
 
 class TestChangePasswordCommandHandler:
     @pytest.fixture
@@ -546,6 +545,7 @@ class TestForgotPasswordCommandHandler:
 
         await handler.handle(ForgotPasswordCommand(email="nobody@example.com"))
 
+
 class TestResetPasswordCommandHandler:
     @pytest.fixture
     def handler(self, user_repo, token_repo, mail_service):
@@ -577,9 +577,7 @@ class TestResetPasswordCommandHandler:
 
         await handler.handle(ResetPasswordCommand(token="valid_token", new_password="NewPass456!"))
 
-        mail_service.decode_email_token.assert_called_once_with(
-            "valid_token", expected_purpose="password_reset"
-        )
+        mail_service.decode_email_token.assert_called_once_with("valid_token", expected_purpose="password_reset")
 
     @pytest.mark.asyncio
     async def test_reset_password_invalid_token_raises(self, handler, mail_service):
@@ -615,6 +613,7 @@ class TestResetPasswordCommandHandler:
             await handler.handle(ResetPasswordCommand(token="valid_token", new_password="NewPass456!"))
 
         token_repo.revoke_all_for_user.assert_not_called()
+
 
 class TestEnable2FACommandHandler:
     @pytest.fixture
@@ -658,7 +657,6 @@ class TestEnable2FACommandHandler:
 
         with pytest.raises(UserNotFoundError):
             await handler.handle(Enable2FACommand(user_id=999))
-
 
 
 class TestConfirm2FACommandHandler:
@@ -750,6 +748,8 @@ class TestDisable2FACommandHandler:
 
         with pytest.raises(TwoFactorNotEnabledError):
             await handler.handle(Disable2FACommand(user_id=1, code="123456"))
+
+
 class TestVerify2FAAndLoginCommandHandler:
     @pytest.fixture
     def handler(self, user_repo, token_repo, totp_service):
@@ -802,7 +802,6 @@ class TestVerify2FAAndLoginCommandHandler:
             await handler.handle(Verify2FAAndLoginCommand(temp_token=access_token, code="123456"))
 
 
-
 class TestVerifyEmailCommandHandler:
     @pytest.fixture
     def handler(self, user_repo, mail_service):
@@ -829,9 +828,7 @@ class TestVerifyEmailCommandHandler:
 
         await handler.handle(VerifyEmailCommand(token="valid_token"))
 
-        mail_service.decode_email_token.assert_called_once_with(
-            "valid_token", expected_purpose="email_verify"
-        )
+        mail_service.decode_email_token.assert_called_once_with("valid_token", expected_purpose="email_verify")
 
     @pytest.mark.asyncio
     async def test_verify_email_already_verified_raises(self, handler, user_repo, mail_service, active_user):

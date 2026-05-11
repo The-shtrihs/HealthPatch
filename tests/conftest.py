@@ -1,9 +1,9 @@
 from unittest.mock import AsyncMock, MagicMock
-from sqlalchemy.ext.asyncio import async_sessionmaker
+
 import fakeredis.aioredis
 import pytest_asyncio
 from httpx import ASGITransport, AsyncClient
-from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
+from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 from sqlalchemy.pool import NullPool
 
 from src.auth.application.event_handlers import register_auth_event_handlers
@@ -11,12 +11,11 @@ from src.auth.presentation.dependencies import get_mail_service
 from src.core.base import Base
 from src.core.config import get_settings
 from src.core.database import get_session
+from src.core.dependencies import get_event_bus
 from src.core.main import app
 from src.core.redis import get_redis
-from src.core.dependencies import get_event_bus
 from src.gamification.application.event_handlers import register_gamification_handlers
 from src.shared.infrastructure.event_bus import EventBus
-
 
 settings = get_settings()
 
@@ -62,12 +61,13 @@ async def mock_mail_service():
     service.send_password_reset_email = AsyncMock()
     return service
 
+
 @pytest_asyncio.fixture
 async def fake_event_bus():
     bus = EventBus()
     register_gamification_handlers(bus, session_factory)
     register_auth_event_handlers(bus)
-    bus.arq_pool = AsyncMock()  
+    bus.arq_pool = AsyncMock()
     return bus
 
 
@@ -81,8 +81,8 @@ async def client(db_session: AsyncSession, fake_redis, mock_mail_service, fake_e
 
     async def override_get_mail_service():
         return mock_mail_service
-    
-    async def override_get_event_bus(): 
+
+    async def override_get_event_bus():
         return fake_event_bus
 
     app.dependency_overrides[get_session] = override_get_session
@@ -122,5 +122,3 @@ async def auth_headers(client: AsyncClient, registered_user, db_session) -> dict
     )
     token = resp.json()["access_token"]
     return {"Authorization": f"Bearer {token}"}
-
-

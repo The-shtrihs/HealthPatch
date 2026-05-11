@@ -1,16 +1,16 @@
-
 from pydantic.dataclasses import dataclass
 
 
 @dataclass(frozen=True)
 class LevelInfo:
     level: int
-    rank_tier: str       
+    rank_tier: str
     rank_name: str
     current_xp: int
-    xp_for_next_level: int | None   
-    xp_progress: int               
-    xp_needed: int | None           
+    xp_for_next_level: int | None
+    xp_progress: int
+    xp_needed: int | None
+
 
 @dataclass(frozen=True)
 class WorkoutRewards:
