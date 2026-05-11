@@ -6,6 +6,7 @@ Query handlers are covered by integration tests (they read SQL directly).
 """
 
 from datetime import UTC, datetime, timedelta
+from unittest.mock import AsyncMock
 
 import pytest
 
@@ -570,21 +571,24 @@ class TestWorkoutSessionCommands:
     async def test_end_session_ownership(self, uow, repo):
         start = datetime.now(UTC)
         s = await repo.create_session(user_id=1, plan_training_id=None, started_at=start)
+        bus_mock = AsyncMock()
         with pytest.raises(NotResourceOwnerError):
-            await EndSessionCommandHandler(uow).handle(EndSessionCommand(session_id=s.id, user_id=2))
+            await EndSessionCommandHandler(uow, bus_mock).handle(EndSessionCommand(session_id=s.id, user_id=2))
 
     async def test_end_session_conflict_when_already_ended(self, uow, repo):
         start = datetime.now(UTC)
         s = await repo.create_session(user_id=1, plan_training_id=None, started_at=start)
         s.end(at=start + timedelta(minutes=1))
         await repo.save_session(s)
+        bus_mock = AsyncMock()
         with pytest.raises(SessionAlreadyEndedError):
-            await EndSessionCommandHandler(uow).handle(EndSessionCommand(session_id=s.id, user_id=1))
+            await EndSessionCommandHandler(uow, bus_mock).handle(EndSessionCommand(session_id=s.id, user_id=1))
 
     async def test_end_session_returns_none(self, uow, repo):
         start = datetime.now(UTC)
         s = await repo.create_session(user_id=1, plan_training_id=None, started_at=start)
-        result = await EndSessionCommandHandler(uow).handle(EndSessionCommand(session_id=s.id, user_id=1))
+        bus_mock = AsyncMock()
+        result = await EndSessionCommandHandler(uow, bus_mock).handle(EndSessionCommand(session_id=s.id, user_id=1))
         assert result is None
 
     async def test_log_set_updates_personal_record(self, uow, repo):

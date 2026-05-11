@@ -42,9 +42,20 @@ services:
     depends_on:
       db:
         condition: service_healthy
+      redis:
+        condition: service_healthy
     volumes:
       - .:/app
       - /app/.venv
+  worker:
+    build: .
+    command: uv run arq src.workers.main_worker.WorkerSettings
+    depends_on:
+      - db
+      - redis
+    env_file:
+      - .env
+    
 volumes:
   pg_data:
   redis_data:

@@ -24,6 +24,7 @@ dependencies = [
     "redis[hiredis]>=7.4.0",
     "pytest>=9.0.2",
     "pytest-dotenv>=0.5.2",
+    "arq>=0.25.0",
 ]
 
 [tool.ruff]

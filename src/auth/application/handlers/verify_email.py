@@ -1,6 +1,8 @@
 from src.auth.application.commands import ResendVerificationCommand, VerifyEmailCommand
 from src.auth.domain.errors import UserNotFoundError
+from src.auth.domain.events import VerificationEmailRequestedEvent
 from src.auth.domain.interfaces import IMailService, IUserRepository
+from src.shared.infrastructure.event_bus_interface import IEventBus
 
 
 class VerifyEmailCommandHandler:
@@ -18,16 +20,13 @@ class VerifyEmailCommandHandler:
 
 
 class ResendVerificationCommandHandler:
-    def __init__(self, user_repo: IUserRepository, mail_service: IMailService):
+    def __init__(self, user_repo: IUserRepository, event_bus: IEventBus):
         self._user_repo = user_repo
-        self._mail = mail_service
+        self._event_bus = event_bus 
 
-    async def handle(self, cmd: ResendVerificationCommand, background_tasks) -> None:
+    async def handle(self, cmd: ResendVerificationCommand) -> None:
         user = await self._user_repo.get_by_email(cmd.email)
         if user and not user.is_verified:
-            background_tasks.add_task(
-                self._mail.send_verification_email,
-                user_id=user.id,
-                user_email=user.email,
-                name=user.name,
+            await self._event_bus.publish(
+                VerificationEmailRequestedEvent(user_id=user.id, email=user.email, name=user.name)
             )
