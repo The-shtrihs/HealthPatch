@@ -10,6 +10,7 @@ from src.core.base import Base, IsActiveMixin, TimestampMixin
 
 if TYPE_CHECKING:
     from src.models.activity import PersonalRecord, WorkoutPlan, WorkoutSession
+    from src.models.gamification import GamificationProfile
     from src.models.nutrition import DailyDiary
     from src.models.social import Bookmark, Comment, Like
 
@@ -51,6 +52,12 @@ class User(Base, TimestampMixin, IsActiveMixin):
     personal_records: Mapped[list["PersonalRecord"]] = relationship(back_populates="user", cascade="all, delete-orphan")
     daily_diaries: Mapped[list["DailyDiary"]] = relationship(back_populates="user", cascade="all, delete-orphan")
     refresh_tokens: Mapped[list["RefreshToken"]] = relationship(back_populates="user", cascade="all, delete-orphan")
+    gamification_profile: Mapped["GamificationProfile"] = relationship(
+        back_populates="user",
+        uselist=False,
+        cascade="all, delete-orphan",
+        lazy="noload",
+    )
 
 
 class UserProfile(Base):

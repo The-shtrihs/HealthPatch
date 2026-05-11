@@ -1,4 +1,4 @@
-from fastapi import APIRouter, BackgroundTasks, Depends, Request, status
+from fastapi import APIRouter, Depends, Request, status
 
 from src.auth.application.commands import (
     Confirm2FACommand,
@@ -62,11 +62,10 @@ router = APIRouter(prefix="/auth", tags=["Authentication"])
 @router.post("/register", status_code=status.HTTP_201_CREATED, response_model=MessageResponse)
 async def register(
     data: RegisterRequest,
-    background_tasks: BackgroundTasks,
     handler: RegisterCommandHandler = Depends(get_register_handler),
     _rl=Depends(make_rate_limiter(limit=DEFAULT_RATE_LIMIT, window=3600)),
 ):
-    await handler.handle(data.to_command(), background_tasks)
+    await handler.handle(data.to_command())
     return MessageResponse(message="User registered successfully. Please check your email to verify your account.")
 
 
@@ -122,22 +121,20 @@ async def change_password(
 @router.post("/forgot-password", response_model=MessageResponse)
 async def forgot_password(
     email: str,
-    background_tasks: BackgroundTasks,
     handler: ForgotPasswordCommandHandler = Depends(get_forgot_password_handler),
     _rl=Depends(make_rate_limiter(limit=3, window=3600)),
 ):
-    await handler.handle(ForgotPasswordCommand(email=email), background_tasks)
+    await handler.handle(ForgotPasswordCommand(email=email))
     return MessageResponse(message="If an account with that email exists, a password reset link has been sent")
 
 
 @router.post("/resend-verification-email", response_model=MessageResponse)
 async def resend_verification_email(
     email: str,
-    background_tasks: BackgroundTasks,
     handler: ResendVerificationCommandHandler = Depends(get_resend_verification_handler),
     _rl=Depends(make_rate_limiter(limit=3, window=3600)),
 ):
-    await handler.handle(ResendVerificationCommand(email=email), background_tasks)
+    await handler.handle(ResendVerificationCommand(email=email))
     return MessageResponse(message="If an account with that email exists and is not verified, a verification email has been resent")
 
 

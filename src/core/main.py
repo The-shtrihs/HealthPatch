@@ -6,14 +6,18 @@ from fastapi import FastAPI
 import src.core.redis as redis_module
 from src.activity.presentation.error_mapper import setup_activity_error_handlers
 from src.activity.presentation.routes import router as activity_router
+from src.auth.application.event_handlers import register_auth_event_handlers
 from src.auth.presentation.error_mapper import setup_auth_error_handlers
 from src.auth.presentation.oauth_routes import router as oauth_router
 from src.auth.presentation.routes import router as auth_router
 from src.core.config import get_settings
+from src.core.database import async_session_factory
 from src.core.exceptions import setup_exception_handlers
 from src.core.tasks.scheduler import scheduler, setup_scheduler
+from src.gamification.application.event_handlers import register_gamification_handlers
 from src.nutrition.presentation.error_mapper import setup_nutrition_error_handlers
 from src.nutrition.presentation.routers import router as nutrition_router
+from src.shared.infrastructure.event_bus import EventBus
 from src.user.presentation.routes import router as profile_router
 
 logging.basicConfig(level=logging.INFO)
@@ -26,17 +30,12 @@ async def lifespan(app: FastAPI):
     logger.info("Starting up the application...")
     setup_scheduler()
     scheduler.start()
-    redis_module._pool = redis_module.create_pool(
-        url=settings.redis_url,
-        max_connections=settings.redis_max_connections,
-    )
-    redis = redis_module.get_redis()
-    try:
-        pong = await redis.ping()
-        logger.info(f"Connected to Redis: {settings.redis_url}, ping response: {pong}")
-    except Exception as e:
-        logger.error(f"Failed to connect to Redis at {settings.redis_url}: {e}")
-        raise
+    await redis_module.register_redis(settings)
+    event_bus = EventBus()
+    await event_bus.start_arq(settings.redis_url)
+    register_gamification_handlers(event_bus, async_session_factory)
+    register_auth_event_handlers(event_bus)
+    app.state.event_bus = event_bus
     yield
     logger.info("Shutting down the application...")
     await redis_module.close_pool()

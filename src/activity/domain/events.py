@@ -78,6 +78,13 @@ class WorkoutPlanDeleted:
     author_id: int
 
 
+@dataclass(frozen=True)
+class WorkoutCompletedEvent:
+    user_id: int
+    duration_minutes: float | None
+    volume_kg: float
+
+
 ActivityEvent = (
     WorkoutSessionStarted
     | WorkoutSessionEnded
@@ -88,4 +95,5 @@ ActivityEvent = (
     | WorkoutPlanCreated
     | WorkoutPlanMadePublic
     | WorkoutPlanDeleted
+    | WorkoutCompletedEvent
 )

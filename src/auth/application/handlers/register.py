@@ -1,24 +1,24 @@
-from fastapi import BackgroundTasks
-
 from src.auth.application.commands import RegisterCommand
 from src.auth.application.token_utils import PasswordUtils
+from src.auth.domain.events import UserRegisteredEvent
 from src.auth.domain.factory import UserFactory
-from src.auth.domain.interfaces import IMailService, IUserRepository
+from src.auth.domain.interfaces import IUserRepository
+from src.shared.infrastructure.event_bus_interface import IEventBus
 
 
 class RegisterCommandHandler:
     def __init__(
         self,
         user_repo: IUserRepository,
-        mail_service: IMailService,
         password_utils: PasswordUtils,
+        event_bus: IEventBus,
     ):
         self._user_repo = user_repo
-        self._mail = mail_service
         self._pw = password_utils
+        self._event_bus = event_bus
         self._factory = UserFactory(user_repo)
 
-    async def handle(self, cmd: RegisterCommand, background_tasks: BackgroundTasks) -> None:
+    async def handle(self, cmd: RegisterCommand) -> None:
         user = await self._factory.create_regular(
             name=cmd.name,
             email=cmd.email,
@@ -29,9 +29,4 @@ class RegisterCommandHandler:
             email=user.email,
             password_hash=user.password_hash,
         )
-        background_tasks.add_task(
-            self._mail.send_verification_email,
-            user_id=saved.id,
-            user_email=saved.email,
-            name=saved.name,
-        )
+        await self._event_bus.publish(UserRegisteredEvent(user_id=saved.id, email=saved.email, name=saved.name))

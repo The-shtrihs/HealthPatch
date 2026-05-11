@@ -207,6 +207,13 @@ class WorkoutSessionDomain:
         if self.is_ended:
             raise SessionAlreadyEndedError(message or "Workout session has already ended")
 
+    def calculate_total_volume_kg(self) -> float:
+        total_volume = 0.0
+        for ex_session in self.exercise_sessions:
+            for workout_set in ex_session.sets:
+                total_volume += workout_set.reps.value * workout_set.weight.value
+        return round(total_volume, 2)
+
 
 @dataclass
 class PersonalRecordDomain:

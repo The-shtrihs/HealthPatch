@@ -3,19 +3,24 @@ from unittest.mock import AsyncMock, MagicMock
 import fakeredis.aioredis
 import pytest_asyncio
 from httpx import ASGITransport, AsyncClient
-from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
+from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 from sqlalchemy.pool import NullPool
 
+from src.auth.application.event_handlers import register_auth_event_handlers
 from src.auth.presentation.dependencies import get_mail_service
 from src.core.base import Base
 from src.core.config import get_settings
 from src.core.database import get_session
+from src.core.dependencies import get_event_bus
 from src.core.main import app
 from src.core.redis import get_redis
+from src.gamification.application.event_handlers import register_gamification_handlers
+from src.shared.infrastructure.event_bus import EventBus
 
 settings = get_settings()
 
 engine = create_async_engine(settings.database_url, poolclass=NullPool)
+session_factory = async_sessionmaker(bind=engine, expire_on_commit=False)
 
 
 @pytest_asyncio.fixture(scope="session", autouse=True)
@@ -58,7 +63,16 @@ async def mock_mail_service():
 
 
 @pytest_asyncio.fixture
-async def client(db_session: AsyncSession, fake_redis, mock_mail_service):
+async def fake_event_bus():
+    bus = EventBus()
+    register_gamification_handlers(bus, session_factory)
+    register_auth_event_handlers(bus)
+    bus.arq_pool = AsyncMock()
+    return bus
+
+
+@pytest_asyncio.fixture
+async def client(db_session: AsyncSession, fake_redis, mock_mail_service, fake_event_bus):
     async def override_get_session():
         yield db_session
 
@@ -68,10 +82,13 @@ async def client(db_session: AsyncSession, fake_redis, mock_mail_service):
     async def override_get_mail_service():
         return mock_mail_service
 
+    async def override_get_event_bus():
+        return fake_event_bus
+
     app.dependency_overrides[get_session] = override_get_session
     app.dependency_overrides[get_redis] = override_get_redis
     app.dependency_overrides[get_mail_service] = override_get_mail_service
-
+    app.dependency_overrides[get_event_bus] = override_get_event_bus
     async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
         yield ac
 

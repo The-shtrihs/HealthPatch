@@ -1,3 +1,5 @@
+from typing import Any
+
 from sqlalchemy.ext.asyncio import AsyncSession
 
 
@@ -6,6 +8,7 @@ class BaseUnitOfWork:
         self._session = session
         self._owns_transaction = False
         self._nested_transaction = None
+        self.events: list[Any] = []
 
     async def __aenter__(self):
         # Tests and some integration flows may provide a session that already has
@@ -22,6 +25,7 @@ class BaseUnitOfWork:
         if self._owns_transaction:
             if exc_type is not None:
                 await self._session.rollback()
+                self.events.clear()
             else:
                 await self._session.commit()
             return
@@ -31,6 +35,7 @@ class BaseUnitOfWork:
 
         if exc_type is not None:
             await self._nested_transaction.rollback()
+            self.events.clear()
         else:
             await self._nested_transaction.commit()
 

@@ -28,6 +28,7 @@ from src.activity.application.handlers.upsert_personal_record import UpsertPerso
 from src.activity.infrastructure.read_repository import SqlAlchemyActivityReadRepository
 from src.activity.infrastructure.unit_of_work import SqlAlchemyActivityUnitOfWork
 from src.core.database import get_session
+from src.core.dependencies import get_event_bus
 
 
 async def get_activity_uow(db: AsyncSession = Depends(get_session)) -> SqlAlchemyActivityUnitOfWork:
@@ -81,8 +82,8 @@ async def get_start_session_handler(uow=Depends(get_activity_uow)) -> StartSessi
     return StartSessionCommandHandler(uow)
 
 
-async def get_end_session_handler(uow=Depends(get_activity_uow)) -> EndSessionCommandHandler:
-    return EndSessionCommandHandler(uow)
+async def get_end_session_handler(uow=Depends(get_activity_uow), bus=Depends(get_event_bus)) -> EndSessionCommandHandler:
+    return EndSessionCommandHandler(uow, bus)
 
 
 async def get_add_exercise_to_session_handler(uow=Depends(get_activity_uow)) -> AddExerciseToSessionCommandHandler:
