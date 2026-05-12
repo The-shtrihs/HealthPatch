@@ -6,7 +6,12 @@ from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
 from src.activity.domain.events import WorkoutCompletedEvent
-from src.gamification.domain.xp_calculator import calculate_workout_rewards
+from src.gamification.domain.xp_calculator import (
+    calculate_daily_norm_xp,
+    calculate_meal_add_xp,
+    calculate_meal_update_xp,
+    calculate_workout_rewards,
+)
 from src.gamification.infrastructure.unit_of_work import GamificationUnitOfWork
 from src.models.gamification import GamificationProfile
 from src.models.nutrition import DailyDiary, Food, MealEntry
@@ -16,7 +21,6 @@ from src.models.user import UserProfile
 from src.nutrition.domain.calculations import calculate_daily_norm
 from src.nutrition.domain.events import MealEntryAddedEvent, MealEntryUpdatedEvent, DailyNormAchievedEvent
 from src.nutrition.domain.models import NutritionProfileDomain
-from src.nutrition.domain.xp_calculator import calculate_daily_norm_rewards, calculate_meal_add_rewards, calculate_meal_update_rewards
 from src.shared.infrastructure.event_bus_interface import IEventBus
 
 logger = logging.getLogger(__name__)
@@ -96,7 +100,7 @@ async def maybe_award_daily_norm_xp(session: AsyncSession, user_id: int, target_
         return
 
     if was_set:
-        profile.total_xp += calculate_daily_norm_rewards().total_xp
+        profile.total_xp += calculate_daily_norm_xp()
 
 
 def register_gamification_handlers(
@@ -126,8 +130,7 @@ def register_gamification_handlers(
                     .where(DailyDiary.user_id == event.user_id)
                     .where(DailyDiary.target_date == event.target_date)
                 )
-                reward = calculate_meal_add_rewards(int(meal_entry_count or 0))
-                profile.total_xp += reward.total_xp
+                profile.total_xp += calculate_meal_add_xp(int(meal_entry_count or 0))
 
     @bus.subscribe(MealEntryUpdatedEvent)
     async def on_meal_entry_updated(event: MealEntryUpdatedEvent) -> None:
@@ -144,7 +147,7 @@ def register_gamification_handlers(
                     profile = GamificationProfile(user_id=event.user_id)
                     await uow.profiles.add(profile)
 
-                profile.total_xp += calculate_meal_update_rewards().total_xp
+                profile.total_xp += calculate_meal_update_xp()
 
     @bus.subscribe(DailyNormAchievedEvent)
     async def on_daily_norm_achieved(event: DailyNormAchievedEvent) -> None:
@@ -191,7 +194,7 @@ def register_gamification_handlers(
                     return
 
                 if was_set:
-                    profile.total_xp += calculate_daily_norm_rewards().total_xp
+                    profile.total_xp += calculate_daily_norm_xp()
 
     @bus.subscribe(WorkoutCompletedEvent)
     async def on_workout_completed(event: WorkoutCompletedEvent) -> None:
