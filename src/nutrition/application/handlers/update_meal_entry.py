@@ -1,7 +1,7 @@
 from src.nutrition.application.commands import UpdateMealEntryCommand
-from src.nutrition.domain.errors import MealEntryNotFoundError
-from src.nutrition.domain.events import MealEntryUpdatedEvent, DailyNormAchievedEvent
 from src.nutrition.domain.calculations import calculate_daily_norm
+from src.nutrition.domain.errors import MealEntryNotFoundError
+from src.nutrition.domain.events import DailyNormAchievedEvent, MealEntryUpdatedEvent
 from src.nutrition.domain.interfaces import INutritionUnitOfWork
 from src.shared.application.dispatcher import dispatch_domain_events
 from src.shared.infrastructure.event_bus_interface import IEventBus

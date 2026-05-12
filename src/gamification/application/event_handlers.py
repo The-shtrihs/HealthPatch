@@ -1,10 +1,12 @@
 from __future__ import annotations
 
 import logging
+from datetime import UTC, datetime, time, timedelta
 
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
+import src.core.redis as redis_module
 from src.activity.domain.events import WorkoutCompletedEvent
 from src.gamification.domain.xp_calculator import (
     calculate_daily_norm_xp,
@@ -15,11 +17,9 @@ from src.gamification.domain.xp_calculator import (
 from src.gamification.infrastructure.unit_of_work import GamificationUnitOfWork
 from src.models.gamification import GamificationProfile
 from src.models.nutrition import DailyDiary, Food, MealEntry
-import src.core.redis as redis_module
-from datetime import datetime, time, timedelta, timezone
 from src.models.user import UserProfile
 from src.nutrition.domain.calculations import calculate_daily_norm
-from src.nutrition.domain.events import MealEntryAddedEvent, MealEntryUpdatedEvent, DailyNormAchievedEvent
+from src.nutrition.domain.events import DailyNormAchievedEvent, MealEntryAddedEvent, MealEntryUpdatedEvent
 from src.nutrition.domain.models import NutritionProfileDomain
 from src.shared.infrastructure.event_bus_interface import IEventBus
 
@@ -86,8 +86,8 @@ async def maybe_award_daily_norm_xp(session: AsyncSession, user_id: int, target_
             else:
                 date_part = target_date
 
-            next_midnight = datetime.combine(date_part, time.min, tzinfo=timezone.utc) + timedelta(days=1)
-            now = datetime.now(timezone.utc)
+            next_midnight = datetime.combine(date_part, time.min, tzinfo=UTC) + timedelta(days=1)
+            now = datetime.now(UTC)
             expiry_seconds = int((next_midnight - now).total_seconds())
             if expiry_seconds <= 0:
                 expiry_seconds = 60 * 60 * 24
@@ -180,8 +180,8 @@ def register_gamification_handlers(
                         else:
                             date_part = event.target_date
 
-                        next_midnight = datetime.combine(date_part, time.min, tzinfo=timezone.utc) + timedelta(days=1)
-                        now = datetime.now(timezone.utc)
+                        next_midnight = datetime.combine(date_part, time.min, tzinfo=UTC) + timedelta(days=1)
+                        now = datetime.now(UTC)
                         expiry_seconds = int((next_midnight - now).total_seconds())
                         if expiry_seconds <= 0:
                             expiry_seconds = 60 * 60 * 24

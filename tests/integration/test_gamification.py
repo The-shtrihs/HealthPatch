@@ -6,7 +6,6 @@ import pytest
 import src.gamification.application.event_handlers as event_handlers
 from src.gamification.application.event_handlers import register_gamification_handlers
 from src.gamification.domain.xp_calculator import calculate_daily_norm_xp
-from src.gamification.infrastructure.unit_of_work import GamificationUnitOfWork
 from src.models.gamification import GamificationProfile
 from src.nutrition.domain.events import DailyNormAchievedEvent, MealEntryAddedEvent
 from src.shared.infrastructure.event_bus import EventBus

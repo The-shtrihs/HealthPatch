@@ -1,27 +1,27 @@
 import logging
 
 from src.activity.domain.events import (
-    WorkoutCompletedEvent,
-    WorkoutSessionStarted,
-    WorkoutSessionEnded,
     ExerciseSessionAdded,
-    SetLogged,
     PersonalRecordBeaten,
     PersonalRecordUpserted,
+    SetLogged,
+    WorkoutCompletedEvent,
     WorkoutPlanCreated,
-    WorkoutPlanMadePublic,
     WorkoutPlanDeleted,
+    WorkoutPlanMadePublic,
+    WorkoutSessionEnded,
+    WorkoutSessionStarted,
 )
-from src.auth.domain.events import UserRegisteredEvent, PasswordResetRequestedEvent, VerificationEmailRequestedEvent
-from src.shared.infrastructure.notify_service import NotifyService
+from src.auth.domain.events import PasswordResetRequestedEvent, UserRegisteredEvent, VerificationEmailRequestedEvent
 from src.nutrition.domain.events import (
-    MealEntryAddedEvent,
-    MealEntryUpdatedEvent,
-    MealEntryDeletedEvent,
     DailyDiaryUpdatedEvent,
     DailyNormAchievedEvent,
+    MealEntryAddedEvent,
+    MealEntryDeletedEvent,
+    MealEntryUpdatedEvent,
 )
 from src.shared.infrastructure.event_bus_interface import IEventBus
+from src.shared.infrastructure.notify_service import NotifyService
 
 logger = logging.getLogger(__name__)
 
@@ -29,10 +29,10 @@ logger = logging.getLogger(__name__)
 def register_event_notification_handlers(bus: IEventBus, notify_service: NotifyService) -> None:
     """
     Register all event handlers for event notifications.
-    
+
     Subscribes to all domain events from nutrition, activity, and auth domains,
     routing them to the notify service for logging/delivery.
-    
+
     Args:
         bus: Event bus to subscribe to
         notify_service: Notification service implementation (logging, push, email, etc.)
