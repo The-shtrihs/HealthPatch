@@ -19,6 +19,7 @@ from src.nutrition.application.event_handlers import register_nutrition_event_ha
 from src.nutrition.presentation.error_mapper import setup_nutrition_error_handlers
 from src.nutrition.presentation.routers import router as nutrition_router
 from src.shared.infrastructure.event_bus import EventBus
+from src.shared.infrastructure.daily_claim_store import RedisDailyClaimStore
 from src.shared.infrastructure.event_notification_handlers import register_event_notification_handlers
 from src.shared.infrastructure.logging_notify_service import LoggingNotifyService
 from src.user.presentation.routes import router as profile_router
@@ -36,7 +37,7 @@ async def lifespan(app: FastAPI):
     await redis_module.register_redis(settings)
     event_bus = EventBus()
     await event_bus.start_arq(settings.redis_url)
-    register_gamification_handlers(event_bus, async_session_factory)
+    register_gamification_handlers(event_bus, async_session_factory, RedisDailyClaimStore())
     register_nutrition_event_handlers(event_bus)
     register_auth_event_handlers(event_bus)
     notify_service = LoggingNotifyService()

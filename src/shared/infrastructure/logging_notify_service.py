@@ -34,7 +34,7 @@ class LoggingNotifyService(NotifyService):
             event_data_str = str(event)
         
         logger.info(
-            "📬 Event: %s\n%s",
+            "Event: %s\n%s",
             event_type,
             event_data_str,
         )
