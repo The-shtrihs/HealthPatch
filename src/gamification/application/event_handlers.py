@@ -21,9 +21,8 @@ def register_gamification_handlers(
     @bus.subscribe(WorkoutCompletedEvent)
     async def on_workout_completed(event: WorkoutCompletedEvent) -> None:
         logger.info(
-            "Gamification ▸ WorkoutCompleted user_id=%d (%s, %d min, %.1f kg)",
+            "Gamification ▸ WorkoutCompleted user_id=%d (%d min, %.1f kg)",
             event.user_id,
-            event.activity_type,
             event.duration_minutes,
             event.volume_kg,
         )
@@ -37,7 +36,6 @@ def register_gamification_handlers(
                     logger.info("Gamification ▸ created profile user_id=%d", event.user_id)
 
                 rewards = calculate_workout_rewards(
-                    activity_type=event.activity_type,
                     duration_minutes=event.duration_minutes,
                     volume_kg=event.volume_kg,
                 )
