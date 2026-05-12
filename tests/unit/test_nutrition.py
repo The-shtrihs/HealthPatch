@@ -1,5 +1,5 @@
 from datetime import date
-from unittest.mock import AsyncMock
+from unittest.mock import AsyncMock, call
 
 import pytest
 
@@ -20,6 +20,7 @@ from src.nutrition.domain.errors import (
 from src.nutrition.domain.events import DailyDiaryUpdatedEvent, MealEntryAddedEvent, MealEntryDeletedEvent
 from src.nutrition.domain.interfaces import INutritionReadRepository, INutritionRepository
 from src.nutrition.domain.models import MacroTotalsDomain, NutritionProfileDomain
+from src.shared.infrastructure.event_bus_interface import IEventBus
 from src.user.domain.models import FitnessGoal, Gender
 
 
@@ -34,6 +35,11 @@ def read_repo() -> AsyncMock:
 
 
 @pytest.fixture
+def event_bus() -> AsyncMock:
+    return AsyncMock(spec=IEventBus)
+
+
+@pytest.fixture
 def uow(repo: AsyncMock) -> AsyncMock:
     uow = AsyncMock()
     uow.repo = repo
@@ -44,18 +50,18 @@ def uow(repo: AsyncMock) -> AsyncMock:
 
 
 @pytest.fixture
-def add_meal_entry_handler(uow: AsyncMock) -> AddMealEntryCommandHandler:
-    return AddMealEntryCommandHandler(uow)
+def add_meal_entry_handler(uow: AsyncMock, event_bus: AsyncMock) -> AddMealEntryCommandHandler:
+    return AddMealEntryCommandHandler(uow, event_bus)
 
 
 @pytest.fixture
-def delete_meal_entry_handler(uow: AsyncMock) -> DeleteMealEntryCommandHandler:
-    return DeleteMealEntryCommandHandler(uow)
+def delete_meal_entry_handler(uow: AsyncMock, event_bus: AsyncMock) -> DeleteMealEntryCommandHandler:
+    return DeleteMealEntryCommandHandler(uow, event_bus)
 
 
 @pytest.fixture
-def update_daily_diary_handler(uow: AsyncMock) -> UpdateDailyDiaryCommandHandler:
-    return UpdateDailyDiaryCommandHandler(uow)
+def update_daily_diary_handler(uow: AsyncMock, event_bus: AsyncMock) -> UpdateDailyDiaryCommandHandler:
+    return UpdateDailyDiaryCommandHandler(uow, event_bus)
 
 
 @pytest.fixture
@@ -145,7 +151,7 @@ async def test_add_meal_entry_happy_path(add_meal_entry_handler: AddMealEntryCom
 
     assert out == 123
     repo.add_meal_entry.assert_awaited_once_with(diary_id=99, food_id=10, meal_type="dinner", weight_grams=150.0)
-    assert add_meal_entry_handler._uow.events == [
+    add_meal_entry_handler._bus.publish.assert_awaited_once_with(
         MealEntryAddedEvent(
             user_id=1,
             diary_id=99,
@@ -155,7 +161,7 @@ async def test_add_meal_entry_happy_path(add_meal_entry_handler: AddMealEntryCom
             weight_grams=150.0,
             target_date=date(2026, 4, 7),
         )
-    ]
+    )
 
 
 @pytest.mark.asyncio
@@ -176,7 +182,9 @@ async def test_delete_meal_entry_happy_path(delete_meal_entry_handler: DeleteMea
     out = await delete_meal_entry_handler.handle(DeleteMealEntryCommand(user_id=1, meal_entry_id=404))
 
     assert out == 404
-    assert delete_meal_entry_handler._uow.events == [MealEntryDeletedEvent(user_id=1, meal_entry_id=404, target_date=date(2026, 4, 7))]
+    delete_meal_entry_handler._bus.publish.assert_awaited_once_with(
+        MealEntryDeletedEvent(user_id=1, meal_entry_id=404, target_date=date(2026, 4, 7))
+    )
 
 
 @pytest.mark.asyncio
@@ -193,7 +201,7 @@ async def test_update_daily_diary_happy_path(update_daily_diary_handler: UpdateD
     )
 
     assert out == 77
-    assert update_daily_diary_handler._uow.events == [
+    update_daily_diary_handler._bus.publish.assert_awaited_once_with(
         DailyDiaryUpdatedEvent(
             user_id=1,
             diary_id=77,
@@ -201,7 +209,7 @@ async def test_update_daily_diary_happy_path(update_daily_diary_handler: UpdateD
             water_ml=500,
             notes="good day",
         )
-    ]
+    )
 
 
 @pytest.mark.asyncio
