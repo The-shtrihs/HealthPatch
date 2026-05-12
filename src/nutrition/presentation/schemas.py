@@ -28,6 +28,16 @@ class AddMealEntryResponse(BaseModel):
     meal_entry_id: int
 
 
+class UpdateMealEntryRequest(BaseModel):
+    food_id: int = Field(gt=0)
+    meal_type: str = Field(min_length=1, max_length=20)
+    weight_grams: float = Field(gt=0)
+
+
+class UpdateMealEntryResponse(BaseModel):
+    meal_entry_id: int
+
+
 class UpdateDailyDiaryRequest(BaseModel):
     target_date: date
     water_ml: int | None = Field(default=None, ge=0)

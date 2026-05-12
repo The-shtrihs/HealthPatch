@@ -21,6 +21,9 @@ class INutritionRepository(INutritionReadRepository, ABC):
     async def add_meal_entry(self, diary_id: int, food_id: int, meal_type: str, weight_grams: float) -> int: ...
 
     @abstractmethod
+    async def update_meal_entry(self, user_id: int, meal_entry_id: int, food_id: int, meal_type: str, weight_grams: float) -> date | None: ...
+
+    @abstractmethod
     async def get_user_meal_entry_target_date(self, user_id: int, meal_entry_id: int) -> date | None: ...
 
     @abstractmethod

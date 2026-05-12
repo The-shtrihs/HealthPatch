@@ -18,6 +18,15 @@ class DeleteMealEntryCommand:
 
 
 @dataclass
+class UpdateMealEntryCommand:
+    user_id: int
+    meal_entry_id: int
+    food_id: int
+    meal_type: str
+    weight_grams: float
+
+
+@dataclass
 class UpdateDailyDiaryCommand:
     user_id: int
     target_date: date

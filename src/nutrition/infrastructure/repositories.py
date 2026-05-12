@@ -67,6 +67,25 @@ class SqlAlchemyNutritionRepository(INutritionRepository):
         await self._db.refresh(entry)
         return entry.id
 
+    async def update_meal_entry(self, user_id: int, meal_entry_id: int, food_id: int, meal_type: str, weight_grams: float) -> date | None:
+        stmt = (
+            select(MealEntry, DailyDiary.target_date)
+            .join(DailyDiary, DailyDiary.id == MealEntry.daily_diary_id)
+            .where(and_(MealEntry.id == meal_entry_id, DailyDiary.user_id == user_id))
+        )
+        result = await self._db.execute(stmt)
+        row = result.first()
+        if row is None:
+            return None
+
+        meal_entry, target_date = row
+        meal_entry.food_id = food_id
+        meal_entry.meal_type = meal_type
+        meal_entry.weight_grams = weight_grams
+
+        await self._db.flush()
+        return target_date
+
     async def get_user_meal_entry_target_date(self, user_id: int, meal_entry_id: int) -> date | None:
         stmt = (
             select(DailyDiary.target_date)

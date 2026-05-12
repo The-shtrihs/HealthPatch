@@ -15,6 +15,7 @@ from src.core.database import async_session_factory
 from src.core.exceptions import setup_exception_handlers
 from src.core.tasks.scheduler import scheduler, setup_scheduler
 from src.gamification.application.event_handlers import register_gamification_handlers
+from src.nutrition.application.event_handlers import register_nutrition_event_handlers
 from src.nutrition.presentation.error_mapper import setup_nutrition_error_handlers
 from src.nutrition.presentation.routers import router as nutrition_router
 from src.shared.infrastructure.event_bus import EventBus
@@ -34,6 +35,7 @@ async def lifespan(app: FastAPI):
     event_bus = EventBus()
     await event_bus.start_arq(settings.redis_url)
     register_gamification_handlers(event_bus, async_session_factory)
+    register_nutrition_event_handlers(event_bus)
     register_auth_event_handlers(event_bus)
     app.state.event_bus = event_bus
     yield
