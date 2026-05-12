@@ -1,5 +1,5 @@
 from datetime import date
-from unittest.mock import AsyncMock, call
+from unittest.mock import AsyncMock
 
 import pytest
 
@@ -182,9 +182,7 @@ async def test_delete_meal_entry_happy_path(delete_meal_entry_handler: DeleteMea
     out = await delete_meal_entry_handler.handle(DeleteMealEntryCommand(user_id=1, meal_entry_id=404))
 
     assert out == 404
-    delete_meal_entry_handler._bus.publish.assert_awaited_once_with(
-        MealEntryDeletedEvent(user_id=1, meal_entry_id=404, target_date=date(2026, 4, 7))
-    )
+    delete_meal_entry_handler._bus.publish.assert_awaited_once_with(MealEntryDeletedEvent(user_id=1, meal_entry_id=404, target_date=date(2026, 4, 7)))
 
 
 @pytest.mark.asyncio
