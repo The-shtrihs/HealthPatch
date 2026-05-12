@@ -1,6 +1,7 @@
 from src.nutrition.application.commands import UpdateMealEntryCommand
 from src.nutrition.domain.errors import MealEntryNotFoundError
-from src.nutrition.domain.events import MealEntryUpdatedEvent
+from src.nutrition.domain.events import MealEntryUpdatedEvent, DailyNormAchievedEvent
+from src.nutrition.domain.calculations import calculate_daily_norm
 from src.nutrition.domain.interfaces import INutritionUnitOfWork
 from src.shared.application.dispatcher import dispatch_domain_events
 from src.shared.infrastructure.event_bus_interface import IEventBus
@@ -37,6 +38,22 @@ class UpdateMealEntryCommandHandler:
                     target_date=target_date,
                 )
             )
+            try:
+                totals = await self._uow.repo.get_day_consumed_totals(command.user_id, target_date)
+                user_profile = await self._uow.repo.get_profile(command.user_id)
+                if user_profile is not None:
+                    norm = calculate_daily_norm(user_profile)
+                    if float(totals.calories) >= norm.calories:
+                        diary_id = await self._uow.repo.ensure_daily_diary(command.user_id, target_date)
+                        self._uow.events.append(
+                            DailyNormAchievedEvent(
+                                user_id=command.user_id,
+                                diary_id=diary_id,
+                                target_date=target_date,
+                            )
+                        )
+            except Exception:
+                pass
 
         await dispatch_domain_events(self._uow, self._bus)
         return command.meal_entry_id

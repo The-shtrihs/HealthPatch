@@ -1,7 +1,7 @@
 from datetime import UTC, datetime
 
 from src.nutrition.application.commands import AddMealEntryCommand
-from src.nutrition.domain.events import MealEntryAddedEvent
+from src.nutrition.domain.events import MealEntryAddedEvent, DailyNormAchievedEvent
 from src.nutrition.domain.interfaces import INutritionUnitOfWork
 from src.nutrition.domain.models import MealEntryCreateDomain
 from src.shared.application.dispatcher import dispatch_domain_events
@@ -49,5 +49,21 @@ class AddMealEntryCommandHandler:
                     target_date=day,
                 )
             )
+            try:
+                totals = await self._uow.repo.get_day_consumed_totals(command.user_id, day)
+                user_profile = await self._uow.repo.get_profile(command.user_id)
+                if user_profile is not None:
+                    from src.nutrition.domain.calculations import calculate_daily_norm
+                    norm = calculate_daily_norm(user_profile)
+                    if float(totals.calories) >= norm.calories:
+                        self._uow.events.append(
+                            DailyNormAchievedEvent(
+                                user_id=command.user_id,
+                                diary_id=diary_id,
+                                target_date=day,
+                            )
+                        )
+            except Exception:
+                pass
         await dispatch_domain_events(self._uow, self._bus)
         return meal_entry_id

@@ -38,5 +38,11 @@ class DailyDiaryUpdatedEvent:
     water_ml: int | None
     notes: str | None
 
+@dataclass(frozen=True)
+class DailyNormAchievedEvent:
+    user_id: int
+    diary_id: int
+    target_date: date
 
-NutritionEvent = MealEntryAddedEvent | MealEntryUpdatedEvent | MealEntryDeletedEvent | DailyDiaryUpdatedEvent
+
+NutritionEvent = MealEntryAddedEvent | MealEntryUpdatedEvent | MealEntryDeletedEvent | DailyDiaryUpdatedEvent | DailyNormAchievedEvent

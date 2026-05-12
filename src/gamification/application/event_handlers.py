@@ -14,7 +14,7 @@ import src.core.redis as redis_module
 from datetime import datetime, time, timedelta, timezone
 from src.models.user import UserProfile
 from src.nutrition.domain.calculations import calculate_daily_norm
-from src.nutrition.domain.events import MealEntryAddedEvent, MealEntryUpdatedEvent
+from src.nutrition.domain.events import MealEntryAddedEvent, MealEntryUpdatedEvent, DailyNormAchievedEvent
 from src.nutrition.domain.models import NutritionProfileDomain
 from src.nutrition.domain.xp_calculator import calculate_daily_norm_rewards, calculate_meal_add_rewards, calculate_meal_update_rewards
 from src.shared.infrastructure.event_bus_interface import IEventBus
@@ -23,7 +23,6 @@ logger = logging.getLogger(__name__)
 
 
 async def maybe_award_daily_norm_xp(session: AsyncSession, user_id: int, target_date, profile: GamificationProfile) -> None:
-    # Ensure there's a diary for the date
     diary = await session.scalar(
         select(DailyDiary).where(
             DailyDiary.user_id == user_id,
@@ -130,8 +129,6 @@ def register_gamification_handlers(
                 reward = calculate_meal_add_rewards(int(meal_entry_count or 0))
                 profile.total_xp += reward.total_xp
 
-                await maybe_award_daily_norm_xp(session, event.user_id, event.target_date, profile)
-
     @bus.subscribe(MealEntryUpdatedEvent)
     async def on_meal_entry_updated(event: MealEntryUpdatedEvent) -> None:
         logger.info(
@@ -148,7 +145,53 @@ def register_gamification_handlers(
                     await uow.profiles.add(profile)
 
                 profile.total_xp += calculate_meal_update_rewards().total_xp
-                await maybe_award_daily_norm_xp(session, event.user_id, event.target_date, profile)
+
+    @bus.subscribe(DailyNormAchievedEvent)
+    async def on_daily_norm_achieved(event: DailyNormAchievedEvent) -> None:
+        logger.info(
+            "Gamification ▸ DailyNormAchieved user_id=%d target_date=%s",
+            event.user_id,
+            event.target_date,
+        )
+
+        async with session_factory() as session:
+            async with GamificationUnitOfWork(session) as uow:
+                profile = await uow.profiles.get_by_user_id(event.user_id)
+                if profile is None:
+                    profile = GamificationProfile(user_id=event.user_id)
+                    await uow.profiles.add(profile)
+
+                try:
+                    redis = redis_module.get_redis()
+                except RuntimeError:
+                    logger.warning("Redis not available for daily-norm claim check; skipping award")
+                    return
+
+                key_date = getattr(event.target_date, "isoformat", lambda: str(event.target_date))()
+                key = f"daily_norm:{event.user_id}:{key_date}"
+
+                try:
+                    try:
+                        if hasattr(event.target_date, "date"):
+                            date_part = event.target_date.date() if isinstance(event.target_date, datetime) else event.target_date
+                        else:
+                            date_part = event.target_date
+
+                        next_midnight = datetime.combine(date_part, time.min, tzinfo=timezone.utc) + timedelta(days=1)
+                        now = datetime.now(timezone.utc)
+                        expiry_seconds = int((next_midnight - now).total_seconds())
+                        if expiry_seconds <= 0:
+                            expiry_seconds = 60 * 60 * 24
+                    except Exception:
+                        expiry_seconds = 60 * 60 * 24
+
+                    was_set = await redis.set(key, "1", nx=True, ex=expiry_seconds)
+                except Exception:
+                    logger.exception("Redis error while setting daily-norm claim key")
+                    return
+
+                if was_set:
+                    profile.total_xp += calculate_daily_norm_rewards().total_xp
 
     @bus.subscribe(WorkoutCompletedEvent)
     async def on_workout_completed(event: WorkoutCompletedEvent) -> None:
