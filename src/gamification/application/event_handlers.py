@@ -1,11 +1,7 @@
 from __future__ import annotations
 
 import logging
-<<<<<<< HEAD
 from datetime import datetime
-=======
-from datetime import UTC, datetime, time, timedelta
->>>>>>> origin/nutrition/xp
 
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
@@ -18,102 +14,13 @@ from src.gamification.domain.xp_calculator import (
     calculate_workout_rewards,
 )
 from src.gamification.infrastructure.unit_of_work import GamificationUnitOfWork
-<<<<<<< HEAD
 from src.nutrition.domain.events import MealEntryAddedEvent, MealEntryUpdatedEvent, DailyNormAchievedEvent
 from src.shared.infrastructure.daily_claim_store import DailyClaimStore, RedisDailyClaimStore
-=======
-from src.models.gamification import GamificationProfile
-from src.models.nutrition import DailyDiary, Food, MealEntry
-from src.models.user import UserProfile
-from src.nutrition.domain.calculations import calculate_daily_norm
-from src.nutrition.domain.events import DailyNormAchievedEvent, MealEntryAddedEvent, MealEntryUpdatedEvent
-from src.nutrition.domain.models import NutritionProfileDomain
->>>>>>> origin/nutrition/xp
 from src.shared.infrastructure.event_bus_interface import IEventBus
 
 logger = logging.getLogger(__name__)
 
 
-<<<<<<< HEAD
-=======
-async def maybe_award_daily_norm_xp(session: AsyncSession, user_id: int, target_date, profile: GamificationProfile) -> None:
-    diary = await session.scalar(
-        select(DailyDiary).where(
-            DailyDiary.user_id == user_id,
-            DailyDiary.target_date == target_date,
-        )
-    )
-    if diary is None:
-        return
-
-    user_profile = await session.scalar(select(UserProfile).where(UserProfile.user_id == user_id))
-    if user_profile is None:
-        return
-
-    nutrition_profile = NutritionProfileDomain(
-        age=user_profile.age,
-        weight=user_profile.weight,
-        height=user_profile.height,
-        gender=user_profile.gender,
-        fitness_goal=user_profile.fitness_goal,
-    )
-
-    try:
-        norm = calculate_daily_norm(nutrition_profile)
-    except Exception:
-        return
-
-    consumed = await session.scalar(
-        select(
-            func.coalesce(
-                func.sum(Food.calories_per_100g * (MealEntry.weight_grams / 100.0)),
-                0.0,
-            )
-        )
-        .select_from(DailyDiary)
-        .join(MealEntry, MealEntry.daily_diary_id == DailyDiary.id)
-        .join(Food, Food.id == MealEntry.food_id)
-        .where(DailyDiary.user_id == user_id)
-        .where(DailyDiary.target_date == target_date)
-    )
-    calories = float(consumed or 0.0)
-    if calories < norm.calories:
-        return
-
-    try:
-        redis = redis_module.get_redis()
-    except RuntimeError:
-        logger.warning("Redis not available for daily-norm claim check; skipping award")
-        return
-
-    key_date = getattr(target_date, "isoformat", lambda: str(target_date))()
-    key = f"daily_norm:{user_id}:{key_date}"
-
-    try:
-        try:
-            if hasattr(target_date, "date"):
-                date_part = target_date.date() if isinstance(target_date, datetime) else target_date
-            else:
-                date_part = target_date
-
-            next_midnight = datetime.combine(date_part, time.min, tzinfo=UTC) + timedelta(days=1)
-            now = datetime.now(UTC)
-            expiry_seconds = int((next_midnight - now).total_seconds())
-            if expiry_seconds <= 0:
-                expiry_seconds = 60 * 60 * 24
-        except Exception:
-            expiry_seconds = 60 * 60 * 24
-
-        was_set = await redis.set(key, "1", nx=True, ex=expiry_seconds)
-    except Exception:
-        logger.exception("Redis error while setting daily-norm claim key")
-        return
-
-    if was_set:
-        profile.total_xp += calculate_daily_norm_xp()
-
-
->>>>>>> origin/nutrition/xp
 def register_gamification_handlers(
     bus: IEventBus,
     session_factory: async_sessionmaker[AsyncSession],
@@ -167,29 +74,6 @@ def register_gamification_handlers(
                 except RuntimeError:
                     logger.warning("Redis not available for daily-norm claim check; skipping award")
                     return
-<<<<<<< HEAD
-=======
-
-                key_date = getattr(event.target_date, "isoformat", lambda: str(event.target_date))()
-                key = f"daily_norm:{event.user_id}:{key_date}"
-
-                try:
-                    try:
-                        if hasattr(event.target_date, "date"):
-                            date_part = event.target_date.date() if isinstance(event.target_date, datetime) else event.target_date
-                        else:
-                            date_part = event.target_date
-
-                        next_midnight = datetime.combine(date_part, time.min, tzinfo=UTC) + timedelta(days=1)
-                        now = datetime.now(UTC)
-                        expiry_seconds = int((next_midnight - now).total_seconds())
-                        if expiry_seconds <= 0:
-                            expiry_seconds = 60 * 60 * 24
-                    except Exception:
-                        expiry_seconds = 60 * 60 * 24
-
-                    was_set = await redis.set(key, "1", nx=True, ex=expiry_seconds)
->>>>>>> origin/nutrition/xp
                 except Exception:
                     logger.exception("Daily claim store error while setting daily-norm claim key")
                     return
