@@ -19,6 +19,8 @@ from src.nutrition.application.event_handlers import register_nutrition_event_ha
 from src.nutrition.presentation.error_mapper import setup_nutrition_error_handlers
 from src.nutrition.presentation.routers import router as nutrition_router
 from src.shared.infrastructure.event_bus import EventBus
+from src.shared.infrastructure.event_notification_handlers import register_event_notification_handlers
+from src.shared.infrastructure.logging_notify_service import LoggingNotifyService
 from src.user.presentation.routes import router as profile_router
 
 logging.basicConfig(level=logging.INFO)
@@ -37,6 +39,8 @@ async def lifespan(app: FastAPI):
     register_gamification_handlers(event_bus, async_session_factory)
     register_nutrition_event_handlers(event_bus)
     register_auth_event_handlers(event_bus)
+    notify_service = LoggingNotifyService()
+    register_event_notification_handlers(event_bus, notify_service)
     app.state.event_bus = event_bus
     yield
     logger.info("Shutting down the application...")
