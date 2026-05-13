@@ -120,7 +120,6 @@ class TestActivityEventHandlers:
         await bus.publish(event)  # no handler registered — should be silent
 
 
-
 @pytest.mark.asyncio
 class TestLogSetDispatchesEvents:
     """Verifies that LogSetCommandHandler now dispatches SetLogged and PersonalRecordBeaten."""

@@ -327,6 +327,7 @@ def repo() -> FakeActivityRepository:
 def uow(repo) -> FakeUnitOfWork:
     return FakeUnitOfWork(repo)
 
+
 @pytest.fixture
 def bus() -> InMemoryEventBus:
     b = InMemoryEventBus()
