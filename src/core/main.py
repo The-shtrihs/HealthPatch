@@ -18,8 +18,8 @@ from src.gamification.application.event_handlers import register_gamification_ha
 from src.nutrition.application.event_handlers import register_nutrition_event_handlers
 from src.nutrition.presentation.error_mapper import setup_nutrition_error_handlers
 from src.nutrition.presentation.routers import router as nutrition_router
-from src.shared.infrastructure.event_bus import EventBus
 from src.shared.infrastructure.daily_claim_store import RedisDailyClaimStore
+from src.shared.infrastructure.event_bus import EventBus
 from src.shared.infrastructure.event_notification_handlers import register_event_notification_handlers
 from src.shared.infrastructure.logging_notify_service import LoggingNotifyService
 from src.user.presentation.routes import router as profile_router

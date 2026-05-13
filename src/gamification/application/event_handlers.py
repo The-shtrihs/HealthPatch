@@ -1,11 +1,9 @@
 from __future__ import annotations
 
 import logging
-from datetime import datetime
 
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
-import src.core.redis as redis_module
 from src.activity.domain.events import WorkoutCompletedEvent
 from src.gamification.domain.xp_calculator import (
     calculate_daily_norm_xp,
@@ -14,7 +12,7 @@ from src.gamification.domain.xp_calculator import (
     calculate_workout_rewards,
 )
 from src.gamification.infrastructure.unit_of_work import GamificationUnitOfWork
-from src.nutrition.domain.events import MealEntryAddedEvent, MealEntryUpdatedEvent, DailyNormAchievedEvent
+from src.nutrition.domain.events import DailyNormAchievedEvent, MealEntryAddedEvent, MealEntryUpdatedEvent
 from src.shared.infrastructure.daily_claim_store import DailyClaimStore, RedisDailyClaimStore
 from src.shared.infrastructure.event_bus_interface import IEventBus
 

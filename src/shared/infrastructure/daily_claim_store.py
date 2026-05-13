@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from datetime import datetime, time, timedelta, timezone
+from datetime import UTC, datetime, time, timedelta
 
 import src.core.redis as redis_module
 
@@ -24,8 +24,8 @@ class RedisDailyClaimStore(DailyClaimStore):
             else:
                 date_part = target_date
 
-            next_midnight = datetime.combine(date_part, time.min, tzinfo=timezone.utc) + timedelta(days=1)
-            now = datetime.now(timezone.utc)
+            next_midnight = datetime.combine(date_part, time.min, tzinfo=UTC) + timedelta(days=1)
+            now = datetime.now(UTC)
             expiry_seconds = int((next_midnight - now).total_seconds())
             if expiry_seconds <= 0:
                 expiry_seconds = 60 * 60 * 24
