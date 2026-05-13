@@ -11,11 +11,12 @@ from src.activity.domain.events import (
     WorkoutSessionStarted,
 )
 from src.shared.infrastructure.event_bus_interface import IEventBus
+from src.shared.infrastructure.notify_service import NotifyService
 
 logger = logging.getLogger(__name__)
 
 
-def register_activity_event_handlers(bus: IEventBus) -> None:
+def register_activity_event_handlers(bus: IEventBus, notify_service: NotifyService) -> None:
 
     @bus.subscribe(WorkoutSessionStarted)
     async def on_session_started(event: WorkoutSessionStarted) -> None:
@@ -26,6 +27,7 @@ def register_activity_event_handlers(bus: IEventBus) -> None:
             event.plan_training_id,
             event.started_at.isoformat(),
         )
+        notify_service.notify(event)
 
     @bus.subscribe(WorkoutSessionEnded)
     async def on_session_ended(event: WorkoutSessionEnded) -> None:
@@ -36,6 +38,7 @@ def register_activity_event_handlers(bus: IEventBus) -> None:
             event.duration_minutes,
             event.ended_at.isoformat(),
         )
+        notify_service.notify(event)
 
     @bus.subscribe(PersonalRecordBeaten)
     async def on_personal_record_beaten(event: PersonalRecordBeaten) -> None:
@@ -46,6 +49,7 @@ def register_activity_event_handlers(bus: IEventBus) -> None:
             event.new_weight_kg,
             event.previous_weight_kg,
         )
+        notify_service.notify(event)
 
     @bus.subscribe(WorkoutPlanCreated)
     async def on_plan_created(event: WorkoutPlanCreated) -> None:
@@ -56,6 +60,7 @@ def register_activity_event_handlers(bus: IEventBus) -> None:
             event.title,
             event.is_public,
         )
+        notify_service.notify(event)
 
     @bus.subscribe(WorkoutPlanMadePublic)
     async def on_plan_made_public(event: WorkoutPlanMadePublic) -> None:
@@ -65,6 +70,7 @@ def register_activity_event_handlers(bus: IEventBus) -> None:
             event.author_id,
             event.title,
         )
+        notify_service.notify(event)
 
     @bus.subscribe(WorkoutPlanDeleted)
     async def on_plan_deleted(event: WorkoutPlanDeleted) -> None:
@@ -73,3 +79,4 @@ def register_activity_event_handlers(bus: IEventBus) -> None:
             event.plan_id,
             event.author_id,
         )
+        notify_service.notify(event)

@@ -42,7 +42,7 @@ async def lifespan(app: FastAPI):
     register_gamification_handlers(event_bus, async_session_factory, RedisDailyClaimStore())
     register_nutrition_event_handlers(event_bus)
     register_auth_event_handlers(event_bus)
-    register_activity_event_handlers(event_bus)
+    register_activity_event_handlers(event_bus, notify_service)
     register_event_notification_handlers(event_bus, notify_service)
     app.state.event_bus = event_bus
     yield
