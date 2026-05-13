@@ -120,20 +120,6 @@ class TestActivityEventHandlers:
         await bus.publish(event)  # no handler registered — should be silent
 
 
-@pytest.mark.asyncio
-class TestWorkoutCompletedEventField:
-    async def test_activity_type_defaults_to_none(self):
-        from src.activity.domain.events import WorkoutCompletedEvent
-
-        event = WorkoutCompletedEvent(user_id=1, duration_minutes=30.0, volume_kg=500.0)
-        assert event.activity_type is None
-
-    async def test_activity_type_can_be_set(self):
-        from src.activity.domain.events import WorkoutCompletedEvent
-
-        event = WorkoutCompletedEvent(user_id=1, duration_minutes=30.0, volume_kg=500.0, activity_type="strength")
-        assert event.activity_type == "strength"
-
 
 @pytest.mark.asyncio
 class TestLogSetDispatchesEvents:

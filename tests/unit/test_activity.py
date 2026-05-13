@@ -26,6 +26,7 @@ from src.activity.application.commands import (
     UpdateWorkoutPlanCommand,
     UpsertPersonalRecordCommand,
 )
+from src.activity.application.event_handlers import register_activity_event_handlers
 from src.activity.application.handlers.add_exercise_to_session import AddExerciseToSessionCommandHandler
 from src.activity.application.handlers.add_training import AddTrainingCommandHandler
 from src.activity.application.handlers.create_exercise import CreateExerciseCommandHandler
@@ -77,6 +78,7 @@ from src.activity.domain.models import (
     WorkoutSessionDomain,
     WorkoutSetDomain,
 )
+from src.shared.infrastructure.in_memory_event_bus import InMemoryEventBus
 
 
 class FakeActivityRepository(IActivityRepository):
@@ -324,6 +326,12 @@ def repo() -> FakeActivityRepository:
 @pytest.fixture
 def uow(repo) -> FakeUnitOfWork:
     return FakeUnitOfWork(repo)
+
+@pytest.fixture
+def bus() -> InMemoryEventBus:
+    b = InMemoryEventBus()
+    register_activity_event_handlers(b)
+    return b
 
 
 class TestValueObjects:
@@ -591,12 +599,12 @@ class TestWorkoutSessionCommands:
         result = await EndSessionCommandHandler(uow, bus_mock).handle(EndSessionCommand(session_id=s.id, user_id=1))
         assert result is None
 
-    async def test_log_set_updates_personal_record(self, uow, repo):
+    async def test_log_set_updates_personal_record(self, uow, repo, bus):
         _, ex = await _seed_user_and_exercise(repo)
         start = datetime.now(UTC)
         sess = await repo.create_session(user_id=1, plan_training_id=None, started_at=start)
         es = await repo.add_exercise_to_session(workout_session_id=sess.id, exercise_id=ex.id, order_num=1, is_from_template=False)
-        await LogSetCommandHandler(uow).handle(
+        await LogSetCommandHandler(uow, bus).handle(
             LogSetCommand(
                 session_id=sess.id,
                 exercise_session_id=es.id,
