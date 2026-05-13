@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod
 from typing import Any
 
 
-class NotifyService(ABC):
+class INotifyService(ABC):
     """
     Abstract base for notification services.
 
@@ -16,11 +16,4 @@ class NotifyService(ABC):
     """
 
     @abstractmethod
-    async def notify(self, event: Any) -> None:
-        """
-        Notify/log the event.
-
-        Args:
-            event: Domain event to notify about (e.g., MealEntryAddedEvent, WorkoutCompletedEvent)
-        """
-        pass
+    def notify(self, event: Any) -> None: ...

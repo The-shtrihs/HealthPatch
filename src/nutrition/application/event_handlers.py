@@ -4,12 +4,12 @@ import logging
 
 from src.nutrition.domain.events import DailyDiaryUpdatedEvent, MealEntryAddedEvent, MealEntryDeletedEvent, MealEntryUpdatedEvent
 from src.shared.infrastructure.event_bus_interface import IEventBus
-from src.shared.infrastructure.notify_service import NotifyService
+from src.shared.infrastructure.notify_service import INotifyService
 
 logger = logging.getLogger(__name__)
 
 
-def register_nutrition_event_handlers(bus: IEventBus, notify_service: NotifyService) -> None:
+def register_nutrition_event_handlers(bus: IEventBus, notify_service: INotifyService) -> None:
     @bus.subscribe(MealEntryAddedEvent)
     async def on_meal_entry_added(event: MealEntryAddedEvent) -> None:
         logger.info(

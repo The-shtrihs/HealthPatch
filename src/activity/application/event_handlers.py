@@ -11,12 +11,12 @@ from src.activity.domain.events import (
     WorkoutSessionStarted,
 )
 from src.shared.infrastructure.event_bus_interface import IEventBus
-from src.shared.infrastructure.notify_service import NotifyService
+from src.shared.infrastructure.notify_service import INotifyService
 
 logger = logging.getLogger(__name__)
 
 
-def register_activity_event_handlers(bus: IEventBus, notify_service: NotifyService) -> None:
+def register_activity_event_handlers(bus: IEventBus, notify_service: INotifyService) -> None:
 
     @bus.subscribe(WorkoutSessionStarted)
     async def on_session_started(event: WorkoutSessionStarted) -> None:

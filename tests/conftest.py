@@ -6,6 +6,7 @@ from httpx import ASGITransport, AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 from sqlalchemy.pool import NullPool
 
+from src.activity.application.event_handlers import register_activity_event_handlers
 from src.auth.application.event_handlers import register_auth_event_handlers
 from src.auth.presentation.dependencies import get_mail_service
 from src.core.base import Base
@@ -15,7 +16,10 @@ from src.core.dependencies import get_event_bus
 from src.core.main import app
 from src.core.redis import get_redis
 from src.gamification.application.event_handlers import register_gamification_handlers
+from src.nutrition.application.event_handlers import register_nutrition_event_handlers
+from src.shared.infrastructure.daily_claim_store import DailyClaimStore
 from src.shared.infrastructure.event_bus import EventBus
+from src.shared.infrastructure.logging_notify_service import LoggingNotifyService
 
 settings = get_settings()
 
@@ -62,11 +66,19 @@ async def mock_mail_service():
     return service
 
 
+class FakeDailyClaimStore(DailyClaimStore):
+    async def try_claim(self, user_id: int, target_date) -> bool:
+        return True
+
+
 @pytest_asyncio.fixture
 async def fake_event_bus():
     bus = EventBus()
-    register_gamification_handlers(bus, session_factory)
-    register_auth_event_handlers(bus)
+    notify_service = LoggingNotifyService()
+    register_gamification_handlers(bus, session_factory, FakeDailyClaimStore())
+    register_nutrition_event_handlers(bus, notify_service)
+    register_auth_event_handlers(bus, notify_service)
+    register_activity_event_handlers(bus, notify_service)
     bus.arq_pool = AsyncMock()
     return bus
 

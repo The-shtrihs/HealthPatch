@@ -17,18 +17,19 @@ from src.activity.domain.events import (
     WorkoutSessionStarted,
 )
 from src.shared.infrastructure.in_memory_event_bus import InMemoryEventBus
+from src.shared.infrastructure.logging_notify_service import LoggingNotifyService
 
 
 @pytest.fixture
 def bus() -> InMemoryEventBus:
     b = InMemoryEventBus()
-    register_activity_event_handlers(b)
+    register_activity_event_handlers(b, LoggingNotifyService())
     return b
 
 
 @pytest.mark.asyncio
 class TestActivityEventHandlers:
-    async def test_session_started_is_logged(self, bus: InMemoryEventBus, caplog):
+    async def test_session_started_is_logged(self, bus, caplog):
         event = WorkoutSessionStarted(
             session_id=1,
             user_id=42,
@@ -41,7 +42,7 @@ class TestActivityEventHandlers:
         assert "session_id=1" in caplog.text
         assert "user_id=42" in caplog.text
 
-    async def test_session_ended_is_logged(self, bus: InMemoryEventBus, caplog):
+    async def test_session_ended_is_logged(self, bus, caplog):
         event = WorkoutSessionEnded(
             session_id=2,
             user_id=42,
@@ -54,7 +55,7 @@ class TestActivityEventHandlers:
         assert "session_id=2" in caplog.text
         assert "duration_minutes=60.0" in caplog.text
 
-    async def test_personal_record_beaten_first_record_logged(self, bus: InMemoryEventBus, caplog):
+    async def test_personal_record_beaten_first_record_logged(self, bus, caplog):
         event = PersonalRecordBeaten(
             user_id=42,
             exercise_id=7,
@@ -68,7 +69,7 @@ class TestActivityEventHandlers:
         assert "user_id=42" in caplog.text
         assert "100.00" in caplog.text
 
-    async def test_personal_record_beaten_improvement_logged(self, bus: InMemoryEventBus, caplog):
+    async def test_personal_record_beaten_improvement_logged(self, bus, caplog):
         event = PersonalRecordBeaten(
             user_id=42,
             exercise_id=7,
@@ -81,7 +82,7 @@ class TestActivityEventHandlers:
         assert "120.00" in caplog.text
         assert "100.0" in caplog.text
 
-    async def test_plan_created_is_logged(self, bus: InMemoryEventBus, caplog):
+    async def test_plan_created_is_logged(self, bus, caplog):
         event = WorkoutPlanCreated(plan_id=5, author_id=42, title="Push/Pull/Legs", is_public=True)
         with caplog.at_level("INFO"):
             await bus.publish(event)
@@ -89,14 +90,14 @@ class TestActivityEventHandlers:
         assert "plan_id=5" in caplog.text
         assert "Push/Pull/Legs" in caplog.text
 
-    async def test_plan_made_public_is_logged(self, bus: InMemoryEventBus, caplog):
+    async def test_plan_made_public_is_logged(self, bus, caplog):
         event = WorkoutPlanMadePublic(plan_id=5, author_id=42, title="Push/Pull/Legs")
         with caplog.at_level("INFO"):
             await bus.publish(event)
         assert "PlanMadePublic" in caplog.text
         assert "plan_id=5" in caplog.text
 
-    async def test_plan_deleted_is_logged(self, bus: InMemoryEventBus, caplog):
+    async def test_plan_deleted_is_logged(self, bus, caplog):
         event = WorkoutPlanDeleted(plan_id=5, author_id=42)
         with caplog.at_level("INFO"):
             await bus.publish(event)

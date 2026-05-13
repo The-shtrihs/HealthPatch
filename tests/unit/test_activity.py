@@ -79,6 +79,7 @@ from src.activity.domain.models import (
     WorkoutSetDomain,
 )
 from src.shared.infrastructure.in_memory_event_bus import InMemoryEventBus
+from src.shared.infrastructure.logging_notify_service import LoggingNotifyService
 
 
 class FakeActivityRepository(IActivityRepository):
@@ -331,7 +332,7 @@ def uow(repo) -> FakeUnitOfWork:
 @pytest.fixture
 def bus() -> InMemoryEventBus:
     b = InMemoryEventBus()
-    register_activity_event_handlers(b)
+    register_activity_event_handlers(b, LoggingNotifyService())
     return b
 
 
