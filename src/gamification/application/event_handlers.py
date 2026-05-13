@@ -24,7 +24,7 @@ def register_gamification_handlers(
             "Gamification ▸ WorkoutCompleted user_id=%d (%s, %d min, %.1f kg)",
             event.user_id,
             event.activity_type,
-            event.duration_minutes,
+            event.duration_minutes or 0,
             event.volume_kg,
         )
 
@@ -34,19 +34,18 @@ def register_gamification_handlers(
                 if profile is None:
                     profile = GamificationProfile(user_id=event.user_id)
                     await uow.profiles.add(profile)
-                    logger.info("Gamification ▸ created profile user_id=%d", event.user_id)
+                    logger.info("Gamification | created profile user_id=%d", event.user_id)
 
                 rewards = calculate_workout_rewards(
-                    activity_type=event.activity_type,
-                    duration_minutes=event.duration_minutes,
+                    duration_minutes=int(event.duration_minutes or 0),
                     volume_kg=event.volume_kg,
                 )
 
                 profile.total_xp += rewards.total_xp
 
-            logger.info(
-                "Gamification ▸ user_id=%d +%d XP → total %d XP",
-                event.user_id,
-                rewards.total_xp,
-                profile.total_xp,
-            )
+        logger.info(
+            "Gamification | user_id=%d +%d XP -> total %d XP",
+            event.user_id,
+            rewards.total_xp,
+            profile.total_xp,
+        )
