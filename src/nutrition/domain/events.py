@@ -14,6 +14,16 @@ class MealEntryAddedEvent:
 
 
 @dataclass(frozen=True)
+class MealEntryUpdatedEvent:
+    user_id: int
+    meal_entry_id: int
+    food_id: int
+    meal_type: str
+    weight_grams: float
+    target_date: date
+
+
+@dataclass(frozen=True)
 class MealEntryDeletedEvent:
     user_id: int
     meal_entry_id: int
@@ -29,4 +39,11 @@ class DailyDiaryUpdatedEvent:
     notes: str | None
 
 
-NutritionEvent = MealEntryAddedEvent | MealEntryDeletedEvent | DailyDiaryUpdatedEvent
+@dataclass(frozen=True)
+class DailyNormAchievedEvent:
+    user_id: int
+    diary_id: int
+    target_date: date
+
+
+NutritionEvent = MealEntryAddedEvent | MealEntryUpdatedEvent | MealEntryDeletedEvent | DailyDiaryUpdatedEvent | DailyNormAchievedEvent

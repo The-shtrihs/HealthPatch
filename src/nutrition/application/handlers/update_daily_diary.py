@@ -1,11 +1,14 @@
 from src.nutrition.application.commands import UpdateDailyDiaryCommand
 from src.nutrition.domain.events import DailyDiaryUpdatedEvent
 from src.nutrition.domain.interfaces import INutritionUnitOfWork
+from src.shared.application.dispatcher import dispatch_domain_events
+from src.shared.infrastructure.event_bus_interface import IEventBus
 
 
 class UpdateDailyDiaryCommandHandler:
-    def __init__(self, uow: INutritionUnitOfWork):
+    def __init__(self, uow: INutritionUnitOfWork, bus: IEventBus):
         self._uow = uow
+        self._bus = bus
 
     async def handle(self, command: UpdateDailyDiaryCommand) -> int:
         async with self._uow:
@@ -25,4 +28,5 @@ class UpdateDailyDiaryCommandHandler:
                     notes=command.notes,
                 )
             )
+        await dispatch_domain_events(self._uow, self._bus)
         return diary_id
