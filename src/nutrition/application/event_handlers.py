@@ -2,14 +2,21 @@ from __future__ import annotations
 
 import logging
 
+from src.nutrition.application.audit_service import INutritionAuditService
 from src.nutrition.domain.events import DailyDiaryUpdatedEvent, MealEntryAddedEvent, MealEntryDeletedEvent, MealEntryUpdatedEvent
 from src.shared.infrastructure.event_bus_interface import IEventBus
-from src.shared.infrastructure.notify_service import INotifyService
 
 logger = logging.getLogger(__name__)
 
 
-def register_nutrition_event_handlers(bus: IEventBus, notify_service: INotifyService) -> None:
+def register_nutrition_event_handlers(bus: IEventBus, audit_service: INutritionAuditService) -> None:
+    """Asynchronous audit path for the nutrition domain.
+
+    Each subscriber forwards an immutable past-tense diary event to the audit
+    service. Handlers are independent of the command handler that emitted the
+    event, so a slow audit sink cannot delay the HTTP response.
+    """
+
     @bus.subscribe(MealEntryAddedEvent)
     async def on_meal_entry_added(event: MealEntryAddedEvent) -> None:
         logger.info(
@@ -19,7 +26,7 @@ def register_nutrition_event_handlers(bus: IEventBus, notify_service: INotifySer
             event.meal_entry_id,
             event.target_date,
         )
-        notify_service.notify(event)
+        await audit_service.record(event)
 
     @bus.subscribe(MealEntryUpdatedEvent)
     async def on_meal_entry_updated(event: MealEntryUpdatedEvent) -> None:
@@ -29,7 +36,7 @@ def register_nutrition_event_handlers(bus: IEventBus, notify_service: INotifySer
             event.meal_entry_id,
             event.target_date,
         )
-        notify_service.notify(event)
+        await audit_service.record(event)
 
     @bus.subscribe(MealEntryDeletedEvent)
     async def on_meal_entry_deleted(event: MealEntryDeletedEvent) -> None:
@@ -39,7 +46,7 @@ def register_nutrition_event_handlers(bus: IEventBus, notify_service: INotifySer
             event.meal_entry_id,
             event.target_date,
         )
-        notify_service.notify(event)
+        await audit_service.record(event)
 
     @bus.subscribe(DailyDiaryUpdatedEvent)
     async def on_daily_diary_updated(event: DailyDiaryUpdatedEvent) -> None:
@@ -49,4 +56,4 @@ def register_nutrition_event_handlers(bus: IEventBus, notify_service: INotifySer
             event.diary_id,
             event.target_date,
         )
-        notify_service.notify(event)
+        await audit_service.record(event)

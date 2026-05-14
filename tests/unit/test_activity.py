@@ -1,10 +1,3 @@
-"""Unit tests for the activity domain.
-
-Covers pure domain behavior + CQS command handlers using in-memory fakes.
-No database / FastAPI / Redis — demonstrates layering rules and isolation of write side.
-Query handlers are covered by integration tests (they read SQL directly).
-"""
-
 from datetime import UTC, datetime, timedelta
 from unittest.mock import AsyncMock
 
@@ -78,8 +71,8 @@ from src.activity.domain.models import (
     WorkoutSessionDomain,
     WorkoutSetDomain,
 )
+from src.activity.infrastructure.audit_service import LoggingActivityAuditService
 from src.shared.infrastructure.in_memory_event_bus import InMemoryEventBus
-from src.shared.infrastructure.logging_notify_service import LoggingNotifyService
 
 
 class FakeActivityRepository(IActivityRepository):
@@ -332,7 +325,7 @@ def uow(repo) -> FakeUnitOfWork:
 @pytest.fixture
 def bus() -> InMemoryEventBus:
     b = InMemoryEventBus()
-    register_activity_event_handlers(b, LoggingNotifyService())
+    register_activity_event_handlers(b, LoggingActivityAuditService())
     return b
 
 
@@ -474,11 +467,6 @@ class TestWorkoutSessionFactory:
             await f.start(user_id=1, plan_training_id=999, at=datetime.now(UTC))
 
 
-# ---------------------------------------------------------------------------
-# Command handlers
-# ---------------------------------------------------------------------------
-
-
 async def _seed_user_and_exercise(repo: FakeActivityRepository):
     mg = await repo.create_muscle_group("chest")
     ex = await repo.create_exercise("bench", mg.id, [])
@@ -575,7 +563,7 @@ class TestWorkoutPlanCommands:
 @pytest.mark.asyncio
 class TestWorkoutSessionCommands:
     async def test_start_session_no_training_returns_id(self, uow):
-        session_id = await StartSessionCommandHandler(uow).handle(StartSessionCommand(user_id=1, plan_training_id=None))
+        session_id = await StartSessionCommandHandler(uow, AsyncMock(), AsyncMock()).handle(StartSessionCommand(user_id=1, plan_training_id=None))
         assert isinstance(session_id, int)
 
     async def test_end_session_ownership(self, uow, repo):

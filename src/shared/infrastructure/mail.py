@@ -11,7 +11,7 @@ from src.core.exceptions import InvalidTokenError
 class MailService:
     def __init__(self):
         self.settings = get_settings()
-        template_folder = Path(__file__).parent.parent / "templates"
+        template_folder = Path(__file__).parent.parent.parent / "templates"
         self.conf = ConnectionConfig(
             MAIL_USERNAME=self.settings.smtp_username,
             MAIL_PASSWORD=self.settings.smtp_password,

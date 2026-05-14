@@ -66,7 +66,7 @@ class WorkoutPlanCreated:
 
 
 @dataclass(frozen=True)
-class WorkoutPlanMadePublic:
+class WorkoutPlanPublished:
     plan_id: int
     author_id: int
     title: str
@@ -93,7 +93,7 @@ ActivityEvent = (
     | PersonalRecordBeaten
     | PersonalRecordUpserted
     | WorkoutPlanCreated
-    | WorkoutPlanMadePublic
+    | WorkoutPlanPublished
     | WorkoutPlanDeleted
     | WorkoutCompletedEvent
 )

@@ -7,7 +7,9 @@ from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_asyn
 from sqlalchemy.pool import NullPool
 
 from src.activity.application.event_handlers import register_activity_event_handlers
+from src.activity.infrastructure.audit_service import LoggingActivityAuditService
 from src.auth.application.event_handlers import register_auth_event_handlers
+from src.auth.infrastructure.audit_service import LoggingAuthAuditService
 from src.auth.presentation.dependencies import get_mail_service
 from src.core.base import Base
 from src.core.config import get_settings
@@ -17,9 +19,9 @@ from src.core.main import app
 from src.core.redis import get_redis
 from src.gamification.application.event_handlers import register_gamification_handlers
 from src.nutrition.application.event_handlers import register_nutrition_event_handlers
+from src.nutrition.infrastructure.audit_service import LoggingNutritionAuditService
 from src.shared.infrastructure.daily_claim_store import DailyClaimStore
 from src.shared.infrastructure.event_bus import EventBus
-from src.shared.infrastructure.logging_notify_service import LoggingNotifyService
 
 settings = get_settings()
 
@@ -74,11 +76,10 @@ class FakeDailyClaimStore(DailyClaimStore):
 @pytest_asyncio.fixture
 async def fake_event_bus():
     bus = EventBus()
-    notify_service = LoggingNotifyService()
     register_gamification_handlers(bus, session_factory, FakeDailyClaimStore())
-    register_nutrition_event_handlers(bus, notify_service)
-    register_auth_event_handlers(bus, notify_service)
-    register_activity_event_handlers(bus, notify_service)
+    register_nutrition_event_handlers(bus, LoggingNutritionAuditService())
+    register_auth_event_handlers(bus, LoggingAuthAuditService())
+    register_activity_event_handlers(bus, LoggingActivityAuditService())
     bus.arq_pool = AsyncMock()
     return bus
 
