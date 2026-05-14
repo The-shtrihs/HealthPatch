@@ -51,7 +51,7 @@ def uow(repo: AsyncMock) -> AsyncMock:
 
 @pytest.fixture
 def add_meal_entry_handler(uow: AsyncMock, event_bus: AsyncMock) -> AddMealEntryCommandHandler:
-    return AddMealEntryCommandHandler(uow, event_bus)
+    return AddMealEntryCommandHandler(uow, event_bus, AsyncMock())
 
 
 @pytest.fixture

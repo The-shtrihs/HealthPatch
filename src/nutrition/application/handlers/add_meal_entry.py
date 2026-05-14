@@ -1,5 +1,7 @@
+import logging
 from datetime import UTC, datetime
 
+from src.nutrition.application.audit_service import INutritionAuditService
 from src.nutrition.application.commands import AddMealEntryCommand
 from src.nutrition.domain.events import DailyNormAchievedEvent, MealEntryAddedEvent
 from src.nutrition.domain.interfaces import INutritionUnitOfWork
@@ -9,11 +11,19 @@ from src.shared.infrastructure.event_bus_interface import IEventBus
 
 from ._shared import require_profile
 
+logger = logging.getLogger(__name__)
+
 
 class AddMealEntryCommandHandler:
-    def __init__(self, uow: INutritionUnitOfWork, bus: IEventBus):
+    def __init__(
+        self,
+        uow: INutritionUnitOfWork,
+        bus: IEventBus,
+        audit_service: INutritionAuditService,
+    ):
         self._uow = uow
         self._bus = bus
+        self._audit_service = audit_service
 
     async def handle(self, command: AddMealEntryCommand) -> int:
         create = MealEntryCreateDomain(
@@ -38,17 +48,16 @@ class AddMealEntryCommandHandler:
                 meal_type=meal_type,
                 weight_grams=create.weight_grams,
             )
-            self._uow.events.append(
-                MealEntryAddedEvent(
-                    user_id=command.user_id,
-                    diary_id=diary_id,
-                    meal_entry_id=meal_entry_id,
-                    food_id=create.food_id,
-                    meal_type=meal_type,
-                    weight_grams=create.weight_grams,
-                    target_date=day,
-                )
+            meal_added_event = MealEntryAddedEvent(
+                user_id=command.user_id,
+                diary_id=diary_id,
+                meal_entry_id=meal_entry_id,
+                food_id=create.food_id,
+                meal_type=meal_type,
+                weight_grams=create.weight_grams,
+                target_date=day,
             )
+            self._uow.events.append(meal_added_event)
             try:
                 totals = await self._uow.repo.get_day_consumed_totals(command.user_id, day)
                 user_profile = await self._uow.repo.get_profile(command.user_id)
@@ -66,5 +75,15 @@ class AddMealEntryCommandHandler:
                         )
             except Exception:
                 pass
+
+        # Synchronous audit: direct call to the audit service in the same
+        # thread, right after the diary write commits. Audit is auxiliary —
+        # if it fails we log and move on so the user still gets a 201 with
+        # the new meal_entry_id.
+        try:
+            await self._audit_service.record(meal_added_event)
+        except Exception:
+            logger.exception("Audit recording failed for MealEntryAddedEvent meal_entry_id=%s", meal_entry_id)
+
         await dispatch_domain_events(self._uow, self._bus)
         return meal_entry_id

@@ -228,7 +228,7 @@ class TestTokenUtils:
 class TestRegisterCommandHandler:
     @pytest.fixture
     def handler(self, user_repo, event_bus):
-        return RegisterCommandHandler(user_repo, _pw, event_bus)
+        return RegisterCommandHandler(user_repo, _pw, event_bus, AsyncMock())
 
     @pytest.mark.asyncio
     async def test_register_success_creates_user(self, handler, user_repo, active_user):

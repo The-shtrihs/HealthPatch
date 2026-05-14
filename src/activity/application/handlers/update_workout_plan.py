@@ -1,6 +1,6 @@
 from src.activity.application.commands import UpdateWorkoutPlanCommand
 from src.activity.domain.errors import NotResourceOwnerError, WorkoutPlanNotFoundError
-from src.activity.domain.events import WorkoutPlanMadePublic
+from src.activity.domain.events import WorkoutPlanPublished
 from src.activity.domain.interfaces import IActivityUnitOfWork
 
 
@@ -26,7 +26,7 @@ class UpdateWorkoutPlanCommandHandler:
 
             if was_private and plan.is_public:
                 self._uow.events.append(
-                    WorkoutPlanMadePublic(
+                    WorkoutPlanPublished(
                         plan_id=plan.id,
                         author_id=plan.author_id,
                         title=plan.title,

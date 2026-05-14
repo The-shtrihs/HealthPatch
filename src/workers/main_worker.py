@@ -41,7 +41,7 @@ async def task_send_generic_email(ctx: dict[str, Any], to_email: str, subject: s
 
 
 class WorkerSettings:
-    redis_settings = RedisSettings.from_dsn(settings.redis_url)
+    redis_settings = RedisSettings.from_dsn(str(settings.redis_url))
 
     on_startup = startup
 

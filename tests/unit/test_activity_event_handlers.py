@@ -1,8 +1,3 @@
-"""Unit tests for activity domain event handlers.
-
-Uses InMemoryEventBus so handlers run synchronously in-process with no external deps.
-"""
-
 from datetime import UTC, datetime
 
 import pytest
@@ -12,18 +7,18 @@ from src.activity.domain.events import (
     PersonalRecordBeaten,
     WorkoutPlanCreated,
     WorkoutPlanDeleted,
-    WorkoutPlanMadePublic,
+    WorkoutPlanPublished,
     WorkoutSessionEnded,
     WorkoutSessionStarted,
 )
+from src.activity.infrastructure.audit_service import LoggingActivityAuditService
 from src.shared.infrastructure.in_memory_event_bus import InMemoryEventBus
-from src.shared.infrastructure.logging_notify_service import LoggingNotifyService
 
 
 @pytest.fixture
 def bus() -> InMemoryEventBus:
     b = InMemoryEventBus()
-    register_activity_event_handlers(b, LoggingNotifyService())
+    register_activity_event_handlers(b, LoggingActivityAuditService())
     return b
 
 
@@ -90,11 +85,11 @@ class TestActivityEventHandlers:
         assert "plan_id=5" in caplog.text
         assert "Push/Pull/Legs" in caplog.text
 
-    async def test_plan_made_public_is_logged(self, bus, caplog):
-        event = WorkoutPlanMadePublic(plan_id=5, author_id=42, title="Push/Pull/Legs")
+    async def test_plan_published_is_logged(self, bus, caplog):
+        event = WorkoutPlanPublished(plan_id=5, author_id=42, title="Push/Pull/Legs")
         with caplog.at_level("INFO"):
             await bus.publish(event)
-        assert "PlanMadePublic" in caplog.text
+        assert "PlanPublished" in caplog.text
         assert "plan_id=5" in caplog.text
 
     async def test_plan_deleted_is_logged(self, bus, caplog):
@@ -105,7 +100,6 @@ class TestActivityEventHandlers:
         assert "plan_id=5" in caplog.text
 
     async def test_unrelated_event_does_not_raise(self, bus: InMemoryEventBus):
-        # Publishing an event with no registered handler must not crash
         from src.activity.domain.events import SetLogged
 
         event = SetLogged(
@@ -118,13 +112,11 @@ class TestActivityEventHandlers:
             reps=5,
             weight_kg=60.0,
         )
-        await bus.publish(event)  # no handler registered — should be silent
+        await bus.publish(event)  
 
 
 @pytest.mark.asyncio
 class TestLogSetDispatchesEvents:
-    """Verifies that LogSetCommandHandler now dispatches SetLogged and PersonalRecordBeaten."""
-
     async def test_log_set_publishes_set_logged(self):
 
         from src.activity.application.commands import LogSetCommand

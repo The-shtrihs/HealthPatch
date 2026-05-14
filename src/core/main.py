@@ -5,9 +5,11 @@ from fastapi import FastAPI
 
 import src.core.redis as redis_module
 from src.activity.application.event_handlers import register_activity_event_handlers
+from src.activity.infrastructure.audit_service import LoggingActivityAuditService
 from src.activity.presentation.error_mapper import setup_activity_error_handlers
 from src.activity.presentation.routes import router as activity_router
 from src.auth.application.event_handlers import register_auth_event_handlers
+from src.auth.infrastructure.audit_service import LoggingAuthAuditService
 from src.auth.presentation.error_mapper import setup_auth_error_handlers
 from src.auth.presentation.oauth_routes import router as oauth_router
 from src.auth.presentation.routes import router as auth_router
@@ -17,11 +19,11 @@ from src.core.exceptions import setup_exception_handlers
 from src.core.tasks.scheduler import scheduler, setup_scheduler
 from src.gamification.application.event_handlers import register_gamification_handlers
 from src.nutrition.application.event_handlers import register_nutrition_event_handlers
+from src.nutrition.infrastructure.audit_service import LoggingNutritionAuditService
 from src.nutrition.presentation.error_mapper import setup_nutrition_error_handlers
 from src.nutrition.presentation.routers import router as nutrition_router
 from src.shared.infrastructure.daily_claim_store import RedisDailyClaimStore
 from src.shared.infrastructure.event_bus import EventBus
-from src.shared.infrastructure.logging_notify_service import LoggingNotifyService
 from src.user.presentation.routes import router as profile_router
 
 logging.basicConfig(level=logging.INFO)
@@ -36,12 +38,11 @@ async def lifespan(app: FastAPI):
     scheduler.start()
     await redis_module.register_redis(settings)
     event_bus = EventBus()
-    notify_service = LoggingNotifyService()
     await event_bus.start_arq(settings.redis_url)
     register_gamification_handlers(event_bus, async_session_factory, RedisDailyClaimStore())
-    register_nutrition_event_handlers(event_bus, notify_service)
-    register_auth_event_handlers(event_bus, notify_service)
-    register_activity_event_handlers(event_bus, notify_service)
+    register_nutrition_event_handlers(event_bus, LoggingNutritionAuditService())
+    register_auth_event_handlers(event_bus, LoggingAuthAuditService())
+    register_activity_event_handlers(event_bus, LoggingActivityAuditService())
     app.state.event_bus = event_bus
     yield
     logger.info("Shutting down the application...")

@@ -17,7 +17,9 @@ services:
     build:
       context: .
       target: dev         
-    command: uv run pytest -v --tb=short
+    command: >
+      sh -c "alembic upgrade head && 
+             pytest --cov=src --cov-report=term-missing --cov-report=html"
     env_file:
       - .env.test
     volumes:

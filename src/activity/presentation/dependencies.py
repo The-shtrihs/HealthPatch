@@ -1,6 +1,7 @@
 from fastapi import Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from src.activity.application.audit_service import IActivityAuditService
 from src.activity.application.handlers.add_exercise_to_session import AddExerciseToSessionCommandHandler
 from src.activity.application.handlers.add_exercise_to_training import AddExerciseToTrainingCommandHandler
 from src.activity.application.handlers.add_training import AddTrainingCommandHandler
@@ -25,6 +26,7 @@ from src.activity.application.handlers.log_set import LogSetCommandHandler
 from src.activity.application.handlers.start_session import StartSessionCommandHandler
 from src.activity.application.handlers.update_workout_plan import UpdateWorkoutPlanCommandHandler
 from src.activity.application.handlers.upsert_personal_record import UpsertPersonalRecordCommandHandler
+from src.activity.infrastructure.audit_service import LoggingActivityAuditService
 from src.activity.infrastructure.read_repository import SqlAlchemyActivityReadRepository
 from src.activity.infrastructure.unit_of_work import SqlAlchemyActivityUnitOfWork
 from src.core.database import get_session
@@ -78,8 +80,16 @@ async def get_delete_training_exercise_handler(uow=Depends(get_activity_uow)) ->
     return DeleteTrainingExerciseCommandHandler(uow)
 
 
-async def get_start_session_handler(uow=Depends(get_activity_uow)) -> StartSessionCommandHandler:
-    return StartSessionCommandHandler(uow)
+async def get_activity_audit_service() -> IActivityAuditService:
+    return LoggingActivityAuditService()
+
+
+async def get_start_session_handler(
+    uow=Depends(get_activity_uow),
+    bus=Depends(get_event_bus),
+    audit_service: IActivityAuditService = Depends(get_activity_audit_service),
+) -> StartSessionCommandHandler:
+    return StartSessionCommandHandler(uow, bus, audit_service)
 
 
 async def get_end_session_handler(uow=Depends(get_activity_uow), bus=Depends(get_event_bus)) -> EndSessionCommandHandler:

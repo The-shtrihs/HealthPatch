@@ -2,21 +2,21 @@ from __future__ import annotations
 
 import logging
 
+from src.activity.application.audit_service import IActivityAuditService
 from src.activity.domain.events import (
     PersonalRecordBeaten,
     WorkoutPlanCreated,
     WorkoutPlanDeleted,
-    WorkoutPlanMadePublic,
+    WorkoutPlanPublished,
     WorkoutSessionEnded,
     WorkoutSessionStarted,
 )
 from src.shared.infrastructure.event_bus_interface import IEventBus
-from src.shared.infrastructure.notify_service import INotifyService
 
 logger = logging.getLogger(__name__)
 
 
-def register_activity_event_handlers(bus: IEventBus, notify_service: INotifyService) -> None:
+def register_activity_event_handlers(bus: IEventBus, audit_service: IActivityAuditService) -> None:
 
     @bus.subscribe(WorkoutSessionStarted)
     async def on_session_started(event: WorkoutSessionStarted) -> None:
@@ -27,7 +27,7 @@ def register_activity_event_handlers(bus: IEventBus, notify_service: INotifyServ
             event.plan_training_id,
             event.started_at.isoformat(),
         )
-        notify_service.notify(event)
+        await audit_service.record(event)
 
     @bus.subscribe(WorkoutSessionEnded)
     async def on_session_ended(event: WorkoutSessionEnded) -> None:
@@ -38,7 +38,7 @@ def register_activity_event_handlers(bus: IEventBus, notify_service: INotifyServ
             event.duration_minutes,
             event.ended_at.isoformat(),
         )
-        notify_service.notify(event)
+        await audit_service.record(event)
 
     @bus.subscribe(PersonalRecordBeaten)
     async def on_personal_record_beaten(event: PersonalRecordBeaten) -> None:
@@ -49,7 +49,7 @@ def register_activity_event_handlers(bus: IEventBus, notify_service: INotifyServ
             event.new_weight_kg,
             event.previous_weight_kg,
         )
-        notify_service.notify(event)
+        await audit_service.record(event)
 
     @bus.subscribe(WorkoutPlanCreated)
     async def on_plan_created(event: WorkoutPlanCreated) -> None:
@@ -60,17 +60,17 @@ def register_activity_event_handlers(bus: IEventBus, notify_service: INotifyServ
             event.title,
             event.is_public,
         )
-        notify_service.notify(event)
+        await audit_service.record(event)
 
-    @bus.subscribe(WorkoutPlanMadePublic)
-    async def on_plan_made_public(event: WorkoutPlanMadePublic) -> None:
+    @bus.subscribe(WorkoutPlanPublished)
+    async def on_plan_published(event: WorkoutPlanPublished) -> None:
         logger.info(
-            "Activity | PlanMadePublic plan_id=%d author_id=%d title=%r",
+            "Activity | PlanPublished plan_id=%d author_id=%d title=%r",
             event.plan_id,
             event.author_id,
             event.title,
         )
-        notify_service.notify(event)
+        await audit_service.record(event)
 
     @bus.subscribe(WorkoutPlanDeleted)
     async def on_plan_deleted(event: WorkoutPlanDeleted) -> None:
@@ -79,4 +79,4 @@ def register_activity_event_handlers(bus: IEventBus, notify_service: INotifyServ
             event.plan_id,
             event.author_id,
         )
-        notify_service.notify(event)
+        await audit_service.record(event)
