@@ -112,7 +112,7 @@ class TestActivityEventHandlers:
             reps=5,
             weight_kg=60.0,
         )
-        await bus.publish(event)  
+        await bus.publish(event)
 
 
 @pytest.mark.asyncio

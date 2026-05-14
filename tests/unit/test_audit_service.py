@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-from datetime import UTC, datetime
 from unittest.mock import AsyncMock
 
 import pytest
@@ -12,7 +11,6 @@ from src.shared.infrastructure.in_memory_event_bus import InMemoryEventBus
 
 
 class RecordingAuditService(IActivityAuditService):
-
     def __init__(self) -> None:
         self.records: list = []
 
@@ -21,7 +19,7 @@ class RecordingAuditService(IActivityAuditService):
 
 
 class FailingAuditService(IActivityAuditService):
-    async def record(self, event) -> None: 
+    async def record(self, event) -> None:
         raise RuntimeError("audit sink unavailable")
 
 
@@ -92,4 +90,3 @@ class TestSyncAuditPath:
             StartSessionCommand(user_id=1, plan_training_id=None),
         )
         assert isinstance(session_id, int)
-
