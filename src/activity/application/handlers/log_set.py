@@ -10,11 +10,14 @@ from src.activity.domain.events import PersonalRecordBeaten, SetLogged
 from src.activity.domain.factory import WorkoutSetFactory
 from src.activity.domain.interfaces import IActivityUnitOfWork
 from src.activity.domain.models import WeightKg
+from src.shared.application.dispatcher import dispatch_domain_events
+from src.shared.infrastructure.event_bus_interface import IEventBus
 
 
 class LogSetCommandHandler:
-    def __init__(self, uow: IActivityUnitOfWork):
+    def __init__(self, uow: IActivityUnitOfWork, bus: IEventBus) -> None:
         self._uow = uow
+        self._bus = bus
 
     async def handle(self, cmd: LogSetCommand) -> int:
         async with self._uow:
@@ -77,4 +80,5 @@ class LogSetCommandHandler:
                         )
                     )
 
+        await dispatch_domain_events(self._uow, self._bus)
         return ws.id

@@ -8,12 +8,14 @@ from src.nutrition.application.commands import (
     AddMealEntryCommand,
     DeleteMealEntryCommand,
     UpdateDailyDiaryCommand,
+    UpdateMealEntryCommand,
 )
 from src.nutrition.application.handlers.add_meal_entry import AddMealEntryCommandHandler
 from src.nutrition.application.handlers.delete_meal_entry import DeleteMealEntryCommandHandler
 from src.nutrition.application.handlers.get_daily_norm import GetDailyNormQueryHandler
 from src.nutrition.application.handlers.get_day_overview import GetDayOverviewQueryHandler
 from src.nutrition.application.handlers.update_daily_diary import UpdateDailyDiaryCommandHandler
+from src.nutrition.application.handlers.update_meal_entry import UpdateMealEntryCommandHandler
 from src.nutrition.application.queries import GetDailyNormQuery, GetDayOverviewQuery
 from src.nutrition.presentation.dependencies import (
     get_add_meal_entry_handler,
@@ -21,6 +23,7 @@ from src.nutrition.presentation.dependencies import (
     get_get_daily_norm_handler,
     get_get_day_overview_handler,
     get_update_daily_diary_handler,
+    get_update_meal_entry_handler,
 )
 from src.nutrition.presentation.schemas import (
     AddMealEntryRequest,
@@ -30,6 +33,8 @@ from src.nutrition.presentation.schemas import (
     DeleteMealEntryResponse,
     UpdateDailyDiaryRequest,
     UpdateDailyDiaryResponse,
+    UpdateMealEntryRequest,
+    UpdateMealEntryResponse,
 )
 
 router = APIRouter(prefix="/nutrition", tags=["Nutrition"])
@@ -106,6 +111,25 @@ async def delete_meal_entry(
 ):
     deleted_meal_entry_id = await handler.handle(DeleteMealEntryCommand(user_id=current_user.id, meal_entry_id=meal_entry_id))
     return DeleteMealEntryResponse(deleted_meal_entry_id=deleted_meal_entry_id)
+
+
+@router.patch("/entries/{meal_entry_id}", response_model=UpdateMealEntryResponse)
+async def update_meal_entry(
+    meal_entry_id: int,
+    payload: UpdateMealEntryRequest,
+    handler: UpdateMealEntryCommandHandler = Depends(get_update_meal_entry_handler),
+    current_user: UserDomain = Depends(get_current_user),
+):
+    updated_meal_entry_id = await handler.handle(
+        UpdateMealEntryCommand(
+            user_id=current_user.id,
+            meal_entry_id=meal_entry_id,
+            food_id=payload.food_id,
+            meal_type=payload.meal_type,
+            weight_grams=payload.weight_grams,
+        )
+    )
+    return UpdateMealEntryResponse(meal_entry_id=updated_meal_entry_id)
 
 
 @router.patch("/diary", response_model=UpdateDailyDiaryResponse)

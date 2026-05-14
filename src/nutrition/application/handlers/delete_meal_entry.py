@@ -2,13 +2,16 @@ from src.nutrition.application.commands import DeleteMealEntryCommand
 from src.nutrition.domain.errors import MealEntryNotFoundError
 from src.nutrition.domain.events import MealEntryDeletedEvent
 from src.nutrition.domain.interfaces import INutritionUnitOfWork
+from src.shared.application.dispatcher import dispatch_domain_events
+from src.shared.infrastructure.event_bus_interface import IEventBus
 
 from ._shared import require_profile
 
 
 class DeleteMealEntryCommandHandler:
-    def __init__(self, uow: INutritionUnitOfWork):
+    def __init__(self, uow: INutritionUnitOfWork, bus: IEventBus):
         self._uow = uow
+        self._bus = bus
 
     async def handle(self, command: DeleteMealEntryCommand) -> int:
         async with self._uow:
@@ -26,4 +29,5 @@ class DeleteMealEntryCommandHandler:
                     target_date=target_date,
                 )
             )
-            return command.meal_entry_id
+        await dispatch_domain_events(self._uow, self._bus)
+        return command.meal_entry_id

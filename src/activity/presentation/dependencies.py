@@ -90,8 +90,8 @@ async def get_add_exercise_to_session_handler(uow=Depends(get_activity_uow)) -> 
     return AddExerciseToSessionCommandHandler(uow)
 
 
-async def get_log_set_handler(uow=Depends(get_activity_uow)) -> LogSetCommandHandler:
-    return LogSetCommandHandler(uow)
+async def get_log_set_handler(uow=Depends(get_activity_uow), bus=Depends(get_event_bus)) -> LogSetCommandHandler:
+    return LogSetCommandHandler(uow, bus)
 
 
 async def get_upsert_personal_record_handler(uow=Depends(get_activity_uow)) -> UpsertPersonalRecordCommandHandler:

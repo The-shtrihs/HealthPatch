@@ -1,11 +1,13 @@
 from abc import ABC, abstractmethod
-
-from src.models.gamification import GamificationProfile
+from datetime import date
 
 
 class IGamificationRepository(ABC):
     @abstractmethod
-    async def get_by_user_id(self, user_id: int) -> GamificationProfile | None: ...
+    async def ensure_profile(self, user_id: int) -> None: ...
 
     @abstractmethod
-    async def add(self, profile: GamificationProfile) -> None: ...
+    async def award_xp(self, user_id: int, xp: int) -> int: ...
+
+    @abstractmethod
+    async def count_meal_entries_for_day(self, user_id: int, target_date: date) -> int: ...
