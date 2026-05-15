@@ -1,14 +1,12 @@
 from datetime import datetime
 
-from sqlalchemy.ext.asyncio import AsyncSession
-
+from src.analytics_context.audit.domain.interfaces import IAuditEntryRepository
 from src.analytics_context.audit.domain.models import AuditChannel, AuditEntry
-from src.analytics_context.audit.infrastructure.repository import AuditEntryRepository
 
 
 class AuditQueryService:
-    def __init__(self, session: AsyncSession) -> None:
-        self._repo = AuditEntryRepository(session)
+    def __init__(self, repo: IAuditEntryRepository) -> None:
+        self._repo = repo
 
     async def list(
         self,

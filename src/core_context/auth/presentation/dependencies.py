@@ -6,7 +6,6 @@ from src.core.constants import DEFAULT_RATE_LIMIT, DEFAULT_RATE_WINDOW_SECONDS
 from src.core.database import get_session
 from src.core.dependencies import get_event_bus
 from src.core.redis import get_redis
-from src.core_context.auth.application.audit_service import IAuthAuditService
 from src.core_context.auth.application.handlers.change_password import ChangePasswordCommandHandler
 from src.core_context.auth.application.handlers.get_me import GetMeQueryHandler
 from src.core_context.auth.application.handlers.login import LoginCommandHandler
@@ -25,7 +24,6 @@ from src.core_context.auth.application.handlers.verify_email import ResendVerifi
 from src.core_context.auth.application.token_utils import PasswordUtils, TokenUtils
 from src.core_context.auth.domain.errors import UserInactiveError, UserNotFoundError
 from src.core_context.auth.domain.models import UserDomain
-from src.core_context.auth.infrastructure.audit_service import LoggingAuthAuditService
 from src.core_context.auth.infrastructure.oauth_state_repository import RedisOAuthStateRepository
 from src.core_context.auth.infrastructure.repositories import SqlAlchemyRefreshTokenRepository, SqlAlchemyUserRepository
 from src.shared.infrastructure.mail import MailService
@@ -56,16 +54,11 @@ async def get_oauth_state_repo(redis=Depends(get_redis)) -> RedisOAuthStateRepos
     return RedisOAuthStateRepository(redis)
 
 
-async def get_auth_audit_service() -> IAuthAuditService:
-    return LoggingAuthAuditService()
-
-
 async def get_register_handler(
     user_repo=Depends(get_user_repo),
     event_bus=Depends(get_event_bus),
-    audit_service: IAuthAuditService = Depends(get_auth_audit_service),
 ) -> RegisterCommandHandler:
-    return RegisterCommandHandler(user_repo, _pw, event_bus, audit_service)
+    return RegisterCommandHandler(user_repo, _pw, event_bus)
 
 
 async def get_login_handler(user_repo=Depends(get_user_repo), token_repo=Depends(get_token_repo)) -> LoginCommandHandler:

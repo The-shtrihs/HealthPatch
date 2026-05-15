@@ -3,14 +3,12 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.core.database import get_session
 from src.core.dependencies import get_event_bus
-from src.core_context.nutrition.application.audit_service import INutritionAuditService
 from src.core_context.nutrition.application.handlers.add_meal_entry import AddMealEntryCommandHandler
 from src.core_context.nutrition.application.handlers.delete_meal_entry import DeleteMealEntryCommandHandler
 from src.core_context.nutrition.application.handlers.get_daily_norm import GetDailyNormQueryHandler
 from src.core_context.nutrition.application.handlers.get_day_overview import GetDayOverviewQueryHandler
 from src.core_context.nutrition.application.handlers.update_daily_diary import UpdateDailyDiaryCommandHandler
 from src.core_context.nutrition.application.handlers.update_meal_entry import UpdateMealEntryCommandHandler
-from src.core_context.nutrition.infrastructure.audit_service import LoggingNutritionAuditService
 from src.core_context.nutrition.infrastructure.read_repository import SqlAlchemyNutritionReadRepository
 from src.core_context.nutrition.infrastructure.repositories import SqlAlchemyNutritionUnitOfWork
 from src.shared.infrastructure.event_bus_interface import IEventBus
@@ -36,16 +34,11 @@ async def get_get_day_overview_handler(
     return GetDayOverviewQueryHandler(read_repo)
 
 
-async def get_nutrition_audit_service() -> INutritionAuditService:
-    return LoggingNutritionAuditService()
-
-
 async def get_add_meal_entry_handler(
     uow: SqlAlchemyNutritionUnitOfWork = Depends(get_nutrition_uow),
     bus: IEventBus = Depends(get_event_bus),
-    audit_service: INutritionAuditService = Depends(get_nutrition_audit_service),
 ) -> AddMealEntryCommandHandler:
-    return AddMealEntryCommandHandler(uow, bus, audit_service)
+    return AddMealEntryCommandHandler(uow, bus)
 
 
 async def get_delete_meal_entry_handler(

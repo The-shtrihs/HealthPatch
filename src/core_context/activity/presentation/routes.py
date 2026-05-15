@@ -103,7 +103,7 @@ from src.core_context.activity.presentation.schemas import (
     WorkoutPlanListResponse,
 )
 from src.core_context.auth.contracts.dependencies import get_current_user
-from src.core_context.user.infrastructure.orm import User
+from src.core_context.auth.contracts.dependencies import CurrentUser
 
 router = APIRouter(prefix="/workouts", tags=["Workouts"])
 
@@ -120,7 +120,7 @@ async def list_muscle_groups(handler: ListMuscleGroupsQueryHandler = Depends(get
 async def create_muscle_group(
     payload: CreateMuscleGroupRequest,
     handler: CreateMuscleGroupCommandHandler = Depends(get_create_muscle_group_handler),
-    _: User = Depends(get_current_user),
+    _: CurrentUser = Depends(get_current_user),
 ):
     new_id = await handler.handle(CreateMuscleGroupCommand(name=payload.name))
     return IdResponse(id=new_id)
@@ -151,7 +151,7 @@ async def get_exercise(
 async def create_exercise(
     payload: CreateExerciseRequest,
     handler: CreateExerciseCommandHandler = Depends(get_create_exercise_handler),
-    _: User = Depends(get_current_user),
+    _: CurrentUser = Depends(get_current_user),
 ):
     new_id = await handler.handle(
         CreateExerciseCommand(
@@ -180,7 +180,7 @@ async def list_my_plans(
     page: int = Query(default=DEFAULT_PAGE, ge=MIN_PAGE),
     size: int = Query(default=DEFAULT_PAGE_SIZE, ge=MIN_PAGE_SIZE, le=MAX_PAGE_SIZE),
     handler: ListMyPlansQueryHandler = Depends(get_list_my_plans_handler),
-    current_user: User = Depends(get_current_user),
+    current_user: CurrentUser = Depends(get_current_user),
 ):
     return await handler.handle(ListMyPlansQuery(user_id=current_user.id, page=page, size=size))
 
@@ -189,7 +189,7 @@ async def list_my_plans(
 async def create_plan(
     payload: CreateWorkoutPlanRequest,
     handler: CreateWorkoutPlanCommandHandler = Depends(get_create_workout_plan_handler),
-    current_user: User = Depends(get_current_user),
+    current_user: CurrentUser = Depends(get_current_user),
 ):
     cmd = CreateWorkoutPlanCommand(
         author_id=current_user.id,
@@ -223,7 +223,7 @@ async def create_plan(
 async def get_plan(
     plan_id: int,
     handler: GetPlanDetailQueryHandler = Depends(get_get_plan_detail_handler),
-    current_user: User = Depends(get_current_user),
+    current_user: CurrentUser = Depends(get_current_user),
 ):
     return await handler.handle(GetPlanDetailQuery(plan_id=plan_id, viewer_id=current_user.id))
 
@@ -233,7 +233,7 @@ async def update_plan(
     plan_id: int,
     payload: UpdateWorkoutPlanRequest,
     handler: UpdateWorkoutPlanCommandHandler = Depends(get_update_workout_plan_handler),
-    current_user: User = Depends(get_current_user),
+    current_user: CurrentUser = Depends(get_current_user),
 ):
     await handler.handle(
         UpdateWorkoutPlanCommand(
@@ -250,7 +250,7 @@ async def update_plan(
 async def delete_plan(
     plan_id: int,
     handler: DeleteWorkoutPlanCommandHandler = Depends(get_delete_workout_plan_handler),
-    current_user: User = Depends(get_current_user),
+    current_user: CurrentUser = Depends(get_current_user),
 ):
     await handler.handle(DeleteWorkoutPlanCommand(plan_id=plan_id, user_id=current_user.id))
 
@@ -260,7 +260,7 @@ async def add_training(
     plan_id: int,
     payload: CreatePlanTrainingRequest,
     handler: AddTrainingCommandHandler = Depends(get_add_training_handler),
-    current_user: User = Depends(get_current_user),
+    current_user: CurrentUser = Depends(get_current_user),
 ):
     new_id = await handler.handle(
         AddTrainingCommand(
@@ -279,7 +279,7 @@ async def delete_training(
     plan_id: int,
     training_id: int,
     handler: DeleteTrainingCommandHandler = Depends(get_delete_training_handler),
-    current_user: User = Depends(get_current_user),
+    current_user: CurrentUser = Depends(get_current_user),
 ):
     await handler.handle(
         DeleteTrainingCommand(
@@ -300,7 +300,7 @@ async def add_exercise_to_training(
     training_id: int,
     payload: AddExerciseToTrainingRequest,
     handler: AddExerciseToTrainingCommandHandler = Depends(get_add_exercise_to_training_handler),
-    current_user: User = Depends(get_current_user),
+    current_user: CurrentUser = Depends(get_current_user),
 ):
     new_id = await handler.handle(
         AddExerciseToTrainingCommand(
@@ -326,7 +326,7 @@ async def delete_training_exercise(
     training_id: int,
     pte_id: int,
     handler: DeleteTrainingExerciseCommandHandler = Depends(get_delete_training_exercise_handler),
-    current_user: User = Depends(get_current_user),
+    current_user: CurrentUser = Depends(get_current_user),
 ):
     await handler.handle(
         DeleteTrainingExerciseCommand(
@@ -345,7 +345,7 @@ async def delete_training_exercise(
 async def start_session(
     payload: StartSessionRequest,
     handler: StartSessionCommandHandler = Depends(get_start_session_handler),
-    current_user: User = Depends(get_current_user),
+    current_user: CurrentUser = Depends(get_current_user),
 ):
     new_id = await handler.handle(StartSessionCommand(user_id=current_user.id, plan_training_id=payload.plan_training_id))
     return IdResponse(id=new_id)
@@ -356,7 +356,7 @@ async def list_sessions(
     page: int = Query(default=DEFAULT_PAGE, ge=MIN_PAGE),
     size: int = Query(default=DEFAULT_PAGE_SIZE, ge=MIN_PAGE_SIZE, le=MAX_PAGE_SIZE),
     handler: ListUserSessionsQueryHandler = Depends(get_list_user_sessions_handler),
-    current_user: User = Depends(get_current_user),
+    current_user: CurrentUser = Depends(get_current_user),
 ):
     return await handler.handle(ListUserSessionsQuery(user_id=current_user.id, page=page, size=size))
 
@@ -365,7 +365,7 @@ async def list_sessions(
 async def get_session(
     session_id: int,
     handler: GetSessionDetailQueryHandler = Depends(get_get_session_detail_handler),
-    current_user: User = Depends(get_current_user),
+    current_user: CurrentUser = Depends(get_current_user),
 ):
     return await handler.handle(GetSessionDetailQuery(session_id=session_id, user_id=current_user.id))
 
@@ -374,7 +374,7 @@ async def get_session(
 async def end_session(
     session_id: int,
     handler: EndSessionCommandHandler = Depends(get_end_session_handler),
-    current_user: User = Depends(get_current_user),
+    current_user: CurrentUser = Depends(get_current_user),
 ):
     await handler.handle(EndSessionCommand(session_id=session_id, user_id=current_user.id))
 
@@ -388,7 +388,7 @@ async def add_exercise_to_session(
     session_id: int,
     payload: AddExerciseToSessionRequest,
     handler: AddExerciseToSessionCommandHandler = Depends(get_add_exercise_to_session_handler),
-    current_user: User = Depends(get_current_user),
+    current_user: CurrentUser = Depends(get_current_user),
 ):
     new_id = await handler.handle(
         AddExerciseToSessionCommand(
@@ -411,7 +411,7 @@ async def add_set(
     exercise_session_id: int,
     payload: LogSetRequest,
     handler: LogSetCommandHandler = Depends(get_log_set_handler),
-    current_user: User = Depends(get_current_user),
+    current_user: CurrentUser = Depends(get_current_user),
 ):
     new_id = await handler.handle(
         LogSetCommand(
@@ -432,7 +432,7 @@ async def add_set(
 @router.get("/personal-records", response_model=list[PersonalRecordResponse])
 async def list_personal_records(
     handler: ListPersonalRecordsQueryHandler = Depends(get_list_personal_records_handler),
-    current_user: User = Depends(get_current_user),
+    current_user: CurrentUser = Depends(get_current_user),
 ):
     return await handler.handle(ListPersonalRecordsQuery(user_id=current_user.id))
 
@@ -441,7 +441,7 @@ async def list_personal_records(
 async def upsert_personal_record(
     payload: UpsertPersonalRecordRequest,
     handler: UpsertPersonalRecordCommandHandler = Depends(get_upsert_personal_record_handler),
-    current_user: User = Depends(get_current_user),
+    current_user: CurrentUser = Depends(get_current_user),
 ):
     new_id = await handler.handle(
         UpsertPersonalRecordCommand(
@@ -457,6 +457,6 @@ async def upsert_personal_record(
 async def delete_personal_record(
     pr_id: int,
     handler: DeletePersonalRecordCommandHandler = Depends(get_delete_personal_record_handler),
-    current_user: User = Depends(get_current_user),
+    current_user: CurrentUser = Depends(get_current_user),
 ):
     await handler.handle(DeletePersonalRecordCommand(pr_id=pr_id, user_id=current_user.id))

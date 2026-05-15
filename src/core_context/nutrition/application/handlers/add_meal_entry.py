@@ -1,7 +1,5 @@
-import logging
 from datetime import UTC, datetime
 
-from src.core_context.nutrition.application.audit_service import INutritionAuditService
 from src.core_context.nutrition.application.commands import AddMealEntryCommand
 from src.core_context.nutrition.domain.events import DailyNormAchievedEvent, MealEntryAddedEvent
 from src.core_context.nutrition.domain.interfaces import INutritionUnitOfWork
@@ -11,19 +9,15 @@ from src.shared.infrastructure.event_bus_interface import IEventBus
 
 from ._shared import require_profile
 
-logger = logging.getLogger(__name__)
-
 
 class AddMealEntryCommandHandler:
     def __init__(
         self,
         uow: INutritionUnitOfWork,
         bus: IEventBus,
-        audit_service: INutritionAuditService,
     ):
         self._uow = uow
         self._bus = bus
-        self._audit_service = audit_service
 
     async def handle(self, command: AddMealEntryCommand) -> int:
         create = MealEntryCreateDomain(
@@ -75,15 +69,6 @@ class AddMealEntryCommandHandler:
                         )
             except Exception:
                 pass
-
-        # Synchronous audit: direct call to the audit service in the same
-        # thread, right after the diary write commits. Audit is auxiliary —
-        # if it fails we log and move on so the user still gets a 201 with
-        # the new meal_entry_id.
-        try:
-            await self._audit_service.record(meal_added_event)
-        except Exception:
-            logger.exception("Audit recording failed for MealEntryAddedEvent meal_entry_id=%s", meal_entry_id)
 
         await dispatch_domain_events(self._uow, self._bus)
         return meal_entry_id

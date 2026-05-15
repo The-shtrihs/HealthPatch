@@ -1,7 +1,5 @@
-import logging
 from datetime import UTC, datetime
 
-from src.core_context.activity.application.audit_service import IActivityAuditService
 from src.core_context.activity.application.commands import StartSessionCommand
 from src.core_context.activity.domain.errors import (
     PlanTrainingNotFoundError,
@@ -14,19 +12,15 @@ from src.core_context.activity.domain.interfaces import IActivityUnitOfWork
 from src.shared.application.dispatcher import dispatch_domain_events
 from src.shared.infrastructure.event_bus_interface import IEventBus
 
-logger = logging.getLogger(__name__)
-
 
 class StartSessionCommandHandler:
     def __init__(
         self,
         uow: IActivityUnitOfWork,
         bus: IEventBus,
-        audit_service: IActivityAuditService,
     ):
         self._uow = uow
         self._bus = bus
-        self._audit_service = audit_service
 
     async def handle(self, cmd: StartSessionCommand) -> int:
         async with self._uow:
@@ -72,16 +66,6 @@ class StartSessionCommandHandler:
                 started_at=session.started_at,
             )
             self._uow.events.append(started_event)
-
-        # Synchronous audit: direct in-process call after the main transaction
-        # commits. We swallow audit errors — the workout session has already
-        # been persisted, so a failed audit record should not surface to the
-        # caller as a 500. The async audit path (via the event bus) will still
-        # have its own chance to record the same fact.
-        try:
-            await self._audit_service.record(started_event)
-        except Exception:
-            logger.exception("Audit recording failed for WorkoutSessionStarted session_id=%s", session.id)
 
         await dispatch_domain_events(self._uow, self._bus)
         return session.id

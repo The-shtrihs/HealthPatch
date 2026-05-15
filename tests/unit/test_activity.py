@@ -71,7 +71,6 @@ from src.core_context.activity.domain.models import (
     WorkoutSessionDomain,
     WorkoutSetDomain,
 )
-from src.core_context.activity.infrastructure.audit_service import LoggingActivityAuditService
 from src.shared.infrastructure.in_memory_event_bus import InMemoryEventBus
 
 
@@ -325,7 +324,7 @@ def uow(repo) -> FakeUnitOfWork:
 @pytest.fixture
 def bus() -> InMemoryEventBus:
     b = InMemoryEventBus()
-    register_activity_event_handlers(b, LoggingActivityAuditService())
+    register_activity_event_handlers(b)
     return b
 
 
@@ -563,7 +562,7 @@ class TestWorkoutPlanCommands:
 @pytest.mark.asyncio
 class TestWorkoutSessionCommands:
     async def test_start_session_no_training_returns_id(self, uow):
-        session_id = await StartSessionCommandHandler(uow, AsyncMock(), AsyncMock()).handle(StartSessionCommand(user_id=1, plan_training_id=None))
+        session_id = await StartSessionCommandHandler(uow, AsyncMock()).handle(StartSessionCommand(user_id=1, plan_training_id=None))
         assert isinstance(session_id, int)
 
     async def test_end_session_ownership(self, uow, repo):

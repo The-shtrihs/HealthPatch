@@ -2,12 +2,11 @@ from datetime import datetime
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, Query
-from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.analytics_context.audit.application.queries import AuditQueryService
 from src.analytics_context.audit.domain.models import AuditChannel
+from src.analytics_context.audit.presentation.dependencies import get_audit_query_service
 from src.analytics_context.audit.presentation.schemas import AuditEntryResponse
-from src.core.database import get_session
 from src.core_context.auth.contracts.dependencies import CurrentUser, get_current_user
 
 router = APIRouter(prefix="/analytics/audit", tags=["analytics"])
@@ -20,8 +19,7 @@ async def list_audit_entries(
     channel: AuditChannel | None = Query(default=None),
     since: datetime | None = Query(default=None),
     limit: int = Query(default=100, ge=1, le=500),
-    session: AsyncSession = Depends(get_session),
+    service: AuditQueryService = Depends(get_audit_query_service),
 ) -> list[AuditEntryResponse]:
-    service = AuditQueryService(session)
     entries = await service.list(user_id=user_id, channel=channel, since=since, limit=limit)
     return [AuditEntryResponse.from_domain(e) for e in entries]

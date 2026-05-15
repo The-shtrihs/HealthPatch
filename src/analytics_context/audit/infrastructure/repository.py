@@ -4,11 +4,12 @@ from uuid import UUID
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from src.analytics_context.audit.domain.interfaces import IAuditEntryRepository
 from src.analytics_context.audit.domain.models import AuditChannel, AuditEntry
 from src.analytics_context.audit.infrastructure.orm import AuditEntryORM
 
 
-class AuditEntryRepository:
+class AuditEntryRepository(IAuditEntryRepository):
     def __init__(self, session: AsyncSession) -> None:
         self._session = session
 

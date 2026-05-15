@@ -13,13 +13,10 @@ from src.core.dependencies import get_event_bus
 from src.core.main import app
 from src.core.redis import get_redis
 from src.core_context.activity.application.event_handlers import register_activity_event_handlers
-from src.core_context.activity.infrastructure.audit_service import LoggingActivityAuditService
 from src.core_context.auth.application.event_handlers import register_auth_event_handlers
-from src.core_context.auth.infrastructure.audit_service import LoggingAuthAuditService
 from src.core_context.auth.presentation.dependencies import get_mail_service
 from src.core_context.gamification.application.event_handlers import register_gamification_handlers
 from src.core_context.nutrition.application.event_handlers import register_nutrition_event_handlers
-from src.core_context.nutrition.infrastructure.audit_service import LoggingNutritionAuditService
 from src.shared.infrastructure.daily_claim_store import DailyClaimStore
 from src.shared.infrastructure.event_bus import EventBus
 
@@ -82,9 +79,9 @@ class FakeMealEntryQueries:
 async def fake_event_bus():
     bus = EventBus()
     register_gamification_handlers(bus, session_factory, FakeMealEntryQueries(), FakeDailyClaimStore())
-    register_nutrition_event_handlers(bus, LoggingNutritionAuditService())
-    register_auth_event_handlers(bus, LoggingAuthAuditService())
-    register_activity_event_handlers(bus, LoggingActivityAuditService())
+    register_nutrition_event_handlers(bus)
+    register_auth_event_handlers(bus)
+    register_activity_event_handlers(bus)
     bus.arq_pool = AsyncMock()
     return bus
 

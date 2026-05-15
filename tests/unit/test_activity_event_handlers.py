@@ -11,14 +11,13 @@ from src.core_context.activity.domain.events import (
     WorkoutSessionEnded,
     WorkoutSessionStarted,
 )
-from src.core_context.activity.infrastructure.audit_service import LoggingActivityAuditService
 from src.shared.infrastructure.in_memory_event_bus import InMemoryEventBus
 
 
 @pytest.fixture
 def bus() -> InMemoryEventBus:
     b = InMemoryEventBus()
-    register_activity_event_handlers(b, LoggingActivityAuditService())
+    register_activity_event_handlers(b)
     return b
 
 

@@ -20,18 +20,15 @@ from src.core.exceptions import setup_exception_handlers
 from src.core.tasks.scheduler import scheduler, setup_scheduler
 from src.core_context.activity.application.event_handlers import register_activity_event_handlers
 from src.core_context.activity.application.integration_publishers import register_activity_integration_publishers
-from src.core_context.activity.infrastructure.audit_service import LoggingActivityAuditService
 from src.core_context.activity.presentation.error_mapper import setup_activity_error_handlers
 from src.core_context.activity.presentation.routes import router as activity_router
 from src.core_context.auth.application.event_handlers import register_auth_event_handlers
-from src.core_context.auth.infrastructure.audit_service import LoggingAuthAuditService
 from src.core_context.auth.presentation.error_mapper import setup_auth_error_handlers
 from src.core_context.auth.presentation.oauth_routes import router as oauth_router
 from src.core_context.auth.presentation.routes import router as auth_router
 from src.core_context.gamification.application.event_handlers import register_gamification_handlers
 from src.core_context.nutrition.application.event_handlers import register_nutrition_event_handlers
 from src.core_context.nutrition.application.integration_publishers import register_nutrition_integration_publishers
-from src.core_context.nutrition.infrastructure.audit_service import LoggingNutritionAuditService
 from src.core_context.nutrition.infrastructure.diary_directory import SqlMealEntryQueries
 from src.core_context.nutrition.presentation.error_mapper import setup_nutrition_error_handlers
 from src.core_context.nutrition.presentation.routers import router as nutrition_router
@@ -61,9 +58,9 @@ async def lifespan(app: FastAPI):
         SqlMealEntryQueries(async_session_factory),
         RedisDailyClaimStore(),
     )
-    register_nutrition_event_handlers(event_bus, LoggingNutritionAuditService())
-    register_auth_event_handlers(event_bus, LoggingAuthAuditService())
-    register_activity_event_handlers(event_bus, LoggingActivityAuditService())
+    register_nutrition_event_handlers(event_bus)
+    register_auth_event_handlers(event_bus)
+    register_activity_event_handlers(event_bus)
 
     configure_audit_handlers(async_session_factory)
     register_audit_handlers(event_bus)
