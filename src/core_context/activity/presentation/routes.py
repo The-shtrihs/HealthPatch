@@ -102,8 +102,7 @@ from src.core_context.activity.presentation.schemas import (
     UpsertPersonalRecordRequest,
     WorkoutPlanListResponse,
 )
-from src.core_context.auth.contracts.dependencies import get_current_user
-from src.core_context.auth.contracts.dependencies import CurrentUser
+from src.core_context.auth.contracts.dependencies import CurrentUser, get_current_user
 
 router = APIRouter(prefix="/workouts", tags=["Workouts"])
 
