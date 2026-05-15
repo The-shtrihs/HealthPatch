@@ -1,18 +1,13 @@
+from __future__ import annotations
+
 from datetime import datetime
 from enum import StrEnum
-from typing import TYPE_CHECKING
 
 from sqlalchemy import Boolean, DateTime, Float, ForeignKey, Integer, String
 from sqlalchemy import Enum as SQLAlchemyEnum
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from src.core.base import Base, IsActiveMixin, TimestampMixin
-
-if TYPE_CHECKING:
-    from src.core_context.activity.infrastructure.orm import PersonalRecord, WorkoutPlan, WorkoutSession
-    from src.core_context.gamification.infrastructure.orm import GamificationProfile
-    from src.core_context.nutrition.infrastructure.orm import DailyDiary
-    from src.models.social import Bookmark, Comment, Like
 
 
 class FitnessGoal(StrEnum):

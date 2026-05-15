@@ -4,6 +4,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 
 import src.core.redis as redis_module
+import src.models  # noqa: F401  registers every ORM class with the SQLAlchemy mapper
 from src.analytics_context.audit.application.handlers import configure as configure_audit_handlers
 from src.analytics_context.audit.application.handlers import register_audit_handlers
 from src.analytics_context.audit.presentation.routes import router as analytics_audit_router

@@ -3,6 +3,7 @@ from typing import Any
 
 from arq.connections import RedisSettings
 
+import src.models  # noqa: F401  registers every ORM class with the SQLAlchemy mapper
 from src.analytics_context.audit.application import handlers as audit_handlers
 from src.analytics_context.projections.activity_history import handlers as activity_history_handlers
 from src.core.config import get_settings
