@@ -3,7 +3,7 @@ from unittest.mock import AsyncMock
 
 import pytest
 
-from src.activity.application.commands import (
+from src.core_context.activity.application.commands import (
     AddExerciseToSessionCommand,
     AddTrainingCommand,
     CreateExerciseCommand,
@@ -19,20 +19,20 @@ from src.activity.application.commands import (
     UpdateWorkoutPlanCommand,
     UpsertPersonalRecordCommand,
 )
-from src.activity.application.event_handlers import register_activity_event_handlers
-from src.activity.application.handlers.add_exercise_to_session import AddExerciseToSessionCommandHandler
-from src.activity.application.handlers.add_training import AddTrainingCommandHandler
-from src.activity.application.handlers.create_exercise import CreateExerciseCommandHandler
-from src.activity.application.handlers.create_muscle_group import CreateMuscleGroupCommandHandler
-from src.activity.application.handlers.create_workout_plan import CreateWorkoutPlanCommandHandler
-from src.activity.application.handlers.delete_personal_record import DeletePersonalRecordCommandHandler
-from src.activity.application.handlers.delete_workout_plan import DeleteWorkoutPlanCommandHandler
-from src.activity.application.handlers.end_session import EndSessionCommandHandler
-from src.activity.application.handlers.log_set import LogSetCommandHandler
-from src.activity.application.handlers.start_session import StartSessionCommandHandler
-from src.activity.application.handlers.update_workout_plan import UpdateWorkoutPlanCommandHandler
-from src.activity.application.handlers.upsert_personal_record import UpsertPersonalRecordCommandHandler
-from src.activity.domain.errors import (
+from src.core_context.activity.application.event_handlers import register_activity_event_handlers
+from src.core_context.activity.application.handlers.add_exercise_to_session import AddExerciseToSessionCommandHandler
+from src.core_context.activity.application.handlers.add_training import AddTrainingCommandHandler
+from src.core_context.activity.application.handlers.create_exercise import CreateExerciseCommandHandler
+from src.core_context.activity.application.handlers.create_muscle_group import CreateMuscleGroupCommandHandler
+from src.core_context.activity.application.handlers.create_workout_plan import CreateWorkoutPlanCommandHandler
+from src.core_context.activity.application.handlers.delete_personal_record import DeletePersonalRecordCommandHandler
+from src.core_context.activity.application.handlers.delete_workout_plan import DeleteWorkoutPlanCommandHandler
+from src.core_context.activity.application.handlers.end_session import EndSessionCommandHandler
+from src.core_context.activity.application.handlers.log_set import LogSetCommandHandler
+from src.core_context.activity.application.handlers.start_session import StartSessionCommandHandler
+from src.core_context.activity.application.handlers.update_workout_plan import UpdateWorkoutPlanCommandHandler
+from src.core_context.activity.application.handlers.upsert_personal_record import UpsertPersonalRecordCommandHandler
+from src.core_context.activity.domain.errors import (
     ExerciseNotFoundError,
     InvalidPlanTitleError,
     InvalidRepsError,
@@ -47,15 +47,15 @@ from src.activity.domain.errors import (
     WorkoutPlanNotFoundError,
     WorkoutSessionNotFoundError,
 )
-from src.activity.domain.events import ActivityEvent
-from src.activity.domain.factory import (
+from src.core_context.activity.domain.events import ActivityEvent
+from src.core_context.activity.domain.factory import (
     PersonalRecordFactory,
     WorkoutPlanFactory,
     WorkoutSessionFactory,
     WorkoutSetFactory,
 )
-from src.activity.domain.interfaces import IActivityRepository, IActivityUnitOfWork
-from src.activity.domain.models import (
+from src.core_context.activity.domain.interfaces import IActivityRepository, IActivityUnitOfWork
+from src.core_context.activity.domain.models import (
     ExerciseDomain,
     ExerciseSessionDomain,
     MuscleGroupDomain,
@@ -71,7 +71,7 @@ from src.activity.domain.models import (
     WorkoutSessionDomain,
     WorkoutSetDomain,
 )
-from src.activity.infrastructure.audit_service import LoggingActivityAuditService
+from src.core_context.activity.infrastructure.audit_service import LoggingActivityAuditService
 from src.shared.infrastructure.in_memory_event_bus import InMemoryEventBus
 
 
@@ -461,7 +461,7 @@ class TestWorkoutSetFactory:
 class TestWorkoutSessionFactory:
     async def test_rejects_unknown_training(self, repo: FakeActivityRepository):
         f = WorkoutSessionFactory(repo)
-        from src.activity.domain.errors import PlanTrainingNotFoundError
+        from src.core_context.activity.domain.errors import PlanTrainingNotFoundError
 
         with pytest.raises(PlanTrainingNotFoundError):
             await f.start(user_id=1, plan_training_id=999, at=datetime.now(UTC))

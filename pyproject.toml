@@ -46,6 +46,7 @@ env_files = [".env.test"]
 dev = [
     "fakeredis>=2.34.1",
     "httpx>=0.28.1",
+    "import-linter>=2.1",
     "pytest>=9.0.2",
     "pytest-asyncio>=1.3.0",
     "pytest-cov>=7.1.0",
@@ -53,3 +54,67 @@ dev = [
     "pytest-sugar>=1.1.1",
     "ruff>=0.15.5",
 ]
+
+[tool.importlinter]
+root_package = "src"
+
+[[tool.importlinter.contracts]]
+name = "auth must not import other modules' private layers"
+type = "forbidden"
+source_modules = ["src.core_context.auth"]
+forbidden_modules = [
+    "src.core_context.user.domain", "src.core_context.user.application", "src.core_context.user.infrastructure", "src.core_context.user.presentation",
+    "src.core_context.activity.domain", "src.core_context.activity.application", "src.core_context.activity.infrastructure", "src.core_context.activity.presentation",
+    "src.core_context.nutrition.domain", "src.core_context.nutrition.application", "src.core_context.nutrition.infrastructure", "src.core_context.nutrition.presentation",
+    "src.core_context.gamification.domain", "src.core_context.gamification.application", "src.core_context.gamification.infrastructure", "src.core_context.gamification.presentation",
+]
+
+[[tool.importlinter.contracts]]
+name = "user must not import other modules' private layers"
+type = "forbidden"
+source_modules = ["src.core_context.user"]
+forbidden_modules = [
+    "src.core_context.auth.domain", "src.core_context.auth.application", "src.core_context.auth.infrastructure", "src.core_context.auth.presentation",
+    "src.core_context.activity.domain", "src.core_context.activity.application", "src.core_context.activity.infrastructure", "src.core_context.activity.presentation",
+    "src.core_context.nutrition.domain", "src.core_context.nutrition.application", "src.core_context.nutrition.infrastructure", "src.core_context.nutrition.presentation",
+    "src.core_context.gamification.domain", "src.core_context.gamification.application", "src.core_context.gamification.infrastructure", "src.core_context.gamification.presentation",
+]
+
+[[tool.importlinter.contracts]]
+name = "activity must not import other modules' private layers"
+type = "forbidden"
+source_modules = ["src.core_context.activity"]
+forbidden_modules = [
+    "src.core_context.auth.domain", "src.core_context.auth.application", "src.core_context.auth.infrastructure", "src.core_context.auth.presentation",
+    "src.core_context.user.domain", "src.core_context.user.application", "src.core_context.user.infrastructure", "src.core_context.user.presentation",
+    "src.core_context.nutrition.domain", "src.core_context.nutrition.application", "src.core_context.nutrition.infrastructure", "src.core_context.nutrition.presentation",
+    "src.core_context.gamification.domain", "src.core_context.gamification.application", "src.core_context.gamification.infrastructure", "src.core_context.gamification.presentation",
+]
+
+[[tool.importlinter.contracts]]
+name = "nutrition must not import other modules' private layers"
+type = "forbidden"
+source_modules = ["src.core_context.nutrition"]
+forbidden_modules = [
+    "src.core_context.auth.domain", "src.core_context.auth.application", "src.core_context.auth.infrastructure", "src.core_context.auth.presentation",
+    "src.core_context.user.domain", "src.core_context.user.application", "src.core_context.user.infrastructure", "src.core_context.user.presentation",
+    "src.core_context.activity.domain", "src.core_context.activity.application", "src.core_context.activity.infrastructure", "src.core_context.activity.presentation",
+    "src.core_context.gamification.domain", "src.core_context.gamification.application", "src.core_context.gamification.infrastructure", "src.core_context.gamification.presentation",
+]
+
+[[tool.importlinter.contracts]]
+name = "gamification must not import other modules' private layers"
+type = "forbidden"
+source_modules = ["src.core_context.gamification"]
+forbidden_modules = [
+    "src.core_context.auth.domain", "src.core_context.auth.application", "src.core_context.auth.infrastructure", "src.core_context.auth.presentation",
+    "src.core_context.user.domain", "src.core_context.user.application", "src.core_context.user.infrastructure", "src.core_context.user.presentation",
+    "src.core_context.activity.domain", "src.core_context.activity.application", "src.core_context.activity.infrastructure", "src.core_context.activity.presentation",
+    "src.core_context.nutrition.domain", "src.core_context.nutrition.application", "src.core_context.nutrition.infrastructure", "src.core_context.nutrition.presentation",
+]
+
+[[tool.importlinter.contracts]]
+name = "Core may not import Analytics"
+type = "forbidden"
+source_modules = ["src.core_context"]
+forbidden_modules = ["src.analytics_context"]

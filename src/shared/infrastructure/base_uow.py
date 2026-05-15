@@ -2,6 +2,8 @@ from typing import Any
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from src.shared.contracts.integration_event import IntegrationEvent
+
 
 class BaseUnitOfWork:
     def __init__(self, session: AsyncSession):
@@ -9,11 +11,9 @@ class BaseUnitOfWork:
         self._owns_transaction = False
         self._nested_transaction = None
         self.events: list[Any] = []
+        self.integration_events: list[IntegrationEvent] = []
 
     async def __aenter__(self):
-        # Tests and some integration flows may provide a session that already has
-        # an open transaction. In that case we use a savepoint instead of opening
-        # a second root transaction.
         self._owns_transaction = not self._session.in_transaction()
         if self._owns_transaction:
             await self._session.begin()
@@ -26,6 +26,7 @@ class BaseUnitOfWork:
             if exc_type is not None:
                 await self._session.rollback()
                 self.events.clear()
+                self.integration_events.clear()
             else:
                 await self._session.commit()
             return
@@ -36,6 +37,7 @@ class BaseUnitOfWork:
         if exc_type is not None:
             await self._nested_transaction.rollback()
             self.events.clear()
+            self.integration_events.clear()
         else:
             await self._nested_transaction.commit()
 
@@ -44,3 +46,6 @@ class BaseUnitOfWork:
 
     async def rollback(self):
         await self._session.rollback()
+
+    def add_integration_event(self, event: IntegrationEvent) -> None:
+        self.integration_events.append(event)

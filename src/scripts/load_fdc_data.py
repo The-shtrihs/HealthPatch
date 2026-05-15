@@ -8,7 +8,7 @@ from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.ext.asyncio import create_async_engine
 
 from src.core.config import get_settings
-from src.models.nutrition import Food, FoodPortion
+from src.core_context.nutrition.infrastructure.orm import Food, FoodPortion
 
 FOOD_BATCH_SIZE = 3500
 PORTION_BATCH_SIZE = 7000

@@ -3,25 +3,25 @@ from unittest.mock import AsyncMock
 
 import pytest
 
-from src.nutrition.application.commands import AddMealEntryCommand, DeleteMealEntryCommand, UpdateDailyDiaryCommand
-from src.nutrition.application.handlers.add_meal_entry import AddMealEntryCommandHandler
-from src.nutrition.application.handlers.delete_meal_entry import DeleteMealEntryCommandHandler
-from src.nutrition.application.handlers.get_daily_norm import GetDailyNormQueryHandler
-from src.nutrition.application.handlers.get_day_overview import GetDayOverviewQueryHandler
-from src.nutrition.application.handlers.update_daily_diary import UpdateDailyDiaryCommandHandler
-from src.nutrition.application.queries import GetDailyNormQuery, GetDayOverviewQuery
-from src.nutrition.domain.calculations import calculate_daily_norm
-from src.nutrition.domain.errors import (
+from src.core_context.nutrition.application.commands import AddMealEntryCommand, DeleteMealEntryCommand, UpdateDailyDiaryCommand
+from src.core_context.nutrition.application.handlers.add_meal_entry import AddMealEntryCommandHandler
+from src.core_context.nutrition.application.handlers.delete_meal_entry import DeleteMealEntryCommandHandler
+from src.core_context.nutrition.application.handlers.get_daily_norm import GetDailyNormQueryHandler
+from src.core_context.nutrition.application.handlers.get_day_overview import GetDayOverviewQueryHandler
+from src.core_context.nutrition.application.handlers.update_daily_diary import UpdateDailyDiaryCommandHandler
+from src.core_context.nutrition.application.queries import GetDailyNormQuery, GetDayOverviewQuery
+from src.core_context.nutrition.domain.calculations import calculate_daily_norm
+from src.core_context.nutrition.domain.errors import (
     IncompleteNutritionProfileError,
     InvalidMealEntryError,
     MealEntryNotFoundError,
     NutritionProfileNotFoundError,
 )
-from src.nutrition.domain.events import DailyDiaryUpdatedEvent, MealEntryAddedEvent, MealEntryDeletedEvent
-from src.nutrition.domain.interfaces import INutritionReadRepository, INutritionRepository
-from src.nutrition.domain.models import MacroTotalsDomain, NutritionProfileDomain
+from src.core_context.nutrition.domain.events import DailyDiaryUpdatedEvent, MealEntryAddedEvent, MealEntryDeletedEvent
+from src.core_context.nutrition.domain.interfaces import INutritionReadRepository, INutritionRepository
+from src.core_context.nutrition.domain.models import MacroTotalsDomain, NutritionProfileDomain
+from src.core_context.user.domain.models import FitnessGoal, Gender
 from src.shared.infrastructure.event_bus_interface import IEventBus
-from src.user.domain.models import FitnessGoal, Gender
 
 
 @pytest.fixture

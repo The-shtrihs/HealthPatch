@@ -1,0 +1,42 @@
+from fastapi import Depends
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from src.core.database import get_session
+from src.core_context.user.application.handlers.delete_account import DeleteAccountCommandHandler
+from src.core_context.user.application.handlers.get_profile import GetMyProfileQueryHandler
+from src.core_context.user.application.handlers.update_fitness import UpdateFitnessCommandHandler
+from src.core_context.user.application.handlers.update_user_info import UpdateUserInfoCommandHandler
+from src.core_context.user.infrastructure.read_repository import SqlAlchemyUserProfileReadRepository
+from src.core_context.user.infrastructure.repositories import SqlAlchemyUserProfileRepository
+
+
+async def get_repo(db: AsyncSession = Depends(get_session)) -> SqlAlchemyUserProfileRepository:
+    return SqlAlchemyUserProfileRepository(db)
+
+
+async def get_read_repo(db: AsyncSession = Depends(get_session)) -> SqlAlchemyUserProfileReadRepository:
+    return SqlAlchemyUserProfileReadRepository(db)
+
+
+async def get_get_profile_handler(
+    read_repo: SqlAlchemyUserProfileReadRepository = Depends(get_read_repo),
+) -> GetMyProfileQueryHandler:
+    return GetMyProfileQueryHandler(read_repo)
+
+
+async def get_update_user_info_handler(
+    repo: SqlAlchemyUserProfileRepository = Depends(get_repo),
+) -> UpdateUserInfoCommandHandler:
+    return UpdateUserInfoCommandHandler(repo)
+
+
+async def get_update_fitness_handler(
+    repo: SqlAlchemyUserProfileRepository = Depends(get_repo),
+) -> UpdateFitnessCommandHandler:
+    return UpdateFitnessCommandHandler(repo)
+
+
+async def get_delete_account_handler(
+    repo: SqlAlchemyUserProfileRepository = Depends(get_repo),
+) -> DeleteAccountCommandHandler:
+    return DeleteAccountCommandHandler(repo)

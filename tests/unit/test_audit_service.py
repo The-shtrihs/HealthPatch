@@ -4,9 +4,9 @@ from unittest.mock import AsyncMock
 
 import pytest
 
-from src.activity.application.audit_service import IActivityAuditService
-from src.activity.application.event_handlers import register_activity_event_handlers
-from src.activity.domain.events import WorkoutPlanCreated, WorkoutSessionStarted
+from src.core_context.activity.application.audit_service import IActivityAuditService
+from src.core_context.activity.application.event_handlers import register_activity_event_handlers
+from src.core_context.activity.domain.events import WorkoutPlanCreated, WorkoutSessionStarted
 from src.shared.infrastructure.in_memory_event_bus import InMemoryEventBus
 
 
@@ -57,8 +57,8 @@ class TestAsyncAuditPath:
 @pytest.mark.asyncio
 class TestSyncAuditPath:
     async def test_start_session_sync_audit_called_after_persist(self) -> None:
-        from src.activity.application.commands import StartSessionCommand
-        from src.activity.application.handlers.start_session import StartSessionCommandHandler
+        from src.core_context.activity.application.commands import StartSessionCommand
+        from src.core_context.activity.application.handlers.start_session import StartSessionCommandHandler
         from tests.unit.test_activity import FakeActivityRepository, FakeUnitOfWork
 
         repo = FakeActivityRepository()
@@ -77,8 +77,8 @@ class TestSyncAuditPath:
         assert rec.user_id == 42
 
     async def test_start_session_swallows_audit_failures(self) -> None:
-        from src.activity.application.commands import StartSessionCommand
-        from src.activity.application.handlers.start_session import StartSessionCommandHandler
+        from src.core_context.activity.application.commands import StartSessionCommand
+        from src.core_context.activity.application.handlers.start_session import StartSessionCommandHandler
         from tests.unit.test_activity import FakeActivityRepository, FakeUnitOfWork
 
         repo = FakeActivityRepository()

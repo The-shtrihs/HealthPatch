@@ -1,5 +1,7 @@
+from src.analytics_context.audit.infrastructure.orm import AuditEntryORM
+from src.analytics_context.projections.activity_history.orm import ActivityHistoryEntry
 from src.core.base import Base
-from src.models.activity import (
+from src.core_context.activity.infrastructure.orm import (
     Exercise,
     ExerciseMuscleGroup,
     ExerciseSession,
@@ -12,10 +14,10 @@ from src.models.activity import (
     WorkoutSession,
     WorkoutSet,
 )
-from src.models.gamification import GamificationProfile
-from src.models.nutrition import DailyDiary, Food, MealEntry
+from src.core_context.gamification.infrastructure.orm import GamificationProfile
+from src.core_context.nutrition.infrastructure.orm import DailyDiary, Food, MealEntry
+from src.core_context.user.infrastructure.orm import RefreshToken, User, UserProfile
 from src.models.social import Bookmark, Comment, Like
-from src.models.user import RefreshToken, User, UserProfile
 
 __all__ = [
     "Base",
@@ -40,4 +42,6 @@ __all__ = [
     "Comment",
     "Like",
     "GamificationProfile",
+    "AuditEntryORM",
+    "ActivityHistoryEntry",
 ]

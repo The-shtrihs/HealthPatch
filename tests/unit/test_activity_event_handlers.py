@@ -2,8 +2,8 @@ from datetime import UTC, datetime
 
 import pytest
 
-from src.activity.application.event_handlers import register_activity_event_handlers
-from src.activity.domain.events import (
+from src.core_context.activity.application.event_handlers import register_activity_event_handlers
+from src.core_context.activity.domain.events import (
     PersonalRecordBeaten,
     WorkoutPlanCreated,
     WorkoutPlanDeleted,
@@ -11,7 +11,7 @@ from src.activity.domain.events import (
     WorkoutSessionEnded,
     WorkoutSessionStarted,
 )
-from src.activity.infrastructure.audit_service import LoggingActivityAuditService
+from src.core_context.activity.infrastructure.audit_service import LoggingActivityAuditService
 from src.shared.infrastructure.in_memory_event_bus import InMemoryEventBus
 
 
@@ -100,7 +100,7 @@ class TestActivityEventHandlers:
         assert "plan_id=5" in caplog.text
 
     async def test_unrelated_event_does_not_raise(self, bus: InMemoryEventBus):
-        from src.activity.domain.events import SetLogged
+        from src.core_context.activity.domain.events import SetLogged
 
         event = SetLogged(
             set_id=1,
@@ -119,9 +119,9 @@ class TestActivityEventHandlers:
 class TestLogSetDispatchesEvents:
     async def test_log_set_publishes_set_logged(self):
 
-        from src.activity.application.commands import LogSetCommand
-        from src.activity.application.handlers.log_set import LogSetCommandHandler
-        from src.activity.domain.events import SetLogged
+        from src.core_context.activity.application.commands import LogSetCommand
+        from src.core_context.activity.application.handlers.log_set import LogSetCommandHandler
+        from src.core_context.activity.domain.events import SetLogged
         from tests.unit.test_activity import FakeActivityRepository, FakeUnitOfWork
 
         repo = FakeActivityRepository()
@@ -146,9 +146,9 @@ class TestLogSetDispatchesEvents:
         assert received[0].weight_kg == 80.0
 
     async def test_log_set_publishes_personal_record_beaten_on_new_pr(self):
-        from src.activity.application.commands import LogSetCommand
-        from src.activity.application.handlers.log_set import LogSetCommandHandler
-        from src.activity.domain.events import PersonalRecordBeaten
+        from src.core_context.activity.application.commands import LogSetCommand
+        from src.core_context.activity.application.handlers.log_set import LogSetCommandHandler
+        from src.core_context.activity.domain.events import PersonalRecordBeaten
         from tests.unit.test_activity import FakeActivityRepository, FakeUnitOfWork
 
         repo = FakeActivityRepository()
@@ -176,9 +176,9 @@ class TestLogSetDispatchesEvents:
     async def test_log_set_no_pr_event_when_weight_not_higher(self):
         from datetime import UTC, datetime
 
-        from src.activity.application.commands import LogSetCommand
-        from src.activity.application.handlers.log_set import LogSetCommandHandler
-        from src.activity.domain.events import PersonalRecordBeaten
+        from src.core_context.activity.application.commands import LogSetCommand
+        from src.core_context.activity.application.handlers.log_set import LogSetCommandHandler
+        from src.core_context.activity.domain.events import PersonalRecordBeaten
         from tests.unit.test_activity import FakeActivityRepository, FakeUnitOfWork
 
         repo = FakeActivityRepository()

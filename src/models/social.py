@@ -7,8 +7,8 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from src.core.base import Base, TimestampMixin
 
 if TYPE_CHECKING:
-    from src.models.activity import WorkoutPlan
-    from src.models.user import User
+    from src.core_context.activity.infrastructure.orm import WorkoutPlan
+    from src.core_context.user.infrastructure.orm import User
 
 
 class Comment(Base, TimestampMixin):

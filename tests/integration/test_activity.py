@@ -6,7 +6,7 @@ from httpx import AsyncClient
 from sqlalchemy import update
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.models.user import User
+from src.core_context.user.infrastructure.orm import User
 
 pytestmark = pytest.mark.asyncio
 

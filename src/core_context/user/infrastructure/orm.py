@@ -1,0 +1,86 @@
+from datetime import datetime
+from enum import StrEnum
+from typing import TYPE_CHECKING
+
+from sqlalchemy import Boolean, DateTime, Float, ForeignKey, Integer, String
+from sqlalchemy import Enum as SQLAlchemyEnum
+from sqlalchemy.orm import Mapped, mapped_column, relationship
+
+from src.core.base import Base, IsActiveMixin, TimestampMixin
+
+if TYPE_CHECKING:
+    from src.core_context.activity.infrastructure.orm import PersonalRecord, WorkoutPlan, WorkoutSession
+    from src.core_context.gamification.infrastructure.orm import GamificationProfile
+    from src.core_context.nutrition.infrastructure.orm import DailyDiary
+    from src.models.social import Bookmark, Comment, Like
+
+
+class FitnessGoal(StrEnum):
+    WEIGHT_LOSS = "weight loss"
+    MUSCLE_GAIN = "muscle gain"
+    STRENGTH_BUILDING = "strength building"
+    ENDURANCE = "endurance"
+
+
+class Gender(StrEnum):
+    MALE = "male"
+    FEMALE = "female"
+
+
+class User(Base, TimestampMixin, IsActiveMixin):
+    __tablename__ = "user"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    name: Mapped[str] = mapped_column(String(255), nullable=False)
+    email: Mapped[str] = mapped_column(String(255), unique=True, nullable=False)
+    password_hash: Mapped[str | None] = mapped_column(String(255), nullable=True, default=None)
+    is_verified: Mapped[bool] = mapped_column(default=False, nullable=False)
+    oauth_provider: Mapped[str | None] = mapped_column(String(20), default=None)
+    oauth_provider_id: Mapped[str | None] = mapped_column(String(255), default=None)
+    avatar_url: Mapped[str | None] = mapped_column(String(500), default=None)
+    totp_secret: Mapped[str | None] = mapped_column(String(32), default=None)
+    is_2fa_enabled: Mapped[bool] = mapped_column(Boolean, default=False)
+
+    profile: Mapped["UserProfile"] = relationship(back_populates="user", uselist=False, cascade="all, delete-orphan")
+
+    workout_plans: Mapped[list["WorkoutPlan"]] = relationship(back_populates="author", cascade="all, delete-orphan")
+    comments: Mapped[list["Comment"]] = relationship(back_populates="user", cascade="all, delete-orphan")
+    likes: Mapped[list["Like"]] = relationship(back_populates="user", cascade="all, delete-orphan")
+    bookmarks: Mapped[list["Bookmark"]] = relationship(back_populates="user", cascade="all, delete-orphan")
+
+    workout_sessions: Mapped[list["WorkoutSession"]] = relationship(back_populates="user", cascade="all, delete-orphan")
+    personal_records: Mapped[list["PersonalRecord"]] = relationship(back_populates="user", cascade="all, delete-orphan")
+    daily_diaries: Mapped[list["DailyDiary"]] = relationship(back_populates="user", cascade="all, delete-orphan")
+    refresh_tokens: Mapped[list["RefreshToken"]] = relationship(back_populates="user", cascade="all, delete-orphan")
+    gamification_profile: Mapped["GamificationProfile"] = relationship(
+        back_populates="user",
+        uselist=False,
+        cascade="all, delete-orphan",
+        lazy="noload",
+    )
+
+
+class UserProfile(Base):
+    __tablename__ = "user_profile"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("user.id", ondelete="CASCADE"), unique=True, nullable=False)
+    weight: Mapped[float | None] = mapped_column(Float)
+    height: Mapped[float | None] = mapped_column(Float)
+    age: Mapped[int | None] = mapped_column(Integer)
+    gender: Mapped[Gender | None] = mapped_column(SQLAlchemyEnum(Gender))
+    fitness_goal: Mapped[FitnessGoal | None] = mapped_column(SQLAlchemyEnum(FitnessGoal))
+
+    user: Mapped["User"] = relationship(back_populates="profile")
+
+
+class RefreshToken(Base, TimestampMixin):
+    __tablename__ = "refresh_token"
+    id: Mapped[int] = mapped_column(primary_key=True)
+    token: Mapped[str] = mapped_column(String(500), unique=True, index=True)
+    user_id: Mapped[int] = mapped_column(Integer, ForeignKey("user.id"))
+    expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    is_revoked: Mapped[bool] = mapped_column(Boolean, default=False)
+    device_info: Mapped[str | None] = mapped_column(String(500), default=None)
+
+    user: Mapped["User"] = relationship(back_populates="refresh_tokens")
