@@ -1,0 +1,38 @@
+from datetime import UTC, datetime
+
+from src.core_context.activity.application.commands import UpsertPersonalRecordCommand
+from src.core_context.activity.domain.events import PersonalRecordUpserted
+from src.core_context.activity.domain.factory import PersonalRecordFactory
+from src.core_context.activity.domain.interfaces import IActivityUnitOfWork
+
+
+class UpsertPersonalRecordCommandHandler:
+    def __init__(self, uow: IActivityUnitOfWork):
+        self._uow = uow
+
+    async def handle(self, cmd: UpsertPersonalRecordCommand) -> int:
+        async with self._uow:
+            factory = PersonalRecordFactory(self._uow.repo)
+            await factory.upsert(
+                user_id=cmd.user_id,
+                exercise_id=cmd.exercise_id,
+                weight=cmd.weight,
+                at=datetime.now(UTC),
+            )
+            recorded_at = datetime.now(UTC)
+            pr = await self._uow.repo.upsert_personal_record(
+                user_id=cmd.user_id,
+                exercise_id=cmd.exercise_id,
+                weight=cmd.weight,
+                recorded_at=recorded_at,
+            )
+            self._uow.events.append(
+                PersonalRecordUpserted(
+                    pr_id=pr.id,
+                    user_id=cmd.user_id,
+                    exercise_id=cmd.exercise_id,
+                    weight_kg=cmd.weight,
+                    recorded_at=recorded_at,
+                )
+            )
+        return pr.id

@@ -3,8 +3,8 @@ from httpx import AsyncClient
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.models.nutrition import Food
-from src.models.user import FitnessGoal, Gender, User, UserProfile
+from src.core_context.nutrition.infrastructure.orm import Food
+from src.core_context.user.infrastructure.orm import FitnessGoal, Gender, User, UserProfile
 
 
 async def _get_test_user(db_session: AsyncSession) -> User:

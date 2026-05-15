@@ -12,5 +12,12 @@ async def dispatch_domain_events(uow: BaseUnitOfWork, bus: IEventBus) -> None:
     uow.events.clear()
 
     for event in events:
-        logger.debug("Dispatching %s", type(event).__name__)
+        await bus.publish(event)
+
+
+async def dispatch_integration_events(uow: BaseUnitOfWork, bus: IEventBus) -> None:
+    events = list(uow.integration_events)
+    uow.integration_events.clear()
+
+    for event in events:
         await bus.publish(event)

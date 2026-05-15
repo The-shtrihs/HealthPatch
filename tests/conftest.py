@@ -6,20 +6,17 @@ from httpx import ASGITransport, AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 from sqlalchemy.pool import NullPool
 
-from src.activity.application.event_handlers import register_activity_event_handlers
-from src.activity.infrastructure.audit_service import LoggingActivityAuditService
-from src.auth.application.event_handlers import register_auth_event_handlers
-from src.auth.infrastructure.audit_service import LoggingAuthAuditService
-from src.auth.presentation.dependencies import get_mail_service
 from src.core.base import Base
 from src.core.config import get_settings
 from src.core.database import get_session
 from src.core.dependencies import get_event_bus
 from src.core.main import app
 from src.core.redis import get_redis
-from src.gamification.application.event_handlers import register_gamification_handlers
-from src.nutrition.application.event_handlers import register_nutrition_event_handlers
-from src.nutrition.infrastructure.audit_service import LoggingNutritionAuditService
+from src.core_context.activity.application.event_handlers import register_activity_event_handlers
+from src.core_context.auth.application.event_handlers import register_auth_event_handlers
+from src.core_context.auth.presentation.dependencies import get_mail_service
+from src.core_context.gamification.application.event_handlers import register_gamification_handlers
+from src.core_context.nutrition.application.event_handlers import register_nutrition_event_handlers
 from src.shared.infrastructure.daily_claim_store import DailyClaimStore
 from src.shared.infrastructure.event_bus import EventBus
 
@@ -73,13 +70,18 @@ class FakeDailyClaimStore(DailyClaimStore):
         return True
 
 
+class FakeMealEntryQueries:
+    async def count_for_day(self, user_id: int, day) -> int:
+        return 0
+
+
 @pytest_asyncio.fixture
 async def fake_event_bus():
     bus = EventBus()
-    register_gamification_handlers(bus, session_factory, FakeDailyClaimStore())
-    register_nutrition_event_handlers(bus, LoggingNutritionAuditService())
-    register_auth_event_handlers(bus, LoggingAuthAuditService())
-    register_activity_event_handlers(bus, LoggingActivityAuditService())
+    register_gamification_handlers(bus, session_factory, FakeMealEntryQueries(), FakeDailyClaimStore())
+    register_nutrition_event_handlers(bus)
+    register_auth_event_handlers(bus)
+    register_activity_event_handlers(bus)
     bus.arq_pool = AsyncMock()
     return bus
 
@@ -124,7 +126,7 @@ async def registered_user(client: AsyncClient) -> dict:
 async def auth_headers(client: AsyncClient, registered_user, db_session) -> dict:
     from sqlalchemy import update
 
-    from src.models.user import User
+    from src.core_context.user.infrastructure.orm import User
 
     await db_session.execute(update(User).where(User.email == registered_user["email"]).values(is_verified=True))
     await db_session.commit()

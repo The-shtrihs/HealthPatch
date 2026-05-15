@@ -127,19 +127,41 @@ The system has 6 isolated domains, each owned by a team member:
 
 | Domain | Status | Key Files |
 |--------|--------|-----------|
-| Identity & Auth | Implemented | `models/user.py`, `services/auth.py`, `services/oauth.py`, `routes/auth.py`, `routes/oauth.py` |
-| Activity & Workouts | Models defined | `models/activity.py`, `models/social.py` |
-| Nutrition & Diet | Implemented | `models/nutrition.py`, `services/nutrition.py`, `routes/nutrition.py` |
-| Social | Models defined | `models/social.py` |
-| Gamification (RPG) | Not started | - |
+| Identity & Auth | Implemented | `src/core_context/auth/` |
+| User Profile | Implemented | `src/core_context/user/` |
+| Activity & Workouts | Implemented | `src/core_context/activity/` |
+| Nutrition & Diet | Implemented | `src/core_context/nutrition/` |
+| Gamification (RPG) | Implemented | `src/core_context/gamification/` |
+| Analytics (audit + projections) | Implemented | `src/analytics_context/` |
 | AI Coach | Not started | - |
+
+## Module Boundaries (Lab 5 — Modular Monolith)
+
+The system is split into two macro-contexts:
+
+- **Core** (`src/core_context/`) — active business logic in 5 isolated modules.
+- **Analytics** (`src/analytics_context/`) — read-only consumer (audit log + projections).
+
+Rules (enforced by `import-linter`, see `[tool.importlinter]` in `pyproject.toml`):
+
+- Each module exposes ONLY its `contracts/` package (`dtos.py`, `events.py`, `ports.py`, `dependencies.py`).
+- Other modules MAY import from `src.core_context.<other>.contracts.*` only.
+- Other modules MAY NOT import from `<other>.domain`, `.application`, `.infrastructure`, `.presentation`.
+- Analytics may import from Core; Core may NOT import from Analytics.
+- Cross-module side-effects go through **integration events** on the shared `EventBus`. Subscribers register with `mode="sync"` (UX-critical, runs in-process) or `mode="async"` (queued via arq, executed by `src/workers/main_worker.py`).
+- ACL translators in `<module>/acl/` are the only place foreign contract types touch internal domain types.
+- Internal domain events stay inside the module; an `application/integration_publishers.py` republishes the relevant ones as public integration events.
+
+Run `uv run lint-imports` (or `pytest tests/integration/test_module_boundaries.py`) to check boundary compliance.
 
 ## Migrations
 
 - All schema changes via Alembic only (no manual DDL)
 - Migration files in `migrations/versions/`
 - `migrations/env.py` uses async engine and imports `Base` from `src.models`
-- New models MUST be imported in `src/models/__init__.py` for autogenerate to detect them
+- ORM models live in `src/core_context/<module>/infrastructure/orm.py` (Core) and `src/analytics_context/<context>/infrastructure/orm.py` (Analytics).
+- `src/models/__init__.py` is now ONLY a discovery aggregator for Alembic autogenerate — re-imports every ORM module so it sees them.
+- New ORM models MUST be re-exported in `src/models/__init__.py` for autogenerate to detect them.
 
 ## CI/CD
 

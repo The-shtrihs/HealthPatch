@@ -1,6 +1,6 @@
 import pytest
 
-from src.gamification.domain.xp_calculator import (
+from src.core_context.gamification.domain.xp_calculator import (
     calculate_daily_norm_xp,
     calculate_meal_add_xp,
     calculate_meal_update_xp,

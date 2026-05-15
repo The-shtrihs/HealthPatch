@@ -2,19 +2,19 @@ from unittest.mock import AsyncMock
 
 import pytest
 
-from src.user.application.commands import (
+from src.core_context.user.application.commands import (
     DeleteAccountCommand,
     UpdateFitnessCommand,
     UpdateUserInfoCommand,
 )
-from src.user.application.handlers.delete_account import DeleteAccountCommandHandler
-from src.user.application.handlers.get_profile import GetMyProfileQueryHandler
-from src.user.application.handlers.update_fitness import UpdateFitnessCommandHandler
-from src.user.application.handlers.update_user_info import UpdateUserInfoCommandHandler
-from src.user.application.queries import GetMyProfileQuery
-from src.user.application.read_models import FitnessReadModel, FullProfileReadModel
-from src.user.domain.errors import UserNotFoundError
-from src.user.domain.models import (
+from src.core_context.user.application.handlers.delete_account import DeleteAccountCommandHandler
+from src.core_context.user.application.handlers.get_profile import GetMyProfileQueryHandler
+from src.core_context.user.application.handlers.update_fitness import UpdateFitnessCommandHandler
+from src.core_context.user.application.handlers.update_user_info import UpdateUserInfoCommandHandler
+from src.core_context.user.application.queries import GetMyProfileQuery
+from src.core_context.user.application.read_models import FitnessReadModel, FullProfileReadModel
+from src.core_context.user.domain.errors import UserNotFoundError
+from src.core_context.user.domain.models import (
     FitnessGoal,
     FitnessProfileDomain,
     Gender,

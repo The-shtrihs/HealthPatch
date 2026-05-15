@@ -1,5 +1,5 @@
-from src.auth.infrastructure.token_cleaner import SqlAlchemyTokenCleaner
 from src.core.database import get_session
+from src.core_context.auth.infrastructure.token_cleaner import SqlAlchemyTokenCleaner
 
 
 async def clear_expired_tokens():

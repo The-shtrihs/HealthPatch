@@ -4,7 +4,8 @@ from unittest.mock import AsyncMock, MagicMock
 import jwt
 import pytest
 
-from src.auth.application.commands import (
+from src.core.config import get_settings
+from src.core_context.auth.application.commands import (
     ChangePasswordCommand,
     Confirm2FACommand,
     Disable2FACommand,
@@ -18,26 +19,26 @@ from src.auth.application.commands import (
     Verify2FAAndLoginCommand,
     VerifyEmailCommand,
 )
-from src.auth.application.handlers.change_password import ChangePasswordCommandHandler
-from src.auth.application.handlers.login import LoginCommandHandler
-from src.auth.application.handlers.refresh_token import RefreshTokenCommandHandler
-from src.auth.application.handlers.register import RegisterCommandHandler
-from src.auth.application.handlers.reset_password import (
+from src.core_context.auth.application.handlers.change_password import ChangePasswordCommandHandler
+from src.core_context.auth.application.handlers.login import LoginCommandHandler
+from src.core_context.auth.application.handlers.refresh_token import RefreshTokenCommandHandler
+from src.core_context.auth.application.handlers.register import RegisterCommandHandler
+from src.core_context.auth.application.handlers.reset_password import (
     ForgotPasswordCommandHandler,
     ResetPasswordCommandHandler,
 )
-from src.auth.application.handlers.two_factor import (
+from src.core_context.auth.application.handlers.two_factor import (
     Confirm2FACommandHandler,
     Disable2FACommandHandler,
     Enable2FACommandHandler,
     Verify2FAAndLoginCommandHandler,
 )
-from src.auth.application.handlers.verify_email import (
+from src.core_context.auth.application.handlers.verify_email import (
     ResendVerificationCommandHandler,
     VerifyEmailCommandHandler,
 )
-from src.auth.application.token_utils import PasswordUtils, TokenUtils
-from src.auth.domain.errors import (
+from src.core_context.auth.application.token_utils import PasswordUtils, TokenUtils
+from src.core_context.auth.domain.errors import (
     EmailAlreadyExistsError,
     EmailAlreadyVerifiedError,
     InvalidCredentialsError,
@@ -49,13 +50,12 @@ from src.auth.domain.errors import (
     UserInactiveError,
     UserNotFoundError,
 )
-from src.auth.domain.events import (
+from src.core_context.auth.domain.events import (
     PasswordResetRequestedEvent,
     UserRegisteredEvent,
     VerificationEmailRequestedEvent,
 )
-from src.auth.domain.models import RefreshTokenDomain, UserDomain
-from src.core.config import get_settings
+from src.core_context.auth.domain.models import RefreshTokenDomain, UserDomain
 
 _pw = PasswordUtils()
 
@@ -228,7 +228,7 @@ class TestTokenUtils:
 class TestRegisterCommandHandler:
     @pytest.fixture
     def handler(self, user_repo, event_bus):
-        return RegisterCommandHandler(user_repo, _pw, event_bus, AsyncMock())
+        return RegisterCommandHandler(user_repo, _pw, event_bus)
 
     @pytest.mark.asyncio
     async def test_register_success_creates_user(self, handler, user_repo, active_user):
