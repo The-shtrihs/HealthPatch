@@ -41,6 +41,7 @@ env_files = [".env.test"]
 
 [tool.ruff.lint.per-file-ignores]
 "migrations/*" = ["E501"]
+"src/core_context/user/infrastructure/orm.py" = ["F821", "UP037"]
 
 [dependency-groups]
 dev = [
