@@ -43,7 +43,7 @@ jobs:
             git pull --rebase origin ${{ github.head_ref || github.ref_name }} && 
             git push origin HEAD:${{ github.head_ref || github.ref_name }}
           )
-  test:
+ test:
     needs: lint-and-format
     runs-on: ubuntu-latest
     steps:
@@ -55,6 +55,7 @@ jobs:
       - name: Run Tests in Docker
         run: |
           docker compose -f docker-compose_test.yml up --build \
+            --progress=plain \
             --abort-on-container-exit \
             --exit-code-from test
 
