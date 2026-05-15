@@ -12,8 +12,4 @@ def test_modular_monolith_boundaries() -> None:
         text=True,
         check=False,
     )
-    assert result.returncode == 0, (
-        f"import-linter detected boundary violations:\n"
-        f"--- stdout ---\n{result.stdout}\n"
-        f"--- stderr ---\n{result.stderr}"
-    )
+    assert result.returncode == 0, f"import-linter detected boundary violations:\n--- stdout ---\n{result.stdout}\n--- stderr ---\n{result.stderr}"
