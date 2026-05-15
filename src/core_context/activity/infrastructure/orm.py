@@ -80,7 +80,9 @@ class PlanTraining(Base):
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     plan_id: Mapped[int] = mapped_column(ForeignKey("workout_plan.id", ondelete="CASCADE"), nullable=False)
     name: Mapped[str] = mapped_column(String(255), nullable=False)
-    weekday: Mapped[Weekday | None] = mapped_column(SQLAlchemyEnum(Weekday))
+    weekday: Mapped[Weekday | None] = mapped_column(
+        SQLAlchemyEnum(Weekday, values_callable=lambda obj: [e.value for e in obj])
+    )
     order_num: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
 
     plan: Mapped["WorkoutPlan"] = relationship(back_populates="trainings")
